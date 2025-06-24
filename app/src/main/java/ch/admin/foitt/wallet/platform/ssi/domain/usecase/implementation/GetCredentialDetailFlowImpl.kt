@@ -5,11 +5,11 @@ import ch.admin.foitt.wallet.platform.credential.domain.usecase.MapToCredentialD
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialClaimWithDisplays
 import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialClaimData
 import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialDetail
-import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialWithDisplaysAndClaimsRepositoryError
+import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialWithDisplaysAndClustersRepositoryError
 import ch.admin.foitt.wallet.platform.ssi.domain.model.GetCredentialDetailFlowError
 import ch.admin.foitt.wallet.platform.ssi.domain.model.MapToCredentialClaimDataError
 import ch.admin.foitt.wallet.platform.ssi.domain.model.toGetCredentialDetailFlowError
-import ch.admin.foitt.wallet.platform.ssi.domain.repository.CredentialWithDisplaysAndClaimsRepository
+import ch.admin.foitt.wallet.platform.ssi.domain.repository.CredentialWithDisplaysAndClustersRepository
 import ch.admin.foitt.wallet.platform.ssi.domain.usecase.GetCredentialDetailFlow
 import ch.admin.foitt.wallet.platform.ssi.domain.usecase.MapToCredentialClaimData
 import ch.admin.foitt.wallet.platform.utils.andThen
@@ -22,23 +22,26 @@ import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 class GetCredentialDetailFlowImpl @Inject constructor(
-    private val credentialWithDisplaysAndClaimsRepository: CredentialWithDisplaysAndClaimsRepository,
+    private val credentialWithDisplaysAndClustersRepository: CredentialWithDisplaysAndClustersRepository,
     private val mapToCredentialDisplayData: MapToCredentialDisplayData,
     private val mapToCredentialClaimData: MapToCredentialClaimData,
 ) : GetCredentialDetailFlow {
     override fun invoke(credentialId: Long): Flow<Result<CredentialDetail?, GetCredentialDetailFlowError>> =
-        credentialWithDisplaysAndClaimsRepository.getNullableCredentialWithDisplaysAndClaimsFlowById(credentialId)
-            .mapError(CredentialWithDisplaysAndClaimsRepositoryError::toGetCredentialDetailFlowError)
+        credentialWithDisplaysAndClustersRepository.getNullableCredentialWithDisplaysAndClustersFlowById(credentialId)
+            .mapError(CredentialWithDisplaysAndClustersRepositoryError::toGetCredentialDetailFlowError)
             .andThen { credentialDetail ->
                 coroutineBinding {
                     credentialDetail?.let {
+                        val cluster = it.clusters.first()
+
                         val credentialDisplayData = mapToCredentialDisplayData(
-                            credential = credentialDetail.credential,
-                            credentialDisplays = credentialDetail.credentialDisplays,
+                            credential = it.credential,
+                            credentialDisplays = it.credentialDisplays,
+                            claims = cluster.claims,
                         ).mapError(MapToCredentialDisplayDataError::toGetCredentialDetailFlowError)
                             .bind()
 
-                        val claims = getCredentialClaimData(credentialDetail.claims.sortByOrder()).bind()
+                        val claims = getCredentialClaimData(cluster.claims.sortByOrder()).bind()
 
                         CredentialDetail(
                             credential = credentialDisplayData,

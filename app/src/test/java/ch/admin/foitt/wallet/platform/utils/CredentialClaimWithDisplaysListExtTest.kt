@@ -13,6 +13,7 @@ class CredentialClaimWithDisplaysListExtTest {
 
     private val claimUnordered1 = createClaimWithDisplays(-1)
     private val claimUnordered2 = createClaimWithDisplays(-1)
+    private val claimUnordered3 = createClaimWithDisplays(-1)
 
     @Test
     fun `Claims that are ordered correctly will be returned in the correct order`() = runTest {
@@ -34,10 +35,22 @@ class CredentialClaimWithDisplaysListExtTest {
 
     @Test
     fun `Claims that are unordered will be placed at the end of the list`() = runTest {
-        val list = listOf(claimUnordered1, claim1, claim2)
+        val list = listOf(
+            claimUnordered2,
+            claimUnordered1,
+            claim1,
+            claimUnordered3,
+            claim2
+        )
 
         val result = list.sortByOrder()
-        val expected = listOf(claim1, claim2, claimUnordered1.toCredentialClaimWithMaxIntOrder())
+        val expected = listOf(
+            claim1,
+            claim2,
+            claimUnordered2.toCredentialClaimWithMaxIntOrder(),
+            claimUnordered1.toCredentialClaimWithMaxIntOrder(),
+            claimUnordered3.toCredentialClaimWithMaxIntOrder()
+        )
         assertEquals(expected, result)
     }
 
@@ -53,9 +66,9 @@ class CredentialClaimWithDisplaysListExtTest {
 
     private fun createClaimWithDisplays(order: Int) = CredentialClaimWithDisplays(
         claim = CredentialClaim(
-            credentialId = CREDENTIAL_ID,
+            clusterId = CLUSTER_ID,
             key = KEY,
-            value = VALUE,
+            value = "$VALUE $order",
             valueType = null,
             order = order,
         ),
@@ -68,7 +81,7 @@ class CredentialClaimWithDisplaysListExtTest {
     )
 
     private companion object {
-        const val CREDENTIAL_ID = 1L
+        const val CLUSTER_ID = 1L
         const val KEY = "key"
         const val VALUE = "value"
     }

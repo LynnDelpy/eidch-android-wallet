@@ -5,7 +5,7 @@ import androidx.security.crypto.EncryptedSharedPreferences
 import ch.admin.foitt.wallet.platform.passphrase.domain.model.CiphertextWrapper
 import ch.admin.foitt.wallet.platform.passphrase.domain.repository.PassphraseRepository
 import ch.admin.foitt.wallet.platform.utils.base64StringToByteArray
-import ch.admin.foitt.wallet.platform.utils.toBase64String
+import ch.admin.foitt.wallet.platform.utils.toBase64StringUrlEncodedWithoutPadding
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -21,8 +21,8 @@ internal class PassphraseRepositoryImpl @Inject constructor(
     override suspend fun getPassphrase(): CiphertextWrapper {
         val base64EncryptedPassphrase = sharedPreferences.getString(passphraseKey, null) ?: ""
         val base64InitializationVector = sharedPreferences.getString(initializationVectorKey, null) ?: ""
-        val encryptedPassphraseBytes = base64EncryptedPassphrase.base64StringToByteArray()
-        val initializationVectorBytes = base64InitializationVector.base64StringToByteArray()
+        val encryptedPassphraseBytes = base64StringToByteArray(base64EncryptedPassphrase)
+        val initializationVectorBytes = base64StringToByteArray(base64InitializationVector)
 
         Timber.d("Passphrase retrieved")
 
@@ -36,8 +36,8 @@ internal class PassphraseRepositoryImpl @Inject constructor(
         passphraseWasDeleted = false
         // Simply converting the ByteArrays to Strings leads to weird results with shared preferences.
         // Base64 conversion is safe.
-        val base64CipherText = passphraseWrapper.ciphertext.toBase64String()
-        val base64InitVector = passphraseWrapper.initializationVector.toBase64String()
+        val base64CipherText = passphraseWrapper.ciphertext.toBase64StringUrlEncodedWithoutPadding()
+        val base64InitVector = passphraseWrapper.initializationVector.toBase64StringUrlEncodedWithoutPadding()
 
         sharedPreferences.edit {
             putString(passphraseKey, base64CipherText)

@@ -6,10 +6,11 @@ import ch.admin.foitt.openid4vc.domain.model.credentialoffer.JWSKeyPair
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.SigningAlgorithm
 import com.github.michaelbull.result.Result
 
-internal interface CreateJWSKeyPair {
+interface CreateJWSKeyPair {
     @CheckResult
     suspend operator fun invoke(
         signingAlgorithm: SigningAlgorithm,
         provider: String,
+        attestationChallenge: ByteArray?,
     ): Result<JWSKeyPair, CreateJWSKeyPairError>
 }

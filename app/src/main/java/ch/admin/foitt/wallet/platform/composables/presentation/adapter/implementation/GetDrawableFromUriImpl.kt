@@ -20,7 +20,7 @@ internal class GetDrawableFromUriImpl @Inject constructor(
     override suspend fun invoke(uriString: String?): Drawable? = runSuspendCatching {
         val imageUri = Uri.parse(uriString)
         val imageData = when (imageUri.scheme) {
-            "data" -> imageUri.toString().substringAfter("base64,").base64NonUrlStringToByteArray()
+            "data" -> base64NonUrlStringToByteArray(imageUri.toString().substringAfter("base64,"))
             "https" -> null
             else -> {
                 Timber.e("Unsupported image scheme: ${imageUri.scheme}")

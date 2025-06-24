@@ -85,7 +85,7 @@ class FetchTrustStatementFromDidImpTest {
 
     @Test
     fun `Fetching a trust statement from a did returns an error if no statement can be verified`() = runTest {
-        coEvery { mockValidateTrustStatement(any()) } returns Err(TrustRegistryError.Unexpected(Exception()))
+        coEvery { mockValidateTrustStatement(any(), any()) } returns Err(TrustRegistryError.Unexpected(Exception()))
 
         useCase(issuerDid).assertErrorType(TrustRegistryError.Unexpected::class)
     }
@@ -93,8 +93,10 @@ class FetchTrustStatementFromDidImpTest {
     private fun setupDefaultMocks() {
         coEvery { mockGetTrustUrlFromDid(issuerDid) } returns Ok(url)
         coEvery { mockTrustStatementRepository.fetchTrustStatements(url) } returns Ok(trustStatementRaws)
-        coEvery { mockValidateTrustStatement(trustStatementRaw1) } returns Err(TrustRegistryError.Unexpected(Exception()))
-        coEvery { mockValidateTrustStatement(trustStatementRaw2) } returns Ok(trustStatement2)
+        coEvery {
+            mockValidateTrustStatement(trustStatementRaw1, any())
+        } returns Err(TrustRegistryError.Unexpected(Exception()))
+        coEvery { mockValidateTrustStatement(trustStatementRaw2, any()) } returns Ok(trustStatement2)
     }
 
     private val issuerDid = "did:tdw:identifier"

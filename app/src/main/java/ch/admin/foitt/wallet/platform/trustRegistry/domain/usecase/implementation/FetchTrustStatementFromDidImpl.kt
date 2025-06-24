@@ -36,7 +36,7 @@ internal class FetchTrustStatementFromDidImpl @Inject constructor(
                 .bind()
 
             val trustStatement = trustStatementsRaw.firstNotNullOf {
-                val statement = validateTrustStatement(it)
+                val statement = validateTrustStatement(trustStatementRawVcSdJwt = it, actorDid = did)
                 statement.getOrElse { null }
             }
 

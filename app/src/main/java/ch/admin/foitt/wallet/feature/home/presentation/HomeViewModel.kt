@@ -17,7 +17,7 @@ import ch.admin.foitt.wallet.platform.navigation.NavigationManager
 import ch.admin.foitt.wallet.platform.scaffold.domain.model.TopBarState
 import ch.admin.foitt.wallet.platform.scaffold.domain.usecase.SetTopBarState
 import ch.admin.foitt.wallet.platform.scaffold.presentation.ScreenViewModel
-import ch.admin.foitt.wallet.platform.ssi.domain.usecase.GetCredentialsWithDisplaysFlow
+import ch.admin.foitt.wallet.platform.ssi.domain.usecase.GetCredentialsWithDetailsFlow
 import ch.admin.foitt.wallet.platform.utils.trackCompletion
 import ch.admin.foitt.walletcomposedestinations.destinations.BetaIdScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.CredentialDetailScreenDestination
@@ -39,7 +39,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    getCredentialsWithDisplaysFlow: GetCredentialsWithDisplaysFlow,
+    getCredentialsWithDetailsFlow: GetCredentialsWithDetailsFlow,
     getEIdRequestsFlow: GetEIdRequestsFlow,
     private val getCredentialCardState: GetCredentialCardState,
     private val updateAllCredentialStatuses: UpdateAllCredentialStatuses,
@@ -59,7 +59,7 @@ class HomeViewModel @Inject constructor(
     val isRefreshing = _isRefreshing.asStateFlow()
 
     val screenState: StateFlow<HomeScreenState> = combine(
-        getCredentialsWithDisplaysFlow(),
+        getCredentialsWithDetailsFlow(),
         getEIdRequestsFlow()
     ) { homeDataFlow, eIdRequestsFlow ->
         when {

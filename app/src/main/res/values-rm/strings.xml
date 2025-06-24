@@ -316,4 +316,17 @@
     <string name="tk_home_notification_credential_declined">Cumprova refusada.</string>
     <string name="version_enforcement_button">Actualisar l\'app</string>
     <string name="version_enforcement_store_link">https://play.google.com/store/apps/details?id=ch.admin.foitt.swiyu</string>
+    <string name="tk_menu_securityPrivacy_dataProtection_privacyPolicy">Decleraziun davart la protecziun da datas</string>
+    <string name="tk_getEid_intro_smallBody">Excepziuns\nLa protecziun da Vossa identitad ha l’emprima prioritad. En cas rars dovra la verificaziun da l’identitad ina controlla supplementara. Quai po chaschunar in temp da spetga da plirs dis.\n</string>
+    <string name="tk_getEid_intro_secondaryButton">Pli tard</string>
+    <string name="tk_getEid_intro_primaryButton">Empustar ussa</string>
+    <string name="tk_getEid_dataPrivacy_link_text">Decleraziun davart la protecziun da datas</string>
+    <string name="tk_getEid_dataPrivacy_body">Per nus è la protecziun da Vossas datas e da Vossa sfera privata fitg impurtanta. Per crear ina e-ID, duvrain nus Voss consentiment a la decleraziun davart la protecziun da datas.</string>
+    <string name="tk_getEid_dataPrivacy_primaryButton">Acceptar e vinavant</string>
+    <string name="tk_getEid_intro_title">Empustai Vossa e-ID</string>
+    <string name="tk_getEid_intro_body">L’emprim vegn controllà Voss document d’identitad. Suenter vegn verifitgada Vossa identitad.\n\nDurada: ca. 5 minutas</string>
+    <string name="tk_getEid_checkId_body">L’emprim vegn controllada la valaivladad da Voss document d’identitad. Permettai d’acceder a la camera, per ch’il scan possia vegnir fatg.\n\nTge documents d’identitad èn pussaivels?\nPassaport svizzer\nCarta d’identitad svizra\nLegitimaziun svizra da persunas estras\n</string>
+    <string name="tk_getEid_checkId_title">Controllar il document d’identitad</string>
+    <string name="tk_getEid_queuing_title">Retards tar l’elavuraziun</string>
+    <string name="tk_getEid_dataPrivacy_title">Decleraziun davart la protecziun da datas</string>
 </resources>

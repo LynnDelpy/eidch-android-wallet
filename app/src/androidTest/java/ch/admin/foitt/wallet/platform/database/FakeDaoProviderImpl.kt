@@ -1,23 +1,24 @@
 package ch.admin.foitt.wallet.platform.database
 
+import ch.admin.foitt.wallet.platform.database.data.dao.ClientAttestationDao
+import ch.admin.foitt.wallet.platform.database.data.dao.CredentialClaimClusterDisplayEntityDao
+import ch.admin.foitt.wallet.platform.database.data.dao.CredentialClaimClusterEntityDao
 import ch.admin.foitt.wallet.platform.database.data.dao.CredentialClaimDao
 import ch.admin.foitt.wallet.platform.database.data.dao.CredentialClaimDisplayDao
 import ch.admin.foitt.wallet.platform.database.data.dao.CredentialDao
 import ch.admin.foitt.wallet.platform.database.data.dao.CredentialDisplayDao
 import ch.admin.foitt.wallet.platform.database.data.dao.CredentialIssuerDisplayDao
-import ch.admin.foitt.wallet.platform.database.data.dao.CredentialWithDisplaysAndClaimsDao
-import ch.admin.foitt.wallet.platform.database.data.dao.CredentialWithDisplaysDao
+import ch.admin.foitt.wallet.platform.database.data.dao.CredentialWithDisplaysAndClustersDao
 import ch.admin.foitt.wallet.platform.database.data.dao.DaoProvider
 import ch.admin.foitt.wallet.platform.database.data.dao.EIdRequestCaseDao
 import ch.admin.foitt.wallet.platform.database.data.dao.EIdRequestCaseWithStateDao
 import ch.admin.foitt.wallet.platform.database.data.dao.EIdRequestStateDao
+import ch.admin.foitt.wallet.platform.database.data.dao.RawCredentialDataDao
 import ch.admin.foitt.wallet.platform.database.domain.model.Credential
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialStatus
-import ch.admin.foitt.wallet.platform.database.domain.model.CredentialWithDisplays
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.EIdRequestCaseWithState
 import ch.admin.foitt.wallet.platform.ssi.data.source.local.mock.CredentialTestData.credential1
 import ch.admin.foitt.wallet.platform.ssi.data.source.local.mock.CredentialTestData.credential2
-import ch.admin.foitt.wallet.platform.ssi.data.source.local.mock.CredentialTestData.credentialDisplay1
 import ch.admin.foitt.wallet.platform.ssi.data.source.local.mock.CredentialTestData.credentialWithPayload
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -62,21 +63,12 @@ class FakeDaoProviderImpl : DaoProvider {
         get() = MutableStateFlow(null)
     override val credentialIssuerDisplayDaoFlow: StateFlow<CredentialIssuerDisplayDao?>
         get() = MutableStateFlow(null)
-    override val credentialWithDisplaysAndClaimsDaoFlow: StateFlow<CredentialWithDisplaysAndClaimsDao?>
+    override val credentialClaimClusterDisplayEntityDao: StateFlow<CredentialClaimClusterDisplayEntityDao?>
         get() = MutableStateFlow(null)
-    override val credentialWithDisplaysDaoFlow: StateFlow<CredentialWithDisplaysDao?>
-        get() = MutableStateFlow(object : CredentialWithDisplaysDao {
-            override fun getCredentialsWithDisplaysFlow(): Flow<List<CredentialWithDisplays>> {
-                return MutableStateFlow(
-                    listOf(
-                        CredentialWithDisplays(
-                            credential = credentialWithPayload,
-                            displays = listOf(credentialDisplay1)
-                        )
-                    )
-                )
-            }
-        })
+    override val credentialClaimClusterEntityDao: StateFlow<CredentialClaimClusterEntityDao?>
+        get() = MutableStateFlow(null)
+    override val credentialWithDisplaysAndClustersDaoFlow: StateFlow<CredentialWithDisplaysAndClustersDao?>
+        get() = MutableStateFlow(null)
     override val eIdRequestCaseDaoFlow: StateFlow<EIdRequestCaseDao?>
         get() = MutableStateFlow(null)
     override val eIdRequestStateDaoFlow: StateFlow<EIdRequestStateDao?>
@@ -87,4 +79,8 @@ class FakeDaoProviderImpl : DaoProvider {
                 return MutableStateFlow(listOf())
             }
         })
+    override val rawCredentialDataDao: StateFlow<RawCredentialDataDao?>
+        get() = MutableStateFlow(null)
+    override val clientAttestationDaoFlow: StateFlow<ClientAttestationDao?>
+        get() = MutableStateFlow(null)
 }

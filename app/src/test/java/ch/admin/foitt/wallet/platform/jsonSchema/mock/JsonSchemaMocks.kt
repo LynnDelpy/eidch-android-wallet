@@ -6,10 +6,10 @@ object JsonSchemaMocks {
         {
           "vct":"https://credentials.example.com/identity_credential",
           "iss":"https://example.com/issuer",
-          "kid":"keyId",
           "iat":1683000000,
           "exp":1883000000,
           "sub":"6c5c0a49-b589-431d-bae7-219122a9ec2c",
+          "some other required field, but not defined in the VcSdJwtJsonSchema": "foo",
           "address":{
             "country":"DE"
           },
@@ -115,6 +115,46 @@ object JsonSchemaMocks {
         }
     """.trimIndent()
 
+    val vcSdJwtJsonSchemaWithExternalRef = """
+        {
+          "${'$'}schema":"https://json-schema.org/draft/2020-12/schema",
+          "${'$'}ref":"https://example.org/malicious-schema.json",
+          "type":"object",
+          "properties":{
+            "vct":{
+              "type":"string"
+            },
+            "iss":{
+              "type":"string"
+            },
+            "nbf":{
+              "type":"number"
+            },
+            "exp":{
+              "type":"number"
+            },
+            "cnf":{
+              "type":"object"
+            },
+            "status":{
+              "type":"object"
+            },
+            "sub":{
+              "type":"string" 
+            },
+            "iat":{
+              "type":"number" 
+            }
+          },
+          "required":[
+            "iss",
+            "vct"
+          ]
+        }
+        
+    """.trimIndent()
+
+    // an extended but still valid VcSdJwtJsonSchema that contains more than defined by VcSdJwtJsonSchema
     val extendedValidVcSdJwtJsonSchema = """
         {
           "${'$'}schema":"https://json-schema.org/draft/2020-12/schema",
@@ -189,7 +229,7 @@ object JsonSchemaMocks {
           "required":[
             "iss",
             "vct",
-            "kid"
+            "some other required field, but not defined in the VcSdJwtJsonSchema"
           ]
         }
     """.trimIndent()

@@ -3,11 +3,11 @@
 package ch.admin.foitt.wallet.platform.ssi.domain.repository
 
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.CredentialFormat
-import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.OidClaimDisplay
-import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.OidCredentialDisplay
-import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.OidIssuerDisplay
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.SigningAlgorithm
-import ch.admin.foitt.wallet.platform.database.domain.model.CredentialClaim
+import ch.admin.foitt.wallet.platform.credential.domain.model.AnyCredentialDisplay
+import ch.admin.foitt.wallet.platform.credential.domain.model.AnyIssuerDisplay
+import ch.admin.foitt.wallet.platform.database.domain.model.Cluster
+import ch.admin.foitt.wallet.platform.database.domain.model.RawCredentialData
 import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialOfferRepositoryError
 import com.github.michaelbull.result.Result
 
@@ -20,8 +20,9 @@ interface CredentialOfferRepository {
         validFrom: Long?,
         validUntil: Long?,
         issuer: String?,
-        issuerDisplays: List<OidIssuerDisplay>,
-        credentialDisplays: List<OidCredentialDisplay>,
-        claims: Map<CredentialClaim, List<OidClaimDisplay>>,
+        issuerDisplays: List<AnyIssuerDisplay>,
+        credentialDisplays: List<AnyCredentialDisplay>,
+        clusters: List<Cluster>,
+        rawCredentialData: RawCredentialData
     ): Result<Long, CredentialOfferRepositoryError>
 }

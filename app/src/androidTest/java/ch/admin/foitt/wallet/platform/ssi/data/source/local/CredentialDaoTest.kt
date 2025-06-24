@@ -3,14 +3,18 @@ package ch.admin.foitt.wallet.platform.ssi.data.source.local
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import ch.admin.foitt.wallet.platform.database.data.AppDatabase
+import ch.admin.foitt.wallet.platform.database.data.dao.CredentialClaimClusterDisplayEntityDao
+import ch.admin.foitt.wallet.platform.database.data.dao.CredentialClaimClusterEntityDao
 import ch.admin.foitt.wallet.platform.database.data.dao.CredentialClaimDao
 import ch.admin.foitt.wallet.platform.database.data.dao.CredentialClaimDisplayDao
 import ch.admin.foitt.wallet.platform.database.data.dao.CredentialDao
 import ch.admin.foitt.wallet.platform.database.data.dao.CredentialDisplayDao
 import ch.admin.foitt.wallet.platform.database.data.dao.CredentialIssuerDisplayDao
-import ch.admin.foitt.wallet.platform.database.data.dao.CredentialWithDisplaysAndClaimsDao
+import ch.admin.foitt.wallet.platform.database.data.dao.CredentialWithDisplaysAndClustersDao
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialIssuerDisplay
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialStatus
+import ch.admin.foitt.wallet.platform.ssi.data.source.local.mock.CredentialTestData.cluster1
+import ch.admin.foitt.wallet.platform.ssi.data.source.local.mock.CredentialTestData.clusterDisplay1
 import ch.admin.foitt.wallet.platform.ssi.data.source.local.mock.CredentialTestData.credential1
 import ch.admin.foitt.wallet.platform.ssi.data.source.local.mock.CredentialTestData.credentialClaim1
 import ch.admin.foitt.wallet.platform.ssi.data.source.local.mock.CredentialTestData.credentialClaimDisplay1
@@ -30,10 +34,12 @@ class CredentialDaoTest {
     private lateinit var credentialDao: CredentialDao
     private lateinit var credentialDisplayDao: CredentialDisplayDao
     private lateinit var credentialIssuerDisplayDao: CredentialIssuerDisplayDao
+    private lateinit var credentialClaimClusterEntityDao: CredentialClaimClusterEntityDao
+    private lateinit var credentialClaimClusterDisplayEntityDao: CredentialClaimClusterDisplayEntityDao
     private lateinit var credentialClaimDao: CredentialClaimDao
     private lateinit var credentialClaimDisplayDao: CredentialClaimDisplayDao
 
-    private lateinit var credentialWithDisplaysAndClaimsDao: CredentialWithDisplaysAndClaimsDao
+    private lateinit var credentialWithDisplaysAndClustersDao: CredentialWithDisplaysAndClustersDao
 
     @Before
     fun setupDatabase() {
@@ -44,10 +50,12 @@ class CredentialDaoTest {
         credentialDao = database.credentialDao()
         credentialDisplayDao = database.credentialDisplayDao()
         credentialIssuerDisplayDao = database.credentialIssuerDisplayDao()
+        credentialClaimClusterEntityDao = database.credentialClaimClusterEntityDao()
+        credentialClaimClusterDisplayEntityDao = database.credentialClaimClusterDisplayEntityDao()
         credentialClaimDao = database.credentialClaimDao()
         credentialClaimDisplayDao = database.credentialClaimDisplayDao()
 
-        credentialWithDisplaysAndClaimsDao = database.credentialWithDisplaysAndClaimsDao()
+        credentialWithDisplaysAndClustersDao = database.credentialWithDisplaysAndClustersDao()
     }
 
     @After
@@ -87,12 +95,14 @@ class CredentialDaoTest {
         credentialDao.insert(credential1)
         credentialDisplayDao.insertAll(listOf(credentialDisplay1))
         credentialIssuerDisplayDao.insertAll(listOf(credentialIssuerDisplay1))
+        credentialClaimClusterEntityDao.insert(cluster1)
+        credentialClaimClusterDisplayEntityDao.insert(clusterDisplay1)
         credentialClaimDao.insert(credentialClaim1)
         credentialClaimDisplayDao.insertAll(listOf(credentialClaimDisplay1))
 
         credentialDao.deleteById(credential1.id)
 
-        assertNull(credentialWithDisplaysAndClaimsDao.getNullableCredentialWithDisplaysAndClaimsFlowById(credential1.id).firstOrNull())
+        assertNull(credentialWithDisplaysAndClustersDao.getNullableCredentialWithDisplaysAndClustersFlowById(credential1.id).firstOrNull())
         assertEquals(
             emptyList<CredentialIssuerDisplay>(),
             credentialIssuerDisplayDao.getCredentialIssuerDisplaysById(credential1.id)

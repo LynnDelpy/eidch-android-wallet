@@ -4,26 +4,30 @@ import androidx.annotation.CheckResult
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.CredentialRequestProof
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.CredentialResponse
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.FetchIssuerConfigurationError
-import ch.admin.foitt.openid4vc.domain.model.credentialoffer.FetchIssuerCredentialInformationError
+import ch.admin.foitt.openid4vc.domain.model.credentialoffer.FetchIssuerCredentialInfoError
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.FetchVerifiableCredentialError
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.TokenResponse
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.AnyCredentialConfiguration
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.IssuerConfiguration
-import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.IssuerCredentialInformation
+import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.IssuerCredentialInfo
+import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.RawAndParsedIssuerCredentialInfo
 import com.github.michaelbull.result.Result
 
 interface CredentialOfferRepository {
 
     @CheckResult
-    suspend fun fetchIssuerCredentialInformation(
-        issuerEndpoint: String,
-        refresh: Boolean = false
-    ): Result<IssuerCredentialInformation, FetchIssuerCredentialInformationError>
+    suspend fun fetchRawAndParsedIssuerCredentialInformation(
+        issuerEndpoint: String
+    ): Result<RawAndParsedIssuerCredentialInfo, FetchIssuerCredentialInfoError>
+
+    @CheckResult
+    suspend fun getIssuerCredentialInfo(
+        issuerEndpoint: String
+    ): Result<IssuerCredentialInfo, FetchIssuerCredentialInfoError>
 
     @CheckResult
     suspend fun fetchIssuerConfiguration(
-        issuerEndpoint: String,
-        refresh: Boolean = false
+        issuerEndpoint: String
     ): Result<IssuerConfiguration, FetchIssuerConfigurationError>
 
     @CheckResult

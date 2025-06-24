@@ -1,17 +1,20 @@
 package ch.admin.foitt.wallet.platform.database.data
 
 import androidx.room.withTransaction
+import ch.admin.foitt.wallet.platform.database.data.dao.ClientAttestationDao
+import ch.admin.foitt.wallet.platform.database.data.dao.CredentialClaimClusterDisplayEntityDao
+import ch.admin.foitt.wallet.platform.database.data.dao.CredentialClaimClusterEntityDao
 import ch.admin.foitt.wallet.platform.database.data.dao.CredentialClaimDao
 import ch.admin.foitt.wallet.platform.database.data.dao.CredentialClaimDisplayDao
 import ch.admin.foitt.wallet.platform.database.data.dao.CredentialDao
 import ch.admin.foitt.wallet.platform.database.data.dao.CredentialDisplayDao
 import ch.admin.foitt.wallet.platform.database.data.dao.CredentialIssuerDisplayDao
-import ch.admin.foitt.wallet.platform.database.data.dao.CredentialWithDisplaysAndClaimsDao
-import ch.admin.foitt.wallet.platform.database.data.dao.CredentialWithDisplaysDao
+import ch.admin.foitt.wallet.platform.database.data.dao.CredentialWithDisplaysAndClustersDao
 import ch.admin.foitt.wallet.platform.database.data.dao.DaoProvider
 import ch.admin.foitt.wallet.platform.database.data.dao.EIdRequestCaseDao
 import ch.admin.foitt.wallet.platform.database.data.dao.EIdRequestCaseWithStateDao
 import ch.admin.foitt.wallet.platform.database.data.dao.EIdRequestStateDao
+import ch.admin.foitt.wallet.platform.database.data.dao.RawCredentialDataDao
 import ch.admin.foitt.wallet.platform.database.domain.model.ChangeDatabasePassphraseError
 import ch.admin.foitt.wallet.platform.database.domain.model.CreateDatabaseError
 import ch.admin.foitt.wallet.platform.database.domain.model.DatabaseError
@@ -154,15 +157,21 @@ internal class DatabaseWrapper @Inject constructor(
         getDaoFlow { it?.credentialClaimDisplayDao() }
     override val credentialIssuerDisplayDaoFlow: StateFlow<CredentialIssuerDisplayDao?> =
         getDaoFlow { it?.credentialIssuerDisplayDao() }
-    override val credentialWithDisplaysAndClaimsDaoFlow: StateFlow<CredentialWithDisplaysAndClaimsDao?> =
-        getDaoFlow { it?.credentialWithDisplaysAndClaimsDao() }
-    override val credentialWithDisplaysDaoFlow: StateFlow<CredentialWithDisplaysDao?> =
-        getDaoFlow { it?.credentialWithDisplaysDao() }
+    override val credentialWithDisplaysAndClustersDaoFlow: StateFlow<CredentialWithDisplaysAndClustersDao?> =
+        getDaoFlow { it?.credentialWithDisplaysAndClustersDao() }
+    override val credentialClaimClusterEntityDao: StateFlow<CredentialClaimClusterEntityDao?> = getDaoFlow {
+        it?.credentialClaimClusterEntityDao()
+    }
+    override val credentialClaimClusterDisplayEntityDao: StateFlow<CredentialClaimClusterDisplayEntityDao?> =
+        getDaoFlow { it?.credentialClaimClusterDisplayEntityDao() }
+
     override val eIdRequestCaseDaoFlow: StateFlow<EIdRequestCaseDao?> =
         getDaoFlow { it?.eIdRequestCaseDao() }
     override val eIdRequestStateDaoFlow: StateFlow<EIdRequestStateDao?> = getDaoFlow { it?.eIdRequestStateDao() }
     override val eIdRequestCaseWithStateDaoFlow: StateFlow<EIdRequestCaseWithStateDao?> = getDaoFlow {
         it?.eIdRequestCaseWithStateDao()
     }
+    override val rawCredentialDataDao: StateFlow<RawCredentialDataDao?> = getDaoFlow { it?.rawCredentialDataDao() }
+    override val clientAttestationDaoFlow: StateFlow<ClientAttestationDao?> = getDaoFlow { it?.clientAttestationDao() }
     //endregion
 }

@@ -46,8 +46,8 @@ class GenerateKeyPairImplTest {
         spyGenerateKeyPair = spyk(generateKeyPair)
 
         every { spyGenerateKeyPair["getPreferredSigningAlgorithms"]() } returns listOf(SigningAlgorithm.ES256)
-        coEvery { mockCreateJWSKeyPair(SigningAlgorithm.ES256, any()) } returns Ok(validKeyPairES256)
-        coEvery { mockCreateJWSKeyPair(SigningAlgorithm.ES512, any()) } returns Ok(validKeyPairES512)
+        coEvery { mockCreateJWSKeyPair(SigningAlgorithm.ES256, any(), any()) } returns Ok(validKeyPairES256)
+        coEvery { mockCreateJWSKeyPair(SigningAlgorithm.ES512, any(), any()) } returns Ok(validKeyPairES512)
     }
 
     @Test
@@ -55,7 +55,7 @@ class GenerateKeyPairImplTest {
         spyGenerateKeyPair(vcSdJwtCredentialConfiguration).assertOk()
 
         coVerify(exactly = 1) {
-            mockCreateJWSKeyPair(SigningAlgorithm.ES256, any())
+            mockCreateJWSKeyPair(SigningAlgorithm.ES256, any(), any())
         }
     }
 
@@ -79,7 +79,7 @@ class GenerateKeyPairImplTest {
         assertEquals(expected, result.algorithm)
 
         coVerify(exactly = 1) {
-            mockCreateJWSKeyPair(expected, any())
+            mockCreateJWSKeyPair(expected, any(), any())
         }
     }
 
@@ -95,7 +95,7 @@ class GenerateKeyPairImplTest {
         spyGenerateKeyPair(vcSdJwtCredentialConfiguration).assertErrorType(CredentialOfferError.UnsupportedCryptographicSuite::class)
 
         coVerify(exactly = 0) {
-            mockCreateJWSKeyPair(SigningAlgorithm.ES256, any())
+            mockCreateJWSKeyPair(SigningAlgorithm.ES256, any(), any())
         }
     }
 
@@ -109,7 +109,7 @@ class GenerateKeyPairImplTest {
         ).assertErrorType(CredentialOfferError.UnsupportedCryptographicSuite::class)
 
         coVerify(exactly = 0) {
-            mockCreateJWSKeyPair(any(), any())
+            mockCreateJWSKeyPair(any(), any(), any())
         }
     }
 
@@ -123,7 +123,7 @@ class GenerateKeyPairImplTest {
         ).assertErrorType(CredentialOfferError.UnsupportedCryptographicSuite::class)
 
         coVerify(exactly = 0) {
-            mockCreateJWSKeyPair(any(), any())
+            mockCreateJWSKeyPair(any(), any(), any())
         }
     }
 

@@ -1,7 +1,7 @@
 package ch.admin.foitt.openid4vc.domain.usecase.implementation
 
-import ch.admin.foitt.openid4vc.domain.model.credentialoffer.CredentialOfferError
-import ch.admin.foitt.openid4vc.domain.usecase.CreateDidJwk
+import ch.admin.foitt.openid4vc.domain.model.JwkError
+import ch.admin.foitt.openid4vc.domain.usecase.CreateJwk
 import ch.admin.foitt.openid4vc.domain.usecase.implementation.mock.MockKeyPairs.VALID_KEY_PAIR
 import ch.admin.foitt.openid4vc.util.assertErrorType
 import ch.admin.foitt.openid4vc.util.assertOk
@@ -21,63 +21,63 @@ import org.junit.jupiter.api.Test
 class RetryUseCaseTest {
 
     @MockK
-    private lateinit var createDidJwk: CreateDidJwk
+    private lateinit var createJwk: CreateJwk
 
     @BeforeEach
     fun setUp() {
         MockKAnnotations.init(this)
 
-        coEvery { createDidJwk(any(), any()) } returns Ok("")
+        coEvery { createJwk(any(), any()) } returns Ok("")
     }
 
     @Test
     fun `retry returns success if first iteration is successful`() = runTest {
         retryUseCase {
-            createDidJwk(
+            createJwk(
                 algorithm = VALID_KEY_PAIR.algorithm,
                 keyPair = VALID_KEY_PAIR.keyPair
             )
         }.assertOk()
 
         coVerify(exactly = 1) {
-            createDidJwk(any(), any())
+            createJwk(any(), any())
         }
     }
 
     @Test
     fun `retry returns success if third iteration is successful`() = runTest {
-        val errorResult = Err(CredentialOfferError.Unexpected(Exception("")))
+        val errorResult = Err(JwkError.Unexpected(Exception("")))
         coEvery {
-            createDidJwk(any(), any())
+            createJwk(any(), any())
         } returnsMany listOf(
             errorResult, errorResult, Ok("")
         )
 
         retryUseCase {
-            createDidJwk(
+            createJwk(
                 algorithm = VALID_KEY_PAIR.algorithm,
                 keyPair = VALID_KEY_PAIR.keyPair
             )
         }.assertOk()
 
         coVerify(exactly = 3) {
-            createDidJwk(any(), any())
+            createJwk(any(), any())
         }
     }
 
     @Test
     fun `retry returns error if all iterations fail`() = runTest {
-        coEvery { createDidJwk(any(), any()) } returns Err(CredentialOfferError.Unexpected(Exception("")))
+        coEvery { createJwk(any(), any()) } returns Err(JwkError.Unexpected(Exception("")))
 
         retryUseCase {
-            createDidJwk(
+            createJwk(
                 algorithm = VALID_KEY_PAIR.algorithm,
                 keyPair = VALID_KEY_PAIR.keyPair
             )
-        }.assertErrorType(CredentialOfferError.Unexpected::class)
+        }.assertErrorType(JwkError.Unexpected::class)
 
         coVerify(exactly = 3) {
-            createDidJwk(any(), any())
+            createJwk(any(), any())
         }
     }
 

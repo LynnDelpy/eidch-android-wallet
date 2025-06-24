@@ -24,10 +24,10 @@ data class TypeMetadata(
     val claims: List<ClaimMetadata>?,
     @SerialName("schema")
     val schema: String?, // not supported by swiss profile
-    @SerialName("schema_url")
-    val schemaUrl: String?,
-    @SerialName("schema_url#integrity")
-    val schemaUrlIntegrity: String?,
+    @SerialName("schema_uri")
+    val schemaUri: String?,
+    @SerialName("schema_uri#integrity")
+    val schemaUriIntegrity: String?,
 )
 
 @Serializable

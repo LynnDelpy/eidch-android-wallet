@@ -1,11 +1,15 @@
 package ch.admin.foitt.wallet.platform.eIdApplicationProcess.data.repository
 
+import ch.admin.foitt.wallet.platform.appAttestation.domain.model.ClientAttestation
+import ch.admin.foitt.wallet.platform.appAttestation.domain.model.KeyAttestation
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.ApplyRequest
+import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.AttestationsValidationRequest
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.CaseResponse
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.GuardianVerificationResponse
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.SIdRepositoryError
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.StateResponse
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.toSIdRepositoryError
+import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.toValidateAttestationsError
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.repository.SIdRepository
 import ch.admin.foitt.wallet.platform.environmentSetup.domain.repository.EnvironmentSetupRepository
 import com.github.michaelbull.result.Result
@@ -51,4 +55,20 @@ class SIdRepositoryImpl @Inject constructor(
         }.mapError { throwable ->
             throwable.toSIdRepositoryError("fetchSIdGuardianVerification error")
         }
+
+    override suspend fun validateAttestations(
+        clientAttestation: ClientAttestation,
+        keyAttestation: KeyAttestation,
+    ) = runSuspendCatching<Unit> {
+        val attestationsValidationRequest = AttestationsValidationRequest(
+            clientAttestation = clientAttestation.attestation.rawJwt,
+            keyAttestation = keyAttestation.attestation.rawJwt
+        )
+        httpClient.post(environmentSetupRepo.sidBackendUrl + "/attestations/validate") {
+            contentType(ContentType.Application.Json)
+            setBody(attestationsValidationRequest)
+        }.body()
+    }.mapError { throwable ->
+        throwable.toValidateAttestationsError("validateAttestations error")
+    }
 }

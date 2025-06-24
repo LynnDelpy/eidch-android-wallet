@@ -13,7 +13,7 @@ import ch.admin.foitt.openid4vc.domain.usecase.implementation.mock.MockCredentia
 import ch.admin.foitt.openid4vc.domain.usecase.implementation.mock.MockCredentialOffer.offerWithoutPreAuthorizedCode
 import ch.admin.foitt.openid4vc.domain.usecase.implementation.mock.MockCredentialOffer.validCredentialResponse
 import ch.admin.foitt.openid4vc.domain.usecase.implementation.mock.MockCredentialOffer.validIssuerConfig
-import ch.admin.foitt.openid4vc.domain.usecase.implementation.mock.MockCredentialOffer.validIssuerCredentialInformation
+import ch.admin.foitt.openid4vc.domain.usecase.implementation.mock.MockCredentialOffer.validIssuerCredentialInfo
 import ch.admin.foitt.openid4vc.domain.usecase.implementation.mock.MockCredentialOffer.validTokenResponse
 import ch.admin.foitt.openid4vc.domain.usecase.implementation.mock.MockCredentialOffer.validVerifiableCredential
 import ch.admin.foitt.openid4vc.domain.usecase.implementation.mock.MockIssuerCredentialConfiguration
@@ -85,8 +85,8 @@ class FetchVerifiableCredentialImplTest {
         assertEquals(validVerifiableCredential, credential)
 
         coVerify(ordering = Ordering.SEQUENCE) {
-            mockCredentialOfferRepository.fetchIssuerConfiguration(any(), any())
-            mockCredentialOfferRepository.fetchIssuerCredentialInformation(any(), any())
+            mockCredentialOfferRepository.fetchIssuerConfiguration(any())
+            mockCredentialOfferRepository.getIssuerCredentialInfo(any())
             mockGenerateKeyPair(any())
             mockCredentialOfferRepository.fetchAccessToken(any(), any())
             mockCreateCredentialRequestProofJwt(any(), any(), any())
@@ -296,8 +296,8 @@ class FetchVerifiableCredentialImplTest {
         } returns Ok(jwtProof)
 
         coEvery {
-            mockCredentialOfferRepository.fetchIssuerCredentialInformation(offerWithPreAuthorizedCode.credentialIssuer)
-        } returns Ok(validIssuerCredentialInformation)
+            mockCredentialOfferRepository.getIssuerCredentialInfo(offerWithPreAuthorizedCode.credentialIssuer)
+        } returns Ok(validIssuerCredentialInfo)
 
         coEvery {
             mockCredentialOfferRepository.fetchIssuerConfiguration(offerWithPreAuthorizedCode.credentialIssuer)
@@ -308,7 +308,7 @@ class FetchVerifiableCredentialImplTest {
         } returns Ok(validTokenResponse)
 
         coEvery {
-            mockCredentialOfferRepository.fetchCredential(validIssuerCredentialInformation.credentialEndpoint, any(), any(), any())
+            mockCredentialOfferRepository.fetchCredential(validIssuerCredentialInfo.credentialEndpoint, any(), any(), any())
         } returns Ok(validCredentialResponse)
 
         coEvery {

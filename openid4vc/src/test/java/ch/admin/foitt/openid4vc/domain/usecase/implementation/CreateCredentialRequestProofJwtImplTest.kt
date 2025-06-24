@@ -1,7 +1,8 @@
 package ch.admin.foitt.openid4vc.domain.usecase.implementation
 
+import ch.admin.foitt.openid4vc.domain.model.JwkError
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.CredentialOfferError
-import ch.admin.foitt.openid4vc.domain.usecase.CreateDidJwk
+import ch.admin.foitt.openid4vc.domain.usecase.CreateJwk
 import ch.admin.foitt.openid4vc.domain.usecase.implementation.mock.MockCredentialOffer.CREDENTIAL_ISSUER
 import ch.admin.foitt.openid4vc.domain.usecase.implementation.mock.MockCredentialOffer.C_NONCE
 import ch.admin.foitt.openid4vc.domain.usecase.implementation.mock.MockKeyPairs.INVALID_KEY_PAIR
@@ -30,7 +31,7 @@ class CreateCredentialRequestProofJwtImplTest {
     private val testDispatcher = StandardTestDispatcher()
 
     @MockK
-    private lateinit var mockCreateDidJwk: CreateDidJwk
+    private lateinit var mockCreateJwk: CreateJwk
 
     private lateinit var createCredentialRequestProofJwtUseCase: CreateCredentialRequestProofJwtImpl
 
@@ -39,10 +40,10 @@ class CreateCredentialRequestProofJwtImplTest {
         MockKAnnotations.init(this)
 
         coEvery {
-            mockCreateDidJwk(any(), any(), false)
+            mockCreateJwk(any(), any(), false)
         } returns Ok(jwk)
 
-        createCredentialRequestProofJwtUseCase = CreateCredentialRequestProofJwtImpl(createDidJwk = mockCreateDidJwk)
+        createCredentialRequestProofJwtUseCase = CreateCredentialRequestProofJwtImpl(createJwk = mockCreateJwk)
     }
 
     @AfterEach
@@ -97,8 +98,8 @@ class CreateCredentialRequestProofJwtImplTest {
     @Test
     fun `should return an unexpected error when header jwk creation fails`() = runTest(testDispatcher) {
         coEvery {
-            mockCreateDidJwk(any(), any(), false)
-        } returns Err(CredentialOfferError.Unexpected(null))
+            mockCreateJwk(any(), any(), false)
+        } returns Err(JwkError.Unexpected(null))
 
         val proofJwt = createCredentialRequestProofJwtUseCase(
             keyPair = VALID_KEY_PAIR,

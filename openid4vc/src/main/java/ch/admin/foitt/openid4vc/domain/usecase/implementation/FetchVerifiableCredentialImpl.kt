@@ -5,7 +5,7 @@ import ch.admin.foitt.openid4vc.domain.model.credentialoffer.CredentialOffer
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.CredentialOfferError
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.CredentialRequestProofJwt
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.FetchIssuerConfigurationError
-import ch.admin.foitt.openid4vc.domain.model.credentialoffer.FetchIssuerCredentialInformationError
+import ch.admin.foitt.openid4vc.domain.model.credentialoffer.FetchIssuerCredentialInfoError
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.Grant
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.AnyCredentialConfiguration
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.ProofType
@@ -49,12 +49,12 @@ internal class FetchVerifiableCredentialImpl @Inject constructor(
             }
         }
 
-        val issuerConfig = credentialOfferRepository.fetchIssuerConfiguration(issuerEndpoint)
+        val issuerConfig = credentialOfferRepository.fetchIssuerConfiguration(issuerEndpoint = issuerEndpoint)
             .mapError(FetchIssuerConfigurationError::toFetchVerifiableCredentialError)
             .bind()
 
-        val issuerInfo = credentialOfferRepository.fetchIssuerCredentialInformation(issuerEndpoint)
-            .mapError(FetchIssuerCredentialInformationError::toFetchVerifiableCredentialError)
+        val issuerInfo = credentialOfferRepository.getIssuerCredentialInfo(issuerEndpoint = issuerEndpoint)
+            .mapError(FetchIssuerCredentialInfoError::toFetchVerifiableCredentialError)
             .bind()
 
         val keyPair =

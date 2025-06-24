@@ -27,7 +27,7 @@ sealed interface OcaError {
     data object InvalidOverlays : OcaBundlerError
     data object InvalidJsonObject : OcaBundlerError
 
-    data object InvalidRootCaptureBase : OcaCaptureBaseValidationError
+    data object InvalidRootCaptureBase : OcaCaptureBaseValidationError, GetRootCaptureBaseError, GenerateOcaDisplaysError
     data object InvalidCaptureBaseReferenceAttribute : OcaCaptureBaseValidationError
     data object CaptureBaseCycleError : OcaCaptureBaseValidationError
 
@@ -35,6 +35,10 @@ sealed interface OcaError {
     data object InvalidOverlayCaptureBaseDigest : OcaOverlayValidationError
     data object InvalidOverlayLanguageCode : OcaOverlayValidationError
     data object InvalidDataSourceOverlay : OcaOverlayValidationError
+    data object InvalidBrandingOverlay : OcaOverlayValidationError
+    data object InvalidClusterOverlay : OcaOverlayValidationError
+    data object InvalidEntryCodeOverlay : OcaOverlayValidationError
+    data object InvalidEntryOverlay : OcaOverlayValidationError
 
     data class InvalidCESRHash(val msg: String) : OcaCesrHashValidatorError, OcaBundlerError
 
@@ -43,7 +47,8 @@ sealed interface OcaError {
         OcaCesrHashValidatorError,
         FetchOcaBundleError,
         FetchVcMetadataByFormatError,
-        OcaBundlerError
+        OcaBundlerError,
+        GenerateOcaDisplaysError
 }
 
 sealed interface OcaRepositoryError
@@ -53,7 +58,8 @@ sealed interface OcaCesrHashValidatorError
 sealed interface OcaBundlerError
 sealed interface OcaCaptureBaseValidationError
 sealed interface OcaOverlayValidationError
-sealed interface OcaOverlayTransformationError
+sealed interface GenerateOcaDisplaysError
+sealed interface GetRootCaptureBaseError
 
 fun Throwable.toOcaRepositoryError(message: String): OcaRepositoryError {
     Timber.e(t = this, message = message)
@@ -123,9 +129,25 @@ fun OcaOverlayValidationError.toOcaBundlerError(): OcaBundlerError = when (this)
     is OcaError.MissingMandatoryOverlay,
     is OcaError.InvalidOverlayCaptureBaseDigest,
     is OcaError.InvalidDataSourceOverlay,
+    is OcaError.InvalidBrandingOverlay,
+    is OcaError.InvalidClusterOverlay,
+    is OcaError.InvalidEntryCodeOverlay,
+    is OcaError.InvalidEntryOverlay,
     is OcaError.InvalidOverlayLanguageCode -> OcaError.InvalidOverlays
+}
+
+fun GetRootCaptureBaseError.toOcaBundlerError(): OcaBundlerError = when (this) {
+    is OcaError.InvalidRootCaptureBase -> OcaError.InvalidCaptureBases
 }
 
 fun JsonSchemaError.toFetchVcMetadataByFormatError(): FetchVcMetadataByFormatError = when (this) {
     JsonSchemaError.ValidationFailed -> OcaError.InvalidJsonScheme
+}
+
+fun GetRootCaptureBaseError.toOcaCaptureBaseValidationError(): OcaCaptureBaseValidationError = when (this) {
+    is OcaError.InvalidRootCaptureBase -> this
+}
+
+fun GetRootCaptureBaseError.toGenerateOcaDisplaysError(): GenerateOcaDisplaysError = when (this) {
+    is OcaError.InvalidRootCaptureBase -> this
 }

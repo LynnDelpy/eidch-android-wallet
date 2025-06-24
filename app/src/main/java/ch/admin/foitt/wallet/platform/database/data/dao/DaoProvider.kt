@@ -8,9 +8,12 @@ interface DaoProvider {
     val credentialClaimDaoFlow: StateFlow<CredentialClaimDao?>
     val credentialClaimDisplayDaoFlow: StateFlow<CredentialClaimDisplayDao?>
     val credentialIssuerDisplayDaoFlow: StateFlow<CredentialIssuerDisplayDao?>
-    val credentialWithDisplaysAndClaimsDaoFlow: StateFlow<CredentialWithDisplaysAndClaimsDao?>
-    val credentialWithDisplaysDaoFlow: StateFlow<CredentialWithDisplaysDao?>
+    val credentialWithDisplaysAndClustersDaoFlow: StateFlow<CredentialWithDisplaysAndClustersDao?>
+    val credentialClaimClusterEntityDao: StateFlow<CredentialClaimClusterEntityDao?>
+    val credentialClaimClusterDisplayEntityDao: StateFlow<CredentialClaimClusterDisplayEntityDao?>
     val eIdRequestCaseDaoFlow: StateFlow<EIdRequestCaseDao?>
     val eIdRequestStateDaoFlow: StateFlow<EIdRequestStateDao?>
     val eIdRequestCaseWithStateDaoFlow: StateFlow<EIdRequestCaseWithStateDao?>
+    val rawCredentialDataDao: StateFlow<RawCredentialDataDao?>
+    val clientAttestationDaoFlow: StateFlow<ClientAttestationDao?>
 }

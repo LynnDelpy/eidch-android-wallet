@@ -8,23 +8,24 @@ import androidx.room.PrimaryKey
 @Entity(
     foreignKeys = [
         ForeignKey(
-            entity = Credential::class,
+            entity = CredentialClaimClusterEntity::class,
             parentColumns = arrayOf("id"),
-            childColumns = arrayOf("credentialId"),
+            childColumns = arrayOf("clusterId"),
             onDelete = ForeignKey.CASCADE,
             onUpdate = ForeignKey.CASCADE
         )
     ],
     indices = [
-        Index("credentialId")
+        Index("clusterId")
     ]
 )
 data class CredentialClaim(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
-    val credentialId: Long, // ForeignKey
+    val clusterId: Long, // Foreign key
     override val key: String,
     override val value: String,
     override val valueType: String?,
+    val valueDisplayInfo: String? = null,
     val order: Int = -1
 ) : Claim

@@ -37,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -52,6 +53,7 @@ import ch.admin.foitt.wallet.platform.composables.LoadingOverlay
 import ch.admin.foitt.wallet.platform.composables.presentation.HeightReportingLayout
 import ch.admin.foitt.wallet.platform.preview.WalletAllScreenPreview
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.TrustStatus
+import ch.admin.foitt.wallet.platform.utils.TestTags
 import ch.admin.foitt.wallet.theme.Sizes
 import ch.admin.foitt.wallet.theme.WalletButtonColors
 import ch.admin.foitt.wallet.theme.WalletTexts
@@ -268,6 +270,7 @@ private fun Sheet(
                 text = stringResource(id = contentTextFirstParagraph),
                 color = textColor,
                 textAlign = TextAlign.Center,
+                modifier = Modifier.testTag(TestTags.DECLINE_SCREEN_TITLE.name)
             )
         }
         if (contentTextSecondParagraph != null) {
@@ -325,6 +328,7 @@ private fun StickyBottomButtons(
                 text = stringResource(id = primaryButtonText),
                 onClick = onPrimaryButton,
                 colors = primaryButtonColors,
+                modifier = Modifier.testTag(TestTags.ACCEPT_BUTTON.name)
             )
         }
         if (onSecondaryButton != null && secondaryButtonText != null) {
@@ -332,6 +336,7 @@ private fun StickyBottomButtons(
                 text = stringResource(id = secondaryButtonText),
                 onClick = onSecondaryButton,
                 colors = secondaryButtonColors,
+                modifier = Modifier.testTag(TestTags.DECLINE_BUTTON.name)
             )
         }
     }

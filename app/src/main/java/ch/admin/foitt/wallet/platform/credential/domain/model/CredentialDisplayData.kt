@@ -5,7 +5,7 @@ import ch.admin.foitt.wallet.platform.database.domain.model.CredentialDisplay
 
 data class CredentialDisplayData(
     val credentialId: Long,
-    val title: String,
+    val title: String?,
     val subtitle: String?,
     val status: CredentialDisplayStatus,
     val logoUri: String?,

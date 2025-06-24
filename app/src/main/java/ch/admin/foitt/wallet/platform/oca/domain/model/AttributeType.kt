@@ -62,3 +62,9 @@ internal object AttributeTypeSerializer : KSerializer<AttributeType> {
 
     private fun String.toReference(): String = split("refs:").getOrElse(1) { error("No valid reference in $this") }
 }
+
+fun AttributeType.getReferenceValue(): String? = when (this) {
+    is AttributeType.Reference -> this.captureBaseReference
+    is AttributeType.Array -> this.attributeType.getReferenceValue()
+    else -> null
+}

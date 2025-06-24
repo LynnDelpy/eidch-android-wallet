@@ -78,7 +78,7 @@
     <string name="tk_changepassword_error4_notification">Le nombre de tentatives autorisées est dépassé. Créez un nouveau mot de passe.</string>
     <string name="tk_displaydelete_displaycredential1_title1">Historique</string>
     <string name="tk_displaydelete_displaycredential1_smallbody">Afficher tout l’historique</string>
-    <string name="tk_displaydelete_displaycredential1_title2">Informations</string>
+    <string name="tk_displaydelete_displaycredential1_title2">Détails</string>
     <string name="tk_receive_credentialOffer_contentSection_primary">Informations</string>
     <string name="tk_displaydelete_displaycredential1_title4">Validité</string>
     <string name="tk_displaydelete_displaycredential1_title3">Compléments</string>
@@ -322,4 +322,18 @@
     <string name="tk_home_notification_credential_declined">Le document a été rejeté.</string>
     <string name="version_enforcement_button">Mettre à jour l\'app</string>
     <string name="version_enforcement_store_link">https://play.google.com/store/apps/details?id=ch.admin.foitt.swiyu</string>
+    <string name="tk_getEid_intro_secondaryButton">Plus tard</string>
+    <string name="tk_getEid_intro_smallBody">Exceptions\nLa protection de votre identité est notre priorité. Parfois, il faut une procédure supplémentaire pour contrôler votre identité. Dans ce cas, vous devrez peut-être attendre quelques jours.\n</string>
+    <string name="tk_getEid_dataPrivacy_title">Déclaration de protection des données</string>
+    <string name="tk_menu_securityPrivacy_dataProtection_privacyPolicy">Déclaration de protection des données</string>
+    <string name="tk_getEid_checkId_title">Vérification de votre document d’identité</string>
+    <string name="tk_getEid_intro_body">D’abord, votre document d’identité sera vérifié. Ensuite, votre identité sera contrôlée.\nDurée : environ 5 minutes</string>
+    <string name="tk_getEid_dataPrivacy_body">Nous tenons à protéger vos données et votre sphère privée. Vous devez accepter la déclaration de protection des données pour que nous puissions créer votre e-ID.</string>
+    <string name="tk_getEid_intro_primaryButton">Commander</string>
+    <string name="tk_getEid_queuing_title">Retard dans le traitement des commandes</string>
+    <string name="tk_getEid_dataPrivacy_link_text">Déclaration de protection des données</string>
+    <string name="tk_getEid_dataPrivacy_primaryButton">Accepter</string>
+    <string name="tk_getEid_intro_title">Commandez votre e-ID</string>
+    <string name="tk_getEid_checkId_body">Commençons par vérifier la validité de votre document d’identité. L’accès à votre caméra est nécessaire pour scanner votre document d’identité. Veuillez donc autoriser l’accès à votre caméra.\n\nVous pouvez utiliser les documents d’identité suivants :\nPasseport suisse\nCarte d’identité suisse\nTitre de séjour suisse\n</string>
+    <string name="tk_global_getEid_greenButton">Commander une e-ID</string>
 </resources>

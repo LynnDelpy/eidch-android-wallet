@@ -30,3 +30,8 @@ internal fun SigningAlgorithm.toCurve(): Curve = when (this) {
     SigningAlgorithm.ES256 -> Curve.P_256
     SigningAlgorithm.ES512 -> Curve.P_521
 }
+
+fun SigningAlgorithm.toSignatureName(): String = when (this) {
+    SigningAlgorithm.ES256 -> "SHA256withECDSA"
+    SigningAlgorithm.ES512 -> "SHA512withECDSA"
+}

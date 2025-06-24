@@ -18,7 +18,7 @@ android {
         applicationId = "ch.admin.foitt.swiyu"
         testApplicationId = "ch.admin.foitt.swiyu.test"
         versionCode = Integer.parseInt(properties.getOrDefault("APP_VERSION_CODE", "1") as String)
-        versionName = properties.getOrDefault("APP_VERSION_NAME", "1.0.0") as String
+        versionName = properties.getOrDefault("APP_VERSION_NAME", "100.0.0") as String
         manifestPlaceholders["appLabel"] = "swiyu"
         manifestPlaceholders["deepLinkCredentialOfferScheme"] = schemeCredentialOffer
         manifestPlaceholders["deepLinkCredentialOfferSchemeSwiyu"] = schemeCredentialOfferSwiyu
@@ -150,6 +150,9 @@ dependencies {
     // security
     implementation(libs.androidx.security.crypto)
 
+    // integrity
+    implementation(libs.integrity)
+
     // Dagger/Hilt
     implementation(libs.hilt.android)
     implementation(libs.androidx.hilt.navigation.compose)
@@ -227,4 +230,7 @@ dependencies {
     androidTestImplementation(libs.androidx.room.testing)
     androidTestImplementation(libs.mockk.android)
     kspAndroidTest(libs.hilt.android.compiler)
+
+    // AvWrapper
+    implementation(libs.av.wrapper)
 }

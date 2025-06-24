@@ -13,13 +13,13 @@ import ch.admin.foitt.openid4vc.domain.repository.VcSchemaRepository
 import ch.admin.foitt.openid4vc.domain.usecase.CreateAnyDescriptorMaps
 import ch.admin.foitt.openid4vc.domain.usecase.CreateAnyVerifiablePresentation
 import ch.admin.foitt.openid4vc.domain.usecase.CreateCredentialRequestProofJwt
-import ch.admin.foitt.openid4vc.domain.usecase.CreateDidJwk
 import ch.admin.foitt.openid4vc.domain.usecase.CreateJWSKeyPair
+import ch.admin.foitt.openid4vc.domain.usecase.CreateJwk
 import ch.admin.foitt.openid4vc.domain.usecase.DeclinePresentation
 import ch.admin.foitt.openid4vc.domain.usecase.DeleteKeyPair
 import ch.admin.foitt.openid4vc.domain.usecase.FetchCredentialByConfig
-import ch.admin.foitt.openid4vc.domain.usecase.FetchIssuerCredentialInformation
 import ch.admin.foitt.openid4vc.domain.usecase.FetchPresentationRequest
+import ch.admin.foitt.openid4vc.domain.usecase.FetchRawAndParsedIssuerCredentialInfo
 import ch.admin.foitt.openid4vc.domain.usecase.FetchVerifiableCredential
 import ch.admin.foitt.openid4vc.domain.usecase.GenerateKeyPair
 import ch.admin.foitt.openid4vc.domain.usecase.GetKeyPair
@@ -29,13 +29,13 @@ import ch.admin.foitt.openid4vc.domain.usecase.VerifyJwtSignature
 import ch.admin.foitt.openid4vc.domain.usecase.implementation.CreateAnyDescriptorMapsImpl
 import ch.admin.foitt.openid4vc.domain.usecase.implementation.CreateAnyVerifiablePresentationImpl
 import ch.admin.foitt.openid4vc.domain.usecase.implementation.CreateCredentialRequestProofJwtImpl
-import ch.admin.foitt.openid4vc.domain.usecase.implementation.CreateDidJwkImpl
 import ch.admin.foitt.openid4vc.domain.usecase.implementation.CreateJWSKeyPairImpl
+import ch.admin.foitt.openid4vc.domain.usecase.implementation.CreateJwkImpl
 import ch.admin.foitt.openid4vc.domain.usecase.implementation.DeclinePresentationImpl
 import ch.admin.foitt.openid4vc.domain.usecase.implementation.DeleteKeyPairImpl
 import ch.admin.foitt.openid4vc.domain.usecase.implementation.FetchCredentialByConfigImpl
-import ch.admin.foitt.openid4vc.domain.usecase.implementation.FetchIssuerCredentialInformationImpl
 import ch.admin.foitt.openid4vc.domain.usecase.implementation.FetchPresentationRequestImpl
+import ch.admin.foitt.openid4vc.domain.usecase.implementation.FetchRawAndParsedIssuerCredentialInfoImpl
 import ch.admin.foitt.openid4vc.domain.usecase.implementation.FetchVerifiableCredentialImpl
 import ch.admin.foitt.openid4vc.domain.usecase.implementation.GenerateKeyPairImpl
 import ch.admin.foitt.openid4vc.domain.usecase.implementation.GetKeyPairImpl
@@ -80,6 +80,7 @@ import javax.inject.Named
 @InstallIn(ActivityRetainedComponent::class)
 class ExternalOpenId4VcModule {
     @Provides
+    @ActivityRetainedScoped
     internal fun provideCredentialOfferRepository(
         httpClient: HttpClient,
         safeJson: SafeJson,
@@ -157,9 +158,9 @@ internal interface OpenId4VCBindings {
     ): FetchDidLogRepository
 
     @Binds
-    fun bindFetchIssuerCredentialInformation(
-        useCase: FetchIssuerCredentialInformationImpl
-    ): FetchIssuerCredentialInformation
+    fun bindRawAndParsedFetchIssuerCredentialInformation(
+        useCase: FetchRawAndParsedIssuerCredentialInfoImpl
+    ): FetchRawAndParsedIssuerCredentialInfo
 
     @Binds
     fun bindFetchVerifiableCredential(
@@ -228,8 +229,8 @@ internal interface OpenId4VCBindings {
 
     @Binds
     fun bindCreateDidJwk(
-        useCase: CreateDidJwkImpl
-    ): CreateDidJwk
+        useCase: CreateJwkImpl
+    ): CreateJwk
 
     @Binds
     fun bindFetchCredentialByConfig(

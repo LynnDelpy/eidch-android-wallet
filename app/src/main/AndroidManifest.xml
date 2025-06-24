@@ -7,6 +7,11 @@
             android:required="false" />
     <uses-permission android:name="android.permission.CAMERA" />
 
+    <uses-feature
+            android:name="android.hardware.nfc"
+            android:required="false"
+            tools:node="replace" />
+
     <application
             android:allowBackup="false"
             android:usesCleartextTraffic="false"

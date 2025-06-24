@@ -1,9 +1,11 @@
 package ch.admin.foitt.wallet.platform.locale.di
 
 import ch.admin.foitt.wallet.platform.locale.domain.usecase.GetCurrentAppLocale
+import ch.admin.foitt.wallet.platform.locale.domain.usecase.GetLocalizedAndThemedDisplay
 import ch.admin.foitt.wallet.platform.locale.domain.usecase.GetLocalizedDisplay
 import ch.admin.foitt.wallet.platform.locale.domain.usecase.GetSupportedAppLanguages
 import ch.admin.foitt.wallet.platform.locale.domain.usecase.implementation.GetCurrentAppLocaleImpl
+import ch.admin.foitt.wallet.platform.locale.domain.usecase.implementation.GetLocalizedAndThemedDisplayImpl
 import ch.admin.foitt.wallet.platform.locale.domain.usecase.implementation.GetLocalizedDisplayImpl
 import ch.admin.foitt.wallet.platform.locale.domain.usecase.implementation.GetSupportedAppLanguagesImpl
 import dagger.Binds
@@ -28,4 +30,9 @@ internal interface LocaleModule {
     fun bindGetLocalizedDisplay(
         useCase: GetLocalizedDisplayImpl
     ): GetLocalizedDisplay
+
+    @Binds
+    fun bindGetLocalizedAndThemedDisplay(
+        useCase: GetLocalizedAndThemedDisplayImpl
+    ): GetLocalizedAndThemedDisplay
 }

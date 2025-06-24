@@ -24,9 +24,10 @@ data class CredentialDisplay(
     val id: Long = 0,
     val credentialId: Long, // ForeignKey
     override val locale: String,
-    val name: String,
+    val name: String? = null,
     val description: String? = null,
     val logoUri: String? = null,
     val logoAltText: String? = null,
     val backgroundColor: String? = null,
+    val theme: String? = null,
 ) : LocalizedDisplay

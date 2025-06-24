@@ -1,5 +1,6 @@
 package ch.admin.foitt.wallet.platform.oca.domain.usecase.implementation
 
+import ch.admin.foitt.wallet.platform.oca.domain.model.GetRootCaptureBaseError
 import ch.admin.foitt.wallet.platform.oca.domain.model.OcaBundle
 import ch.admin.foitt.wallet.platform.oca.domain.model.OcaBundlerError
 import ch.admin.foitt.wallet.platform.oca.domain.model.OcaCaptureBaseValidationError
@@ -8,10 +9,14 @@ import ch.admin.foitt.wallet.platform.oca.domain.model.OcaError
 import ch.admin.foitt.wallet.platform.oca.domain.model.OcaOverlayValidationError
 import ch.admin.foitt.wallet.platform.oca.domain.model.overlays.UnsupportedOverlay
 import ch.admin.foitt.wallet.platform.oca.domain.model.toOcaBundlerError
+import ch.admin.foitt.wallet.platform.oca.domain.usecase.GenerateOcaClaimData
+import ch.admin.foitt.wallet.platform.oca.domain.usecase.GenerateOcaCredentialData
+import ch.admin.foitt.wallet.platform.oca.domain.usecase.GetRootCaptureBase
 import ch.admin.foitt.wallet.platform.oca.domain.usecase.OcaBundler
 import ch.admin.foitt.wallet.platform.oca.domain.usecase.OcaCaptureBaseValidator
 import ch.admin.foitt.wallet.platform.oca.domain.usecase.OcaCesrHashValidator
 import ch.admin.foitt.wallet.platform.oca.domain.usecase.OcaOverlayValidator
+import ch.admin.foitt.wallet.platform.oca.domain.usecase.TransformOcaOverlays
 import ch.admin.foitt.wallet.platform.utils.JsonParsingError
 import ch.admin.foitt.wallet.platform.utils.SafeJson
 import com.github.michaelbull.result.Err
@@ -27,6 +32,10 @@ class OcaBundlerImpl @Inject constructor(
     private val ocaCesrHashValidator: OcaCesrHashValidator,
     private val ocaCaptureBaseValidator: OcaCaptureBaseValidator,
     private val ocaOverlayValidator: OcaOverlayValidator,
+    private val transformOcaOverlays: TransformOcaOverlays,
+    private val getRootCaptureBase: GetRootCaptureBase,
+    private val generateOcaClaimData: GenerateOcaClaimData,
+    private val generateOcaCredentialData: GenerateOcaCredentialData,
 ) : OcaBundler {
 
     override suspend fun invoke(jsonString: String): Result<OcaBundle, OcaBundlerError> = coroutineBinding {
@@ -57,9 +66,22 @@ class OcaBundlerImpl @Inject constructor(
             .mapError(OcaOverlayValidationError::toOcaBundlerError)
             .bind()
 
+        val transformedOverlays = transformOcaOverlays(validOverlays)
+
+        val ocaClaimData = generateOcaClaimData(captureBases = validCaptureBases, overlays = transformedOverlays)
+
+        val rootCaptureBase = getRootCaptureBase(validCaptureBases)
+            .mapError(GetRootCaptureBaseError::toOcaBundlerError)
+            .bind()
+
+        val ocaCredentialData =
+            generateOcaCredentialData(rootCaptureBase = rootCaptureBase, overlays = transformedOverlays)
+
         OcaBundle(
             captureBases = validCaptureBases,
-            overlays = validOverlays
+            overlays = transformedOverlays,
+            ocaClaimData = ocaClaimData,
+            ocaCredentialData = ocaCredentialData
         )
     }
 }

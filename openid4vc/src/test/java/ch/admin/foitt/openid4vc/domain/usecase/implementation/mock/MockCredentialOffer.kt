@@ -10,7 +10,7 @@ import ch.admin.foitt.openid4vc.domain.model.credentialoffer.PreAuthorizedConten
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.TokenResponse
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.CredentialFormat
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.IssuerConfiguration
-import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.IssuerCredentialInformation
+import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.IssuerCredentialInfo
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.SigningAlgorithm
 import ch.admin.foitt.openid4vc.domain.usecase.implementation.mock.MockIssuerCredentialConfiguration.vcSdJwtCredentialConfiguration
 import io.mockk.mockk
@@ -50,7 +50,7 @@ internal object MockCredentialOffer {
     )
 
     private const val CREDENTIAL_ENDPOINT = "credentialEndpoint"
-    val validIssuerCredentialInformation = IssuerCredentialInformation(
+    val validIssuerCredentialInfo = IssuerCredentialInfo(
         credentialEndpoint = CREDENTIAL_ENDPOINT,
         credentialIssuer = CREDENTIAL_ISSUER,
         credentialConfigurations = listOf(vcSdJwtCredentialConfiguration),

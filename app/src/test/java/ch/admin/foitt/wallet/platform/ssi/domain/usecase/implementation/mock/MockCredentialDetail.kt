@@ -17,6 +17,8 @@ import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialDetail
 object MockCredentialDetail {
 
     const val CREDENTIAL_ID = 5L
+    private const val CREDENTIAL_ID_2 = 6L
+    private const val CLUSTER_ID = 1L
     private const val CLAIM_ID_1 = 1L
     private const val CLAIM_ID_2 = 2L
     private const val ISSUER = "issuer"
@@ -34,7 +36,7 @@ object MockCredentialDetail {
     )
 
     @OptIn(ExperimentalStdlibApi::class)
-    private val credentialDisplay1 = CredentialDisplay(
+    val credentialDisplay1 = CredentialDisplay(
         id = 23,
         credentialId = CREDENTIAL_ID,
         locale = "locale1",
@@ -42,7 +44,7 @@ object MockCredentialDetail {
         backgroundColor = "#" + Color.Black.toArgb().toHexString()
     )
 
-    private val credentialDisplay2 = CredentialDisplay(
+    val credentialDisplay2 = CredentialDisplay(
         id = 24,
         credentialId = CREDENTIAL_ID,
         locale = "locale2",
@@ -53,7 +55,7 @@ object MockCredentialDetail {
 
     private val claim1 = CredentialClaim(
         id = CLAIM_ID_1,
-        credentialId = CREDENTIAL_ID,
+        clusterId = CLUSTER_ID,
         key = "key1",
         value = "value1",
         valueType = "valueType1",
@@ -62,7 +64,7 @@ object MockCredentialDetail {
 
     private val claim2 = CredentialClaim(
         id = CLAIM_ID_2,
-        credentialId = CREDENTIAL_ID,
+        clusterId = CLUSTER_ID,
         key = "key2",
         value = "value2",
         valueType = "valueType2",
@@ -140,5 +142,19 @@ object MockCredentialDetail {
     val credentialDetail2 = CredentialDetail(
         credential = credentialDisplayData,
         claims = listOf(claimData1, claimData2),
+    )
+
+    val credentialDisplayData1 = CredentialDisplayData(
+        credentialId = CREDENTIAL_ID,
+        status = CredentialStatus.VALID.toDisplayStatus(),
+        credentialDisplay = credentialDisplay1,
+        isCredentialFromBetaIssuer = false,
+    )
+
+    val credentialDisplayData2 = CredentialDisplayData(
+        credentialId = CREDENTIAL_ID_2,
+        status = CredentialStatus.VALID.toDisplayStatus(),
+        credentialDisplay = credentialDisplay2,
+        isCredentialFromBetaIssuer = true,
     )
 }

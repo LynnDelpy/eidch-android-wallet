@@ -9,9 +9,9 @@ import ch.admin.foitt.wallet.platform.credential.domain.usecase.MapToCredentialD
 import ch.admin.foitt.wallet.platform.credentialPresentation.domain.model.PresentationRequestField
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialClaimWithDisplays
 import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialClaimData
-import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialWithDisplaysAndClaimsRepositoryError
+import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialWithDisplaysAndClustersRepositoryError
 import ch.admin.foitt.wallet.platform.ssi.domain.model.MapToCredentialClaimDataError
-import ch.admin.foitt.wallet.platform.ssi.domain.repository.CredentialWithDisplaysAndClaimsRepository
+import ch.admin.foitt.wallet.platform.ssi.domain.repository.CredentialWithDisplaysAndClustersRepository
 import ch.admin.foitt.wallet.platform.ssi.domain.usecase.MapToCredentialClaimData
 import ch.admin.foitt.wallet.platform.utils.andThen
 import ch.admin.foitt.wallet.platform.utils.mapError
@@ -23,7 +23,7 @@ import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 class GetPresentationRequestFlowImpl @Inject constructor(
-    private val credentialWithDisplaysAndClaimsRepository: CredentialWithDisplaysAndClaimsRepository,
+    private val credentialWithDisplaysAndClustersRepository: CredentialWithDisplaysAndClustersRepository,
     private val mapToCredentialDisplayData: MapToCredentialDisplayData,
     private val mapToCredentialClaimData: MapToCredentialClaimData,
 ) : GetPresentationRequestFlow {
@@ -31,18 +31,21 @@ class GetPresentationRequestFlowImpl @Inject constructor(
         id: Long,
         requestedFields: List<PresentationRequestField>,
     ): Flow<Result<PresentationRequestDisplayData, GetPresentationRequestFlowError>> =
-        credentialWithDisplaysAndClaimsRepository.getCredentialWithDisplaysAndClaimsFlowById(id)
-            .mapError(CredentialWithDisplaysAndClaimsRepositoryError::toGetPresentationRequestFlowError)
-            .andThen { credentialWithDisplaysAndClaims ->
+        credentialWithDisplaysAndClustersRepository.getCredentialWithDisplaysAndClustersFlowById(id)
+            .mapError(CredentialWithDisplaysAndClustersRepositoryError::toGetPresentationRequestFlowError)
+            .andThen { credentialWithDisplaysAndClusters ->
                 coroutineBinding {
+                    val cluster = credentialWithDisplaysAndClusters.clusters.first()
+
                     val credentialDisplayData = mapToCredentialDisplayData(
-                        credential = credentialWithDisplaysAndClaims.credential,
-                        credentialDisplays = credentialWithDisplaysAndClaims.credentialDisplays,
+                        credential = credentialWithDisplaysAndClusters.credential,
+                        credentialDisplays = credentialWithDisplaysAndClusters.credentialDisplays,
+                        claims = cluster.claims,
                     ).mapError(MapToCredentialDisplayDataError::toGetPresentationRequestFlowError)
                         .bind()
 
                     val requestedClaims = getCredentialClaimData(
-                        claims = credentialWithDisplaysAndClaims.claims,
+                        claims = cluster.claims,
                         requestedFields = requestedFields,
                     ).bind()
 

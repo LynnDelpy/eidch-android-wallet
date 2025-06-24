@@ -11,7 +11,7 @@ import java.time.Instant
  * https://www.rfc-editor.org/rfc/rfc7519.html
  */
 open class Jwt(
-    rawJwt: String,
+    val rawJwt: String,
 ) {
     val signedJwt: SignedJWT = SignedJWT.parse(rawJwt)
     val payloadString = signedJwt.payload.toString()

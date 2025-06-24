@@ -47,7 +47,8 @@ class CreateJWSKeyPairImplTest {
     fun `return error if using non-existing KeyStore Provider`() = runTest(testDispatcher) {
         useCase(
             signingAlgorithm = SigningAlgorithm.ES256,
-            provider = "this provider does not exist"
+            provider = "this provider does not exist",
+            attestationChallenge = null,
         ).assertErr()
     }
 }

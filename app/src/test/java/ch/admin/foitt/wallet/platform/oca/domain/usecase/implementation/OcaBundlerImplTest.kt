@@ -4,10 +4,14 @@ import ch.admin.foitt.wallet.platform.oca.domain.model.CaptureBase
 import ch.admin.foitt.wallet.platform.oca.domain.model.OcaError
 import ch.admin.foitt.wallet.platform.oca.domain.model.OverlaySpecType
 import ch.admin.foitt.wallet.platform.oca.domain.model.overlays.Overlay
+import ch.admin.foitt.wallet.platform.oca.domain.usecase.GenerateOcaClaimData
+import ch.admin.foitt.wallet.platform.oca.domain.usecase.GenerateOcaCredentialData
+import ch.admin.foitt.wallet.platform.oca.domain.usecase.GetRootCaptureBase
 import ch.admin.foitt.wallet.platform.oca.domain.usecase.OcaBundler
 import ch.admin.foitt.wallet.platform.oca.domain.usecase.OcaCaptureBaseValidator
 import ch.admin.foitt.wallet.platform.oca.domain.usecase.OcaCesrHashValidator
 import ch.admin.foitt.wallet.platform.oca.domain.usecase.OcaOverlayValidator
+import ch.admin.foitt.wallet.platform.oca.domain.usecase.TransformOcaOverlays
 import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.elfaCaptureBase
 import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.elfaExample
 import ch.admin.foitt.wallet.util.SafeJsonTestInstance
@@ -37,6 +41,18 @@ class OcaBundlerImplTest {
     @MockK
     private lateinit var mockOcaOverlayValidator: OcaOverlayValidator
 
+    @MockK
+    private lateinit var mockTransformOcaOverlays: TransformOcaOverlays
+
+    @MockK
+    private lateinit var mockGetRootCaptureBase: GetRootCaptureBase
+
+    @MockK
+    private lateinit var mockGenerateOcaClaimData: GenerateOcaClaimData
+
+    @MockK
+    private lateinit var mockGenerateOcaCredentialData: GenerateOcaCredentialData
+
     private val json = SafeJsonTestInstance.safeJson
     private lateinit var ocaBundler: OcaBundler
 
@@ -49,6 +65,10 @@ class OcaBundlerImplTest {
             ocaCesrHashValidator = mockOcaCesrHashValidator,
             ocaCaptureBaseValidator = mockOcaCaptureBaseValidator,
             ocaOverlayValidator = mockOcaOverlayValidator,
+            transformOcaOverlays = mockTransformOcaOverlays,
+            getRootCaptureBase = mockGetRootCaptureBase,
+            generateOcaClaimData = mockGenerateOcaClaimData,
+            generateOcaCredentialData = mockGenerateOcaCredentialData,
         )
 
         setupDefaultMocks()
@@ -111,16 +131,28 @@ class OcaBundlerImplTest {
         ocaBundler(elfaExample).assertErrorType(OcaError.InvalidOverlays::class)
     }
 
+    @Test
+    fun `Oca bundler maps errors from getting root capture base`() = runTest {
+        coEvery { mockGetRootCaptureBase(any()) } returns Err(OcaError.InvalidRootCaptureBase)
+
+        ocaBundler(elfaExample).assertErrorType(OcaError.InvalidCaptureBases::class)
+    }
+
     private fun setupDefaultMocks() {
-        val captureBases = listOf(json.safeDecodeStringTo<CaptureBase>(standardCaptureBase).value)
-        val overlays = listOf(json.safeDecodeStringTo<Overlay>(standardOverlay).value)
+        val captureBase = json.safeDecodeStringTo<CaptureBase>(defaultCaptureBase).value
+        val captureBases = listOf(captureBase)
+        val overlays = listOf(json.safeDecodeStringTo<Overlay>(defaultOverlay).value)
 
         coEvery { mockOcaCesrHashValidator(any()) } returns Ok(Unit)
         coEvery { mockOcaCaptureBaseValidator(any()) } returns Ok(captureBases)
         coEvery { mockOcaOverlayValidator(any()) } returns Ok(overlays)
+        coEvery { mockTransformOcaOverlays(any()) } returns overlays
+        coEvery { mockGetRootCaptureBase(any()) } returns Ok(captureBase)
+        coEvery { mockGenerateOcaClaimData(any(), any()) } returns emptyList()
+        coEvery { mockGenerateOcaCredentialData(any(), any()) } returns emptyList()
     }
 
-    private val standardCaptureBase = """
+    private val defaultCaptureBase = """
         {
           "type": "spec/capture_base/1.0",
           "digest": "digest",
@@ -130,7 +162,7 @@ class OcaBundlerImplTest {
         }
     """.trimIndent()
 
-    private val standardOverlay = """
+    private val defaultOverlay = """
         {
           "capture_base": "digest",
           "type": "spec/overlays/label/1.0",
@@ -144,7 +176,7 @@ class OcaBundlerImplTest {
     private val ocaBundleWithoutCaptureBases = """
         {
           "overlays": [
-            $standardOverlay
+            $defaultOverlay
           ]
         }
     """.trimIndent()
@@ -152,7 +184,7 @@ class OcaBundlerImplTest {
     private val ocaBundleNotParsable = """
         {
           "capture_bases": [
-            $standardCaptureBase
+            $defaultCaptureBase
           ]
         }
     """.trimIndent()
@@ -160,7 +192,7 @@ class OcaBundlerImplTest {
     private val ocaBundleWithUnsupportedOverlay = """
         {
           "capture_bases": [
-            $standardCaptureBase
+            $defaultCaptureBase
           ],
           "overlays": [
             {
@@ -168,7 +200,7 @@ class OcaBundlerImplTest {
               "type": "spec/overlays/unsupported/1.0",
               "someKey": "someValue"
             },
-            $standardOverlay
+            $defaultOverlay
           ]
         }
     """.trimIndent()

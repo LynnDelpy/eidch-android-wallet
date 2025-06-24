@@ -1,7 +1,8 @@
 package ch.admin.foitt.wallet.platform.credential.domain.usecase.implementation.mock
 
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.CredentialOffer
-import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.IssuerCredentialInformation
+import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.IssuerCredentialInfo
+import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.RawAndParsedIssuerCredentialInfo
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.VcSdJwtCredentialConfiguration
 import io.mockk.every
 import io.mockk.mockk
@@ -14,17 +15,22 @@ internal object MockFetchCredential {
         every { identifier } returns CREDENTIAL_IDENTIFIER_2
     }
 
-    val oneConfigCredentialInformation = mockk<IssuerCredentialInformation> {
+    val oneConfigCredentialInformation = mockk<IssuerCredentialInfo> {
         every { credentialEndpoint } returns CREDENTIAL_ENDPOINT
         every { credentialConfigurations } returns listOf(credentialConfig)
     }
 
-    val multipleConfigCredentialInformation = mockk<IssuerCredentialInformation> {
+    val oneRawAndParsedCredentialInformation = mockk<RawAndParsedIssuerCredentialInfo> {
+        every { issuerCredentialInfo } returns oneConfigCredentialInformation
+        every { rawIssuerCredentialInfo } returns ""
+    }
+
+    val multipleConfigCredentialInformation = mockk<IssuerCredentialInfo> {
         every { credentialEndpoint } returns CREDENTIAL_ENDPOINT
         every { credentialConfigurations } returns listOf(credentialConfig, credentialConfig2)
     }
 
-    val noConfigCredentialInformation = mockk<IssuerCredentialInformation> {
+    val noConfigCredentialInformation = mockk<IssuerCredentialInfo> {
         every { credentialEndpoint } returns CREDENTIAL_ENDPOINT
         every { credentialConfigurations } returns emptyList()
     }

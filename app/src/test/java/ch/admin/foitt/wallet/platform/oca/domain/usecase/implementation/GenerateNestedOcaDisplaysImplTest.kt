@@ -1,0 +1,297 @@
+package ch.admin.foitt.wallet.platform.oca.domain.usecase.implementation
+
+import ch.admin.foitt.wallet.platform.credential.domain.model.AnyClaimDisplay
+import ch.admin.foitt.wallet.platform.database.domain.model.Cluster
+import ch.admin.foitt.wallet.platform.database.domain.model.ClusterDisplay
+import ch.admin.foitt.wallet.platform.database.domain.model.CredentialClaim
+import ch.admin.foitt.wallet.platform.oca.domain.model.AttributeType
+import ch.admin.foitt.wallet.platform.oca.domain.model.CaptureBase
+import ch.admin.foitt.wallet.platform.oca.domain.model.OcaBundle
+import ch.admin.foitt.wallet.platform.oca.domain.model.OcaClaimData
+import ch.admin.foitt.wallet.platform.oca.domain.model.OcaCredentialData
+import ch.admin.foitt.wallet.platform.oca.domain.usecase.GenerateOcaDisplays
+import ch.admin.foitt.wallet.platform.oca.domain.usecase.GetRootCaptureBase
+import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.complexNestedOca
+import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.simpleNestedOca
+import ch.admin.foitt.wallet.util.SafeJsonTestInstance
+import ch.admin.foitt.wallet.util.assertOk
+import com.github.michaelbull.result.Ok
+import io.mockk.MockKAnnotations
+import io.mockk.coEvery
+import io.mockk.every
+import io.mockk.impl.annotations.MockK
+import io.mockk.unmockkAll
+import kotlinx.coroutines.test.runTest
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+
+class GenerateNestedOcaDisplaysImplTest {
+
+    @MockK
+    private lateinit var mockGetRootCaptureBase: GetRootCaptureBase
+
+    @MockK
+    private lateinit var mockOcaBundle: OcaBundle
+
+    @MockK
+    private lateinit var mockRootCaptureBase: CaptureBase
+
+    private val json = SafeJsonTestInstance.safeJson
+    private val generateOcaClaimData = GenerateOcaClaimDataImpl()
+
+    private lateinit var useCase: GenerateOcaDisplays
+
+    @BeforeEach
+    fun setup() {
+        MockKAnnotations.init(this)
+
+        useCase = GenerateOcaDisplaysImpl(
+            getRootCaptureBase = mockGetRootCaptureBase,
+        )
+
+        setupDefaultMocks()
+    }
+
+    @AfterEach
+    fun tearDown() {
+        unmockkAll()
+    }
+
+    @Test
+    fun `Generating Oca displays with complex nested capture bases returns one cluster with a sub cluster`() = runTest {
+        val ocaBundle = setupNestedOcaTests(complexNestedOca)
+
+        val result = useCase(complexNestedCredentialClaims, ocaBundle).assertOk()
+
+        assertEquals(1, result.clusters.size)
+        assertEquals(expectedComplexNestedCluster, result.clusters[0])
+    }
+
+    @Test
+    fun `Generating Oca displays with complex nested capture bases and missing oca claim data returns two clusters`() = runTest {
+        val claims = complexNestedCredentialClaims + mapOf("other_claim" to "otherClaimValue")
+        val ocaBundle = setupNestedOcaTests(complexNestedOca)
+
+        val result = useCase(claims, ocaBundle).assertOk()
+
+        val expectedExtraClaim = CredentialClaim(
+            clusterId = -1,
+            key = "other_claim",
+            value = "otherClaimValue",
+            valueType = "string",
+            order = -1
+        )
+
+        val expectedExtraCluster = Cluster(
+            order = -1,
+            claims = mapOf(
+                expectedExtraClaim to listOf(
+                    AnyClaimDisplay(locale = "fallback", name = "other_claim")
+                )
+            ),
+        )
+
+        assertEquals(2, result.clusters.size)
+        assertEquals(expectedComplexNestedCluster, result.clusters[0])
+        assertEquals(expectedExtraCluster, result.clusters[1])
+    }
+
+    @Test
+    fun `Generating Oca displays with simple nested capture bases returns 3 clusters`() = runTest {
+        val ocaBundle = setupNestedOcaTests(simpleNestedOca)
+
+        val result = useCase(simpleNestedOcaCredentialClaims, ocaBundle).assertOk()
+
+        assertEquals(3, result.clusters.size)
+        assertEquals(expectedSimpleNestedClusters[0], result.clusters[0])
+        assertEquals(expectedSimpleNestedClusters[1], result.clusters[1])
+        assertEquals(expectedSimpleNestedClusters[2], result.clusters[2])
+    }
+
+    @Test
+    fun `Generating Oca displays with simple nested capture bases and missing oca claim data returns 4 clusters`() = runTest {
+        val ocaBundle = setupNestedOcaTests(simpleNestedOca)
+        val claims = simpleNestedOcaCredentialClaims + mapOf("other_claim" to "otherClaimValue")
+
+        val result = useCase(claims, ocaBundle).assertOk()
+
+        val expectedExtraClaim = CredentialClaim(
+            clusterId = -1,
+            key = "other_claim",
+            value = "otherClaimValue",
+            valueType = "string",
+            order = -1
+        )
+
+        val expectedExtraCluster = Cluster(
+            order = -1,
+            claims = mapOf(
+                expectedExtraClaim to listOf(
+                    AnyClaimDisplay(locale = "fallback", name = "other_claim")
+                )
+            ),
+        )
+
+        assertEquals(4, result.clusters.size)
+        assertEquals(expectedSimpleNestedClusters[0], result.clusters[0])
+        assertEquals(expectedSimpleNestedClusters[1], result.clusters[1])
+        assertEquals(expectedSimpleNestedClusters[2], result.clusters[2])
+        assertEquals(expectedExtraCluster, result.clusters[3])
+    }
+
+    private fun setupDefaultMocks() {
+        every { mockRootCaptureBase.digest } returns "digest"
+        val captureBases = listOf(mockRootCaptureBase)
+        every { mockOcaBundle.getAttributeForJsonPath(JSON_PATH) } returns ocaClaimData
+        every { mockOcaBundle.getAttributes("digest") } returns listOf(ocaClaimData)
+        every { mockOcaBundle.ocaCredentialData } returns listOf(ocaCredentialData)
+        every { mockOcaBundle.captureBases } returns captureBases
+
+        coEvery { mockGetRootCaptureBase(captureBases) } returns Ok(mockRootCaptureBase)
+    }
+
+    private fun setupNestedOcaTests(inputOcaJson: String): OcaBundle {
+        val bundle = json.safeDecodeStringTo<OcaBundle>(inputOcaJson).value
+        val ocaClaimData = generateOcaClaimData(bundle.captureBases, bundle.overlays)
+        val fullBundle = bundle.copy(ocaClaimData = ocaClaimData)
+        coEvery { mockGetRootCaptureBase(fullBundle.captureBases) } returns Ok(fullBundle.captureBases.first())
+
+        return fullBundle
+    }
+
+    private companion object {
+        const val CLAIM_KEY = "claim_key"
+        const val LANGUAGE_EN = "en"
+        const val CLAIM_VALUE_EN = "claim value en"
+        const val JSON_PATH = "$.$CLAIM_KEY"
+
+        val ocaClaimData = OcaClaimData(
+            captureBaseDigest = "digest",
+            name = "claim_key",
+            attributeType = AttributeType.Text,
+            labels = mapOf(LANGUAGE_EN to CLAIM_VALUE_EN),
+            dataSources = mapOf("vc+sd-jwt" to JSON_PATH)
+        )
+
+        val ocaCredentialData = OcaCredentialData(
+            captureBaseDigest = "digest",
+            locale = LANGUAGE_EN,
+            name = "name",
+            description = "description",
+            logoData = "logoData",
+            backgroundColor = "backgroundColor",
+            theme = "theme"
+        )
+
+        val complexNestedCredentialClaims = mapOf(
+            "capture_base_1_claim_1" to "captureBase1Claim1Value",
+            "capture_base_1_claim_2" to "captureBase1Claim2Value",
+            "capture_base_2.claim_1" to "captureBase2Claim1Value",
+            "capture_base_2.claim_2" to "captureBase2Claim2Value",
+            "capture_base_2.claim_3" to "captureBase2Claim3Value",
+        )
+
+        val claim1 = CredentialClaim(
+            clusterId = -1,
+            key = "capture_base_1_claim_1",
+            value = "captureBase1Claim1Value",
+            valueType = "string",
+            order = 1
+        )
+        val claim2 = CredentialClaim(
+            clusterId = -1,
+            key = "capture_base_1_claim_2",
+            value = "captureBase1Claim2Value",
+            valueType = "string",
+            order = 2
+        )
+        val claim3 = CredentialClaim(
+            clusterId = -1,
+            key = "capture_base_2.claim_1",
+            value = "captureBase2Claim1Value",
+            valueType = "string",
+            order = 1
+        )
+        val claim4 = CredentialClaim(
+            clusterId = -1,
+            key = "capture_base_2.claim_2",
+            value = "captureBase2Claim2Value",
+            valueType = "string",
+            order = 2
+        )
+        val claim5 = CredentialClaim(
+            clusterId = -1,
+            key = "capture_base_2.claim_3",
+            value = "captureBase2Claim3Value",
+            valueType = "string",
+            order = 3
+        )
+
+        val expectedComplexNestedCluster = Cluster(
+            order = 1,
+            claims = mapOf(
+                claim1 to listOf(
+                    AnyClaimDisplay("de", "capture_base_1_claim_1 de"),
+                    AnyClaimDisplay("fallback", "capture_base_1_claim_1"),
+                ),
+                claim2 to listOf(
+                    AnyClaimDisplay("de", "capture_base_1_claim_2 de"),
+                    AnyClaimDisplay("fallback", "capture_base_1_claim_2"),
+                )
+            ),
+            clusterDisplays = listOf(
+                ClusterDisplay("capture_base_1 de", "de"),
+                ClusterDisplay("capture_base_1 en", "en"),
+            ),
+            childClusters = listOf(
+                Cluster(
+                    order = 3,
+                    claims = mapOf(
+                        claim3 to listOf(
+                            AnyClaimDisplay("de", "capture_base_2_claim_1 de"),
+                            AnyClaimDisplay("fr", "capture_base_2_claim_1 fr"),
+                            AnyClaimDisplay("fallback", "capture_base_2.claim_1"),
+                        ),
+                        claim4 to listOf(
+                            AnyClaimDisplay("de", "capture_base_2_claim_2 de"),
+                            AnyClaimDisplay("fr", "capture_base_2_claim_2 fr"),
+                            AnyClaimDisplay("fallback", "capture_base_2.claim_2"),
+                        ),
+                        claim5 to listOf(
+                            AnyClaimDisplay("de", "capture_base_2_claim_3 de"),
+                            AnyClaimDisplay("fr", "capture_base_2_claim_3 fr"),
+                            AnyClaimDisplay("fallback", "capture_base_2.claim_3"),
+                        ),
+                    ),
+                    clusterDisplays = listOf(
+                        ClusterDisplay("capture_base_2 de", "de")
+                    )
+                )
+            )
+        )
+
+        val simpleNestedOcaCredentialClaims = mapOf(
+            "capture_base_1_claim_1" to "captureBase1Claim1Value",
+            "capture_base_2_claim_1" to "captureBase2Claim1Value",
+            "capture_base_3_claim_1" to "captureBase3Claim1Value",
+        )
+
+        val expectedSimpleNestedClusters = simpleNestedOcaCredentialClaims.toList().mapIndexed { i, (key, value) ->
+            val index = i + 1
+            val claim = CredentialClaim(clusterId = -1, key = key, value = value, valueType = "string", order = -1)
+            val claimDisplays = listOf(
+                AnyClaimDisplay(locale = "fallback", name = key)
+            )
+            val clusterDisplays = listOf(
+                ClusterDisplay(locale = "de", name = "capture_base_$index de")
+            )
+            Cluster(
+                order = index,
+                claims = mapOf(claim to claimDisplays),
+                clusterDisplays = clusterDisplays
+            )
+        }
+    }
+}

@@ -32,7 +32,8 @@ internal class ValidateTrustStatementImpl @Inject constructor(
     private val safeJson: SafeJson,
 ) : ValidateTrustStatement {
     override suspend operator fun invoke(
-        trustStatementRawVcSdJwt: String
+        trustStatementRawVcSdJwt: String,
+        actorDid: String,
     ): Result<TrustStatement, ValidateTrustStatementError> = coroutineBinding {
         runSuspendCatching {
             val trustStatement = VcSdJwt(trustStatementRawVcSdJwt)
@@ -62,6 +63,7 @@ internal class ValidateTrustStatementImpl @Inject constructor(
             checkNotNull(trustStatement.nbfInstant) { "$errorMessageStart nbf is missing" }
             checkNotNull(trustStatement.expInstant) { "$errorMessageStart exp is missing" }
             checkNotNull(trustStatement.subject) { "$errorMessageStart sub is missing" }
+            check(trustStatement.subject == actorDid) { "trust statement is not from did we requested it for" }
             check(trustStatement.jwtValidity == CredentialValidity.Valid) {
                 "$errorMessageStart is ${trustStatement.jwtValidity}"
             }
@@ -95,7 +97,7 @@ internal class ValidateTrustStatementImpl @Inject constructor(
             }.bind()
     }
 
-    private fun VcSdJwt.hasTrustedDid() = environmentSetupRepo.trustedDids.contains(vcIssuer)
+    private fun VcSdJwt.hasTrustedDid() = environmentSetupRepo.trustRegistryTrustedDids.contains(vcIssuer)
 
     private fun SdJwt.checkClaimNotNull(claimKey: String): JsonElement = checkNotNull(sdJwtJson.jsonObject[claimKey]) {
         "$errorMessageStart $claimKey is missing"

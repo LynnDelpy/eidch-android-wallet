@@ -4,7 +4,7 @@ import androidx.core.content.edit
 import androidx.security.crypto.EncryptedSharedPreferences
 import ch.admin.foitt.wallet.platform.passphrase.domain.repository.ByteArrayRepository
 import ch.admin.foitt.wallet.platform.utils.base64StringToByteArray
-import ch.admin.foitt.wallet.platform.utils.toBase64String
+import ch.admin.foitt.wallet.platform.utils.toBase64StringUrlEncodedWithoutPadding
 
 class SharedPreferencesByteArrayRepository constructor(
     private val prefKey: PrefKey,
@@ -12,12 +12,12 @@ class SharedPreferencesByteArrayRepository constructor(
 ) : ByteArrayRepository {
     override suspend fun get(): ByteArray {
         val base64SaltString = sharedPreferences.getString(prefKey.value, null) ?: ""
-        return base64SaltString.base64StringToByteArray()
+        return base64StringToByteArray(base64SaltString)
     }
 
     override suspend fun save(data: ByteArray) {
         sharedPreferences.edit {
-            putString(prefKey.value, data.toBase64String())
+            putString(prefKey.value, data.toBase64StringUrlEncodedWithoutPadding())
         }
     }
 

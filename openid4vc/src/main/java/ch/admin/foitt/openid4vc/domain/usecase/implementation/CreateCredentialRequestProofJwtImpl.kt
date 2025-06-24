@@ -1,6 +1,6 @@
 package ch.admin.foitt.openid4vc.domain.usecase.implementation
 
-import ch.admin.foitt.openid4vc.domain.model.credentialoffer.CreateDidJwkError
+import ch.admin.foitt.openid4vc.domain.model.CreateJwkError
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.CredentialOfferError
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.CredentialRequestProofJwt
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.JWSKeyPair
@@ -8,7 +8,7 @@ import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.toCurve
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.toJWSAlgorithm
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.toFetchVerifiableCredentialError
 import ch.admin.foitt.openid4vc.domain.usecase.CreateCredentialRequestProofJwt
-import ch.admin.foitt.openid4vc.domain.usecase.CreateDidJwk
+import ch.admin.foitt.openid4vc.domain.usecase.CreateJwk
 import ch.admin.foitt.openid4vc.utils.Constants
 import com.github.michaelbull.result.coroutines.coroutineBinding
 import com.github.michaelbull.result.coroutines.runSuspendCatching
@@ -23,15 +23,15 @@ import java.util.Date
 import javax.inject.Inject
 
 internal class CreateCredentialRequestProofJwtImpl @Inject constructor(
-    private val createDidJwk: CreateDidJwk,
+    private val createJwk: CreateJwk,
 ) : CreateCredentialRequestProofJwt {
     override suspend operator fun invoke(
         keyPair: JWSKeyPair,
         issuer: String,
         cNonce: String?,
     ) = coroutineBinding {
-        val jwk = createDidJwk(keyPair = keyPair.keyPair, algorithm = keyPair.algorithm, asDid = false)
-            .mapError(CreateDidJwkError::toFetchVerifiableCredentialError)
+        val jwk = createJwk(keyPair = keyPair.keyPair, algorithm = keyPair.algorithm, asDid = false)
+            .mapError(CreateJwkError::toFetchVerifiableCredentialError)
             .bind()
         val header = createHeader(keyPair, jwk)
         val payload = createPayload(issuer, cNonce)

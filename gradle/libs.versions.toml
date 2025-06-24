@@ -18,6 +18,7 @@ espresso-intents = "3.6.1"
 hilt = "2.51.1"
 hilt-compiler = "1.2.0"
 hilt-navigation-compose = "1.2.0"
+integrity = "1.4.0"
 java-json-canonicalization = "1.1"
 jna = "5.14.0"
 json-path = "2.9.0"
@@ -45,6 +46,7 @@ sqlcipher-android = "4.6.0"
 timber = "5.0.1"
 ui-automator = "2.3.0"
 zxing-cpp = "2.2.0"
+av-wrapper = "0.1.0"
 
 [libraries]
 
@@ -78,6 +80,7 @@ didresolver = { module = "ch.admin.eid.didresolver:didresolver-android", version
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hilt" }
 hilt-android-compiler = { module = "com.google.dagger:hilt-android-compiler", version.ref = "hilt" }
 hilt-android-testing = { module = "com.google.dagger:hilt-android-testing", version.ref = "hilt" }
+integrity = { module = "com.google.android.play:integrity", version.ref = "integrity" }
 java-json-canonicalization = { module = "io.github.erdtman:java-json-canonicalization", version.ref = "java-json-canonicalization" }
 jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
 json-path = { module = "com.jayway.jsonpath:json-path", version.ref = "json-path" }
@@ -98,6 +101,7 @@ slf4j-nop = { module = "org.slf4j:slf4j-nop", version.ref = "slf4j-nop" }
 sqlcipher-android = { module = "net.zetetic:sqlcipher-android", version.ref = "sqlcipher-android" }
 timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
 zxing-cpp = { module = "io.github.zxing-cpp:android", version.ref = "zxing-cpp" }
+av-wrapper = { module = "ch.admin.foitt.avwrapper:avwrapper", version.ref = "av-wrapper" }
 
 # Compose BOM
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "compose-bom" }

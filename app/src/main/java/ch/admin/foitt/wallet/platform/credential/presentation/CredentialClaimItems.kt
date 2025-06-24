@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
@@ -32,6 +33,7 @@ import ch.admin.foitt.wallet.platform.composables.presentation.spaceBarKeyClicka
 import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialClaimData
 import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialClaimImage
 import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialClaimText
+import ch.admin.foitt.wallet.platform.utils.TestTags
 import ch.admin.foitt.wallet.theme.Sizes
 import ch.admin.foitt.wallet.theme.WalletTheme
 import coil.compose.AsyncImage
@@ -50,7 +52,11 @@ fun LazyListScope.credentialClaimItems(
 
     items(claims) { claim ->
         ListItem(
-            modifier = if (claim is CredentialClaimImage) Modifier.padding(top = Sizes.s01) else Modifier,
+            modifier = if (claim is CredentialClaimImage) {
+                Modifier.padding(top = Sizes.s01).testTag(claim.localizedKey)
+            } else {
+                Modifier.testTag(claim.localizedKey)
+            },
             overlineContent = { Text(text = claim.localizedKey) },
             headlineContent = {
                 when (claim) {
@@ -145,7 +151,12 @@ private fun WrongDataItem(onWrongData: () -> Unit) {
         modifier = Modifier
             .clickable(onClick = onWrongData)
             .spaceBarKeyClickable(onWrongData),
-        headlineContent = { Text(text = stringResource(id = R.string.tk_global_wrongdata)) },
+        headlineContent = {
+            Text(
+                text = stringResource(id = R.string.tk_global_wrongdata),
+                modifier = Modifier.testTag(TestTags.WRONG_DATA_LINK.name)
+            )
+        },
         leadingContent = {
             Icon(
                 painter = painterResource(id = R.drawable.wallet_ic_wrong_data),

@@ -9,8 +9,8 @@ import com.github.michaelbull.result.mapError
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
-import io.ktor.http.ContentType
-import io.ktor.http.contentType
+import io.ktor.client.request.headers
+import io.ktor.http.append
 import java.net.URL
 import javax.inject.Inject
 
@@ -20,9 +20,18 @@ internal class VcSchemaRepositoryImpl @Inject constructor(
 
     override suspend fun fetchVcSchema(url: URL): Result<String, VcSchemaRepositoryError> = runSuspendCatching<String> {
         httpClient.get(url) {
-            contentType(ContentType.Application.Json)
+            headers {
+                append("Accept", HEADERS.joinToString(","))
+            }
         }.body()
     }.mapError { throwable ->
         throwable.toVcSchemaRepositoryError(message = "Fetch vc schema error")
+    }
+
+    private companion object {
+        const val APPLICATION_JSON = "application/json"
+        const val APPLICATION_SCHEMA_JSON = "application/schema+json"
+        const val APPLICATION_SCHEMA_INSTANCE_JSON = "application/schema-instance+json"
+        val HEADERS = listOf(APPLICATION_JSON, APPLICATION_SCHEMA_JSON, APPLICATION_SCHEMA_INSTANCE_JSON)
     }
 }

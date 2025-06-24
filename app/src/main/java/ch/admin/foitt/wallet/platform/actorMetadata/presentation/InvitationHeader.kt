@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
@@ -23,6 +24,7 @@ import ch.admin.foitt.wallet.platform.composables.Avatar
 import ch.admin.foitt.wallet.platform.composables.AvatarSize
 import ch.admin.foitt.wallet.platform.preview.WalletComponentPreview
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.TrustStatus
+import ch.admin.foitt.wallet.platform.utils.TestTags
 import ch.admin.foitt.wallet.theme.Sizes
 import ch.admin.foitt.wallet.theme.WalletTexts
 import ch.admin.foitt.wallet.theme.WalletTheme
@@ -41,7 +43,7 @@ internal fun InvitationHeader(
     Avatar(
         imagePainter = inviterImage ?: fallBackIcon(actorType),
         size = AvatarSize.LARGE,
-        imageTint = WalletTheme.colorScheme.onSurface,
+        imageTint = WalletTheme.colorScheme.onSurface
     )
     Spacer(modifier = Modifier.size(Sizes.s04))
     Column(
@@ -83,13 +85,13 @@ private fun RowScope.TrustIcon(trustStatus: TrustStatus) = when (trustStatus) {
         painter = painterResource(R.drawable.wallet_ic_trusted),
         contentDescription = null,
         tint = WalletTheme.colorScheme.tertiary,
-        modifier = Modifier.size(Sizes.s04)
+        modifier = Modifier.size(Sizes.s04).testTag(TestTags.VERIFIED_BADGE.name)
     )
     TrustStatus.NOT_TRUSTED -> Icon(
         painter = painterResource(R.drawable.wallet_ic_not_trusted),
         contentDescription = null,
         tint = WalletTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.size(Sizes.s04)
+        modifier = Modifier.size(Sizes.s04).testTag(TestTags.UNVERIFIED_BADGE.name)
     )
     else -> {}
 }
@@ -100,11 +102,12 @@ private fun RowScope.TrustLabel(trustStatus: TrustStatus) = when (trustStatus) {
         text = stringResource(R.string.tk_issuer_trusted),
         color = WalletTheme.colorScheme.tertiary,
         modifier = Modifier.weight(1f)
+            .testTag(TestTags.VERIFIED_TEXT.name)
     )
     TrustStatus.NOT_TRUSTED -> WalletTexts.LabelLarge(
         text = stringResource(R.string.tk_issuer_notTrusted),
         color = WalletTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.weight(1f)
+        modifier = Modifier.weight(1f).testTag(TestTags.UNVERIFIED_TEXT.name)
     )
     else -> {}
 }

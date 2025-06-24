@@ -2,6 +2,8 @@ package ch.admin.foitt.wallet.platform.ssi.data.source.local.mock
 
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.CredentialFormat
 import ch.admin.foitt.wallet.feature.credentialOffer.mock.CredentialOfferMocks.CREDENTIAL_PAYLOAD
+import ch.admin.foitt.wallet.platform.database.domain.model.CredentialClaimClusterDisplayEntity
+import ch.admin.foitt.wallet.platform.database.domain.model.CredentialClaimClusterEntity
 import ch.admin.foitt.wallet.platform.database.domain.model.Credential
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialClaim
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialClaimDisplay
@@ -67,8 +69,15 @@ object CredentialTestData {
         validUntil = 17768026519L,
     )
 
-    val credentialClaim1 = CredentialClaim(id = 1, credentialId = 1, key = KEY, value = VALUE, valueType = null)
-    val credentialClaim2 = CredentialClaim(id = 2, credentialId = 2, key = KEY2, value = VALUE2, valueType = null)
+    val cluster1 = CredentialClaimClusterEntity(id = 1, credentialId = 1, parentClusterId = null, order = -1)
+    val cluster2 = CredentialClaimClusterEntity(id = 2, credentialId = 2, parentClusterId = null, order = -1)
+    val clusterWithParent = CredentialClaimClusterEntity(id = 3, credentialId = 1, parentClusterId = 1, order = 2)
+
+    val clusterDisplay1 = CredentialClaimClusterDisplayEntity(id = 1, clusterId = 1, name = "name", locale = "locale")
+    val clusterDisplay2 = CredentialClaimClusterDisplayEntity(id = 2, clusterId = 2, name = "name", locale = "locale")
+
+    val credentialClaim1 = CredentialClaim(id = 1, clusterId = 1, key = KEY, value = VALUE, valueType = null)
+    val credentialClaim2 = CredentialClaim(id = 2, clusterId = 2, key = KEY2, value = VALUE2, valueType = null)
 
     val credentialClaimDisplay1 = CredentialClaimDisplay(id = 1, claimId = credentialClaim1.id, name = NAME1, locale = "xx")
     val credentialClaimDisplay2 = CredentialClaimDisplay(id = 2, claimId = credentialClaim2.id, name = NAME2, locale = "xx_XX")

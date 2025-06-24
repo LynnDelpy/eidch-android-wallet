@@ -18,6 +18,13 @@ class HomeScreen(composeTestRule: ComposeContentTestRule) : BaseScreen(composeTe
 
     @OptIn(ExperimentalTestApi::class)
     override fun isDisplayed() {
+        composeTestRule.waitUntilAtLeastOneExists(hasTestTag(TestTags.MENU_BUTTON.name), 10000)
+        menuButton.assertIsDisplayed()
+        scanButton.assertIsDisplayed()
+    }
+
+    @OptIn(ExperimentalTestApi::class)
+    fun isDisplayedEmpty() {
         composeTestRule.waitUntilAtLeastOneExists(hasTestTag(TestTags.NO_CREDENTIAL_ICON.name), 10000)
         noCredentialIcon.assertIsDisplayed()
         credentialList.assertIsNotDisplayed()
@@ -41,7 +48,7 @@ class HomeScreen(composeTestRule: ComposeContentTestRule) : BaseScreen(composeTe
         scanButton.assertIsDisplayed()
     }
 
-    fun nextScreen() {
+    fun openScanner() {
         scanButton.apply {
             assertIsDisplayed()
             performClick()

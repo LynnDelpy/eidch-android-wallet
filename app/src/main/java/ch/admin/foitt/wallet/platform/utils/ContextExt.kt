@@ -7,7 +7,6 @@ import android.net.Uri
 import android.provider.Settings
 import android.view.accessibility.AccessibilityManager
 import androidx.annotation.StringRes
-import androidx.core.content.ContextCompat
 import com.github.michaelbull.result.coroutines.runSuspendCatching
 import com.github.michaelbull.result.onFailure
 import timber.log.Timber
@@ -71,7 +70,7 @@ fun Context.shareText(
         }
 
         val shareIntent = Intent.createChooser(sendIntent, null).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        ContextCompat.startActivity(this, shareIntent, null)
+        startActivity(shareIntent)
     }.onFailure {
         Timber.w(t = it, message = "Failed sharing text")
     }

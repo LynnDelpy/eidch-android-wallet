@@ -2,8 +2,7 @@ package ch.admin.foitt.openid4vc.utils
 
 import java.util.Base64
 
-internal fun ByteArray.toBase64String(): String =
+internal fun ByteArray.toBase64StringUrlEncodedWithoutPadding(): String =
     Base64.getUrlEncoder().withoutPadding().encodeToString(this)
 
-internal fun String.base64StringToByteArray(): ByteArray =
-    Base64.getUrlDecoder().decode(this)
+internal fun ByteArray.toNonUrlEncodedBase64String() = Base64.getEncoder().encodeToString(this)

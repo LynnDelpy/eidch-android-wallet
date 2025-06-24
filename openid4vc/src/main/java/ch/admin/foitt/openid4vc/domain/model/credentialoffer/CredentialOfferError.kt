@@ -3,9 +3,13 @@
 package ch.admin.foitt.openid4vc.domain.model.credentialoffer
 
 import ch.admin.foitt.openid4vc.domain.model.CreateJWSKeyPairError
+import ch.admin.foitt.openid4vc.domain.model.CreateJwkError
+import ch.admin.foitt.openid4vc.domain.model.JwkError
 import ch.admin.foitt.openid4vc.domain.model.KeyPairError
 import ch.admin.foitt.openid4vc.domain.model.vcSdJwt.VcSdJwtError
 import ch.admin.foitt.openid4vc.domain.model.vcSdJwt.VerifyJwtError
+import ch.admin.foitt.openid4vc.utils.JsonError
+import ch.admin.foitt.openid4vc.utils.JsonParsingError
 import timber.log.Timber
 
 interface CredentialOfferError {
@@ -20,7 +24,7 @@ interface CredentialOfferError {
         FetchCredentialByConfigError, FetchVerifiableCredentialError, FetchCredentialError
 
     data object UnsupportedCryptographicSuite :
-        FetchCredentialByConfigError, FetchVerifiableCredentialError, CreateDidJwkError, FetchCredentialError
+        FetchCredentialByConfigError, FetchVerifiableCredentialError, FetchCredentialError
 
     data object InvalidCredentialOffer :
         FetchCredentialByConfigError, FetchVerifiableCredentialError, FetchCredentialError
@@ -29,25 +33,23 @@ interface CredentialOfferError {
     data object IntegrityCheckFailed : FetchCredentialByConfigError, FetchCredentialError
     data object UnknownIssuer : FetchCredentialByConfigError, FetchCredentialError
     data object NetworkInfoError :
-        FetchIssuerCredentialInformationError,
+        FetchIssuerCredentialInfoError,
         FetchCredentialByConfigError,
         FetchVerifiableCredentialError,
         FetchIssuerConfigurationError,
         FetchCredentialError
 
     data class Unexpected(val cause: Throwable?) :
-        FetchIssuerCredentialInformationError,
+        FetchIssuerCredentialInfoError,
         FetchCredentialByConfigError,
-        CreateDidJwkError,
         FetchVerifiableCredentialError,
         FetchIssuerConfigurationError,
         FetchCredentialError
 }
 
-sealed interface FetchIssuerCredentialInformationError
+sealed interface FetchIssuerCredentialInfoError
 sealed interface FetchCredentialByConfigError
 internal sealed interface FetchCredentialError
-internal sealed interface CreateDidJwkError
 sealed interface FetchVerifiableCredentialError
 sealed interface FetchIssuerConfigurationError
 
@@ -77,9 +79,13 @@ internal fun CreateJWSKeyPairError.toCredentialOfferError() = when (this) {
     is KeyPairError.Unexpected -> CredentialOfferError.Unexpected(throwable)
 }
 
-internal fun FetchIssuerCredentialInformationError.toFetchVerifiableCredentialError(): FetchVerifiableCredentialError = when (this) {
+internal fun FetchIssuerCredentialInfoError.toFetchVerifiableCredentialError(): FetchVerifiableCredentialError = when (this) {
     is CredentialOfferError.NetworkInfoError -> this
     is CredentialOfferError.Unexpected -> this
+}
+
+internal fun JsonParsingError.toFetchIssuerCredentialInfoError(): FetchIssuerCredentialInfoError = when (this) {
+    is JsonError.Unexpected -> CredentialOfferError.Unexpected(this.throwable)
 }
 
 internal fun FetchIssuerConfigurationError.toFetchVerifiableCredentialError(): FetchVerifiableCredentialError = when (this) {
@@ -87,9 +93,9 @@ internal fun FetchIssuerConfigurationError.toFetchVerifiableCredentialError(): F
     is CredentialOfferError.Unexpected -> this
 }
 
-internal fun CreateDidJwkError.toFetchVerifiableCredentialError(): FetchVerifiableCredentialError = when (this) {
-    is CredentialOfferError.UnsupportedCryptographicSuite -> this
-    is CredentialOfferError.Unexpected -> this
+internal fun CreateJwkError.toFetchVerifiableCredentialError(): FetchVerifiableCredentialError = when (this) {
+    is JwkError.UnsupportedCryptographicSuite -> CredentialOfferError.UnsupportedCryptographicSuite
+    is JwkError.Unexpected -> CredentialOfferError.Unexpected(cause)
 }
 
 internal fun VerifyJwtError.toFetchCredentialError(): FetchCredentialError = when (this) {

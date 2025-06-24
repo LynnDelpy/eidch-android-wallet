@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import ch.admin.foitt.wallet.theme.Sizes
 import ch.admin.foitt.wallet.theme.WalletTheme
@@ -34,6 +35,7 @@ fun Avatar(
     ) {
         imagePainter?.let {
             Image(
+                modifier = Modifier.testTag("ISSUER_ICON"),
                 painter = imagePainter,
                 contentScale = ContentScale.Fit,
                 contentDescription = null,

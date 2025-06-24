@@ -37,8 +37,8 @@ enum class OverlaySpecType(val type: String) {
     @SerialName("aries/overlays/branding/1.1")
     BRANDING_1_1("aries/overlays/branding/1.1"),
 
-    @SerialName("extend/overlays/cluster_ordering/1.0")
-    CLUSTER_ORDERING_1_0("extend/overlays/cluster_ordering/1.0"),
+    @SerialName("extend/overlays/order/1.0")
+    ORDER_1_0("extend/overlays/order/1.0"),
 
     UNSUPPORTED("");
 

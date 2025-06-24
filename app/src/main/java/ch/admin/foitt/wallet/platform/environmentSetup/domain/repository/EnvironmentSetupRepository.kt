@@ -2,11 +2,12 @@ package ch.admin.foitt.wallet.platform.environmentSetup.domain.repository
 
 interface EnvironmentSetupRepository {
     val appVersionEnforcementUrl: String
+    val attestationsServiceUrl: String
+    val attestationsServiceTrustedDids: List<String>
     val trustRegistryMapping: Map<String, String>
-    val trustedDids: List<String>
+    val trustRegistryTrustedDids: List<String>
     val baseTrustDomainRegex: Regex
     val betaIdRequestEnabled: Boolean
     val eIdRequestEnabled: Boolean
     val sidBackendUrl: String
-    val fetchOca: Boolean
 }

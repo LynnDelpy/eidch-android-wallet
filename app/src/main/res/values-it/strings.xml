@@ -30,7 +30,7 @@
     <string name="tk_global_login_primarybutton">Accedi</string>
     <string name="tk_global_skip">Salta</string>
     <string name="tk_onboarding_password_title">Inserire la password</string>
-    <string name="tk_credential_status_valid">Valido</string>
+    <string name="tk_credential_status_valid">Valida</string>
     <string name="tk_credential_status_unknown">Sconosciuto</string>
     <string name="tk_credential_status_invalid">Scaduto</string>
     <string name="tk_credential_status_suspended">Temporaneamente bloccato</string>
@@ -323,4 +323,17 @@
     <string name="tk_home_notification_credential_declined">Documento rifiutato.</string>
     <string name="version_enforcement_button">Aggiorna l\'app</string>
     <string name="version_enforcement_store_link">https://play.google.com/store/apps/details?id=ch.admin.foitt.swiyu</string>
+    <string name="tk_getEid_intro_secondaryButton">Più tardi</string>
+    <string name="tk_getEid_checkId_title">Verificare il documento</string>
+    <string name="tk_getEid_intro_smallBody">Eccezioni\nLa protezione della Sua identità ha la massima priorità. In rari casi, il controllo dell’identità necessita di un’ulteriore verifica. L’attesa può durare alcuni giorni.\n</string>
+    <string name="tk_getEid_intro_primaryButton">Richiedere ora</string>
+    <string name="tk_getEid_queuing_title">Ritardo nell’elaborazione</string>
+    <string name="tk_getEid_dataPrivacy_primaryButton">Accetta e continua.</string>
+    <string name="tk_getEid_dataPrivacy_link_text">Dichiarazione sulla protezione dei dati</string>
+    <string name="tk_menu_securityPrivacy_dataProtection_privacyPolicy">Dichiarazione sulla protezione dei dati</string>
+    <string name="tk_getEid_intro_title">Richieda la Sua e-ID.</string>
+    <string name="tk_getEid_intro_body">Prima viene verificato il Suo documento. Quindi viene controllata la Sua identità.\nDurata: ca. 5 minuti</string>
+    <string name="tk_getEid_dataPrivacy_title">Dichiarazione sulla protezione dei dati</string>
+    <string name="tk_getEid_checkId_body">Innanzitutto viene verificata la validità del Suo documento. Autorizzi l’accesso alla fotocamera per eseguire la scansione del documento.\n\nQuale documento posso registrare?\nPassaporto svizzero\nCarta d’identità svizzera\nCarta di soggiorno svizzera\n</string>
+    <string name="tk_getEid_dataPrivacy_body">Attribuiamo la massima importanza alla protezione dei Suoi dati e della Sua sfera personale. È necessario accettare la dichiarazione sulla protezione dei dati per poter creare una e-ID.</string>
 </resources>

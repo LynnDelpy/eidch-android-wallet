@@ -1,63 +1,75 @@
 package ch.admin.foitt.wallet.platform.jsonSchema.domain.usecase.implementation
 
 import ch.admin.foitt.wallet.platform.jsonSchema.domain.model.JsonSchemaError
+import ch.admin.foitt.wallet.platform.jsonSchema.domain.model.toJsonSchemaError
 import ch.admin.foitt.wallet.platform.jsonSchema.domain.usecase.JsonSchemaValidator
+import ch.admin.foitt.wallet.platform.utils.SafeJson
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Result
+import com.github.michaelbull.result.binding
 import com.github.michaelbull.result.coroutines.coroutineBinding
 import com.github.michaelbull.result.coroutines.runSuspendCatching
 import com.github.michaelbull.result.mapError
 import com.networknt.schema.InputFormat
+import com.networknt.schema.JsonSchema
 import com.networknt.schema.JsonSchemaFactory
 import com.networknt.schema.SchemaId
 import com.networknt.schema.SchemaLocation
 import com.networknt.schema.SchemaValidatorsConfig
 import com.networknt.schema.SpecVersion
-import timber.log.Timber
 import javax.inject.Inject
 
-internal class VcSdJwtJsonSchemaValidatorImpl @Inject constructor() : JsonSchemaValidator {
+internal class VcSdJwtJsonSchemaValidatorImpl @Inject constructor(
+    val safeJson: SafeJson
+) : JsonSchemaValidator {
     override suspend fun invoke(data: String, jsonSchema: String): Result<Unit, JsonSchemaError> = coroutineBinding {
         val jsonSchemaFactory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V202012)
         val config = SchemaValidatorsConfig.builder().failFast(true).build()
 
-        // ensure jsonSchema is
-        // 1. a valid JsonSchema Draft 2012-12 schema
-        // 2. can validate VcSdJwts
-        validateJsonSchema(jsonSchema, jsonSchemaFactory, config).bind()
+        // validate jsonSchema conforms to Json Schema Draft 2010-12
+        val metaSchema = jsonSchemaFactory.buildJsonSchema(schema = SchemaLocation.of(SchemaId.V202012), config = config).bind()
+        validateDataWithJsonSchema(data = jsonSchema, jsonSchema = metaSchema).bind()
+
+        // validate jsonSchema can validate a VcSdJwt schema
+        val vcSdJwtMetaSchema = jsonSchemaFactory.buildJsonSchema(schema = vcSdJwtMetaSchemaString, config = config).bind()
+        validateDataWithJsonSchema(data = jsonSchema, jsonSchema = vcSdJwtMetaSchema).bind()
 
         // validate the data against the jsonSchema
-        val schema = runSuspendCatching {
-            jsonSchemaFactory.getSchema(jsonSchema, config)
+        val schema = jsonSchemaFactory.buildJsonSchema(schema = jsonSchema, config = config).bind()
+        validateDataWithJsonSchema(data = data, jsonSchema = schema).bind()
+    }
+
+    private fun validateDataWithJsonSchema(
+        data: String,
+        jsonSchema: JsonSchema
+    ): Result<Unit, JsonSchemaError> = binding {
+        val assertions = runSuspendCatching {
+            jsonSchema.validate(data, InputFormat.JSON)
         }.mapError { throwable ->
-            Timber.e(throwable, "invalid json schema")
-            JsonSchemaError.ValidationFailed
+            throwable.toJsonSchemaError()
         }.bind()
-        val schemaAssertions = schema.validate(data, InputFormat.JSON)
-        if (schemaAssertions.isNotEmpty()) {
-            Err(JsonSchemaError.ValidationFailed).bind<JsonSchemaError>()
+
+        if (assertions.isNotEmpty()) {
+            Err(JsonSchemaError.ValidationFailed).bind()
         }
     }
 
-    private suspend fun validateJsonSchema(
-        jsonSchema: String,
-        jsonSchemaFactory: JsonSchemaFactory,
+    private fun JsonSchemaFactory.buildJsonSchema(
+        schema: SchemaLocation,
         config: SchemaValidatorsConfig
-    ): Result<Unit, JsonSchemaError> = coroutineBinding {
-        // validate that the jsonSchema conforms to Json Schema Draft 2010-12
-        val metaSchema = jsonSchemaFactory.getSchema(SchemaLocation.of(SchemaId.V202012), config)
-        val metaSchemaAssertions = metaSchema.validate(jsonSchema, InputFormat.JSON)
+    ): Result<JsonSchema, JsonSchemaError> = runSuspendCatching {
+        this.getSchema(schema, config)
+    }.mapError { throwable ->
+        throwable.toJsonSchemaError()
+    }
 
-        if (metaSchemaAssertions.isNotEmpty()) {
-            Err(JsonSchemaError.ValidationFailed).bind<JsonSchemaError>()
-        }
-
-        // validate the jsonSchema can validate a VcSdJwt schema
-        val vcSdJwtMetaSchema = jsonSchemaFactory.getSchema(vcSdJwtMetaSchemaString, config)
-        val vcSdJwtMetaSchemaAssertions = vcSdJwtMetaSchema.validate(jsonSchema, InputFormat.JSON)
-        if (vcSdJwtMetaSchemaAssertions.isNotEmpty()) {
-            Err(JsonSchemaError.ValidationFailed).bind<JsonSchemaError>()
-        }
+    private fun JsonSchemaFactory.buildJsonSchema(
+        schema: String,
+        config: SchemaValidatorsConfig
+    ): Result<JsonSchema, JsonSchemaError> = runSuspendCatching {
+        this.getSchema(schema, config)
+    }.mapError { throwable ->
+        throwable.toJsonSchemaError()
     }
 
     companion object {

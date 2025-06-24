@@ -4,10 +4,18 @@ import ch.admin.foitt.wallet.platform.oca.domain.model.AttributeType
 import ch.admin.foitt.wallet.platform.oca.domain.model.CaptureBase1x0
 import ch.admin.foitt.wallet.platform.oca.domain.model.OcaBundle
 import ch.admin.foitt.wallet.platform.oca.domain.model.OcaError
+import ch.admin.foitt.wallet.platform.oca.domain.model.overlays.BrandingOverlay1x1
 import ch.admin.foitt.wallet.platform.oca.domain.model.overlays.DataSourceOverlay1x0
 import ch.admin.foitt.wallet.platform.oca.domain.model.overlays.LabelOverlay1x0
 import ch.admin.foitt.wallet.platform.oca.domain.usecase.OcaOverlayValidator
 import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.elfaExample
+import ch.admin.foitt.wallet.platform.oca.mock.OverlayMocks.ocaBundleWithEntryButWithoutEntryCodeOverlay
+import ch.admin.foitt.wallet.platform.oca.mock.OverlayMocks.ocaBundleWithEntryKeyNotInEntryCodes
+import ch.admin.foitt.wallet.platform.oca.mock.OverlayMocks.ocaBundleWithInvalidOverlayAttributeKey
+import ch.admin.foitt.wallet.platform.oca.mock.OverlayMocks.ocaBundleWithInvalidOverlayReferences
+import ch.admin.foitt.wallet.platform.oca.mock.OverlayMocks.ocaBundleWithValidEntryAndEntryCodeOverlays
+import ch.admin.foitt.wallet.platform.oca.mock.OverlayMocks.ocaBundleWithoutEntryButWithEntryCodeOverlay
+import ch.admin.foitt.wallet.platform.oca.mock.OverlayMocks.ocaBundleWithoutEntryButWithMultipleEntryCodeOverlays
 import ch.admin.foitt.wallet.util.SafeJsonTestInstance
 import ch.admin.foitt.wallet.util.assertErrorType
 import ch.admin.foitt.wallet.util.assertOk
@@ -19,6 +27,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.MethodSource
 import org.junit.jupiter.params.provider.ValueSource
 
 class OcaOverlayValidatorImplTest {
@@ -60,7 +69,7 @@ class OcaOverlayValidatorImplTest {
         strings = ["en", "xy", "en-US", "en-XY", "xy-XY"]
     )
     fun `Overlays containing valid language codes return Ok`(languageCode: String): Unit = runTest {
-        val bundle = getOcaWithWithLanguageCodeInOverlay(languageCode)
+        val bundle = getOcaWithLanguageCodeInOverlay(languageCode)
         val result = ocaOverlayValidator(bundle).assertOk()
         assertEquals(bundle.overlays, result)
     }
@@ -70,7 +79,7 @@ class OcaOverlayValidatorImplTest {
         strings = ["", "x", "è", "en-", "EN", "en-xy", "abcd", "en-xyz", "en-ÜÄ"]
     )
     fun `Overlays containing invalid language codes returns an error`(languageCode: String): Unit = runTest {
-        val bundle = getOcaWithWithLanguageCodeInOverlay(languageCode)
+        val bundle = getOcaWithLanguageCodeInOverlay(languageCode)
 
         ocaOverlayValidator(bundle).assertErrorType(OcaError.InvalidOverlayLanguageCode::class)
     }
@@ -103,10 +112,11 @@ class OcaOverlayValidatorImplTest {
             // other errors
             """$["x']""",
             "$..y",
+            "$..*",
         ]
     )
     fun `DataSourceOverlays containing invalid JsonPaths returns an error`(invalidJsonPath: String) = runTest {
-        val bundle = getOcaWithWithDataSourceOverlay(jsonPath = invalidJsonPath)
+        val bundle = getOcaWithDataSourceOverlay(jsonPath = invalidJsonPath)
 
         ocaOverlayValidator(bundle).assertErrorType(OcaError.InvalidDataSourceOverlay::class)
     }
@@ -131,52 +141,38 @@ class OcaOverlayValidatorImplTest {
         ]
     )
     fun `DataSourceOverlays containing valid JsonPaths returns success`(validJsonPath: String): Unit = runTest {
-        val bundle = getOcaWithWithDataSourceOverlay(jsonPath = validJsonPath)
+        val bundle = getOcaWithDataSourceOverlay(jsonPath = validJsonPath)
 
         ocaOverlayValidator(bundle).assertOk()
     }
 
-    private val ocaBundleWithInvalidOverlayReferences = OcaBundle(
-        captureBases = listOf(
-            CaptureBase1x0(
-                digest = "validDigest",
-                attributes = mapOf(
-                    "attributeKey" to AttributeType.Text,
-                )
-            ),
-        ),
-        overlays = listOf(
-            LabelOverlay1x0(
-                captureBaseDigest = "invalidReference",
-                language = "en",
-                attributeLabels = mapOf(
-                    "attributeKey" to "label"
-                )
-            )
-        )
-    )
+    @ParameterizedTest
+    @MethodSource("generateInvalidBrandingOverlayImageInputs")
+    fun `BrandingOverlays containing invalid uris returns an error`(input: Pair<String, String>) = runTest {
+        val bundle = getOcaWithBrandingOverlay(input.first, input.second)
 
-    private val ocaBundleWithInvalidOverlayAttributeKey = OcaBundle(
-        captureBases = listOf(
-            CaptureBase1x0(
-                digest = "validDigest",
-                attributes = mapOf(
-                    "attributeKey" to AttributeType.Text,
-                )
-            ),
-        ),
-        overlays = listOf(
-            LabelOverlay1x0(
-                captureBaseDigest = "validDigest",
-                language = "en",
-                attributeLabels = mapOf(
-                    "nonMatchingAttributeKey" to "label"
-                )
-            )
-        )
-    )
+        ocaOverlayValidator(bundle).assertErrorType(OcaError.InvalidBrandingOverlay::class)
+    }
 
-    private fun getOcaWithWithLanguageCodeInOverlay(languageCode: String) = OcaBundle(
+    @ParameterizedTest
+    @MethodSource("getValidEntryCodeOverlayInputs")
+    fun `Valid EntryCodeOverlays are validated successfully`(input: OcaBundle) = runTest {
+        ocaOverlayValidator(input).assertOk()
+    }
+
+    @ParameterizedTest
+    @MethodSource("getValidEntryOverlayInputs")
+    fun `Valid EntryOverlays and EntryCodeOverlays are validated successfully`(input: OcaBundle) = runTest {
+        ocaOverlayValidator(input).assertOk()
+    }
+
+    @ParameterizedTest
+    @MethodSource("getInvalidEntryOverlayInputs")
+    fun `Invalid Entry and EntryCode overlays return an error`(input: OcaBundle) = runTest {
+        ocaOverlayValidator(input).assertErrorType(OcaError.InvalidEntryOverlay::class)
+    }
+
+    private fun getOcaWithLanguageCodeInOverlay(languageCode: String) = OcaBundle(
         captureBases = listOf(
             CaptureBase1x0(
                 digest = "validDigest",
@@ -196,7 +192,7 @@ class OcaOverlayValidatorImplTest {
         )
     )
 
-    private fun getOcaWithWithDataSourceOverlay(jsonPath: String) = OcaBundle(
+    private fun getOcaWithDataSourceOverlay(jsonPath: String) = OcaBundle(
         captureBases = listOf(
             CaptureBase1x0(
                 digest = "validDigest",
@@ -213,4 +209,49 @@ class OcaOverlayValidatorImplTest {
             )
         )
     )
+
+    private fun getOcaWithBrandingOverlay(logo: String?, backgroundImage: String?) = OcaBundle(
+        captureBases = listOf(
+            CaptureBase1x0(
+                digest = "validDigest",
+                attributes = mapOf(
+                    "attributeKey" to AttributeType.Text,
+                )
+            ),
+        ),
+        overlays = listOf(
+            BrandingOverlay1x1(
+                captureBaseDigest = "validDigest",
+                language = "en",
+                logo = logo,
+                backgroundImage = backgroundImage,
+            )
+        )
+    )
+
+    companion object {
+        @JvmStatic
+        fun generateInvalidBrandingOverlayImageInputs() = listOf(
+            Pair("invalid", "invalid"),
+            Pair("data:image/png;base64,", "invalid"),
+            Pair("invalid", "data:image/jpeg;base64,"),
+        )
+
+        @JvmStatic
+        fun getValidEntryCodeOverlayInputs() = listOf(
+            ocaBundleWithoutEntryButWithEntryCodeOverlay,
+            ocaBundleWithoutEntryButWithMultipleEntryCodeOverlays,
+        )
+
+        @JvmStatic
+        fun getValidEntryOverlayInputs() = listOf(
+            ocaBundleWithValidEntryAndEntryCodeOverlays,
+        )
+
+        @JvmStatic
+        fun getInvalidEntryOverlayInputs() = listOf(
+            ocaBundleWithEntryButWithoutEntryCodeOverlay,
+            ocaBundleWithEntryKeyNotInEntryCodes
+        )
+    }
 }

@@ -1,10 +1,16 @@
 package ch.admin.foitt.wallet.platform.oca.domain.model.overlays
 
 import ch.admin.foitt.wallet.platform.oca.domain.model.OverlaySpecType
+import ch.admin.foitt.wallet.platform.oca.domain.model.overlays.BrandingOverlay.Companion.DEFAULT_THEME
+import ch.admin.foitt.wallet.platform.theme.domain.model.Theme
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-sealed interface BrandingOverlay : LocalizedOverlay
+sealed interface BrandingOverlay : LocalizedOverlay {
+    companion object {
+        val DEFAULT_THEME = Theme.LIGHT.value
+    }
+}
 
 @Serializable
 data class BrandingOverlay1x1(
@@ -13,7 +19,7 @@ data class BrandingOverlay1x1(
     @SerialName("language")
     override val language: String,
     @SerialName("theme")
-    val theme: String? = "light",
+    val theme: String? = DEFAULT_THEME,
     @SerialName("logo")
     val logo: String? = null,
     @SerialName("background_image")

@@ -1,12 +1,12 @@
 package ch.admin.foitt.sriValidator.domain.implementation
 
+import ch.admin.foitt.openid4vc.utils.toNonUrlEncodedBase64String
 import ch.admin.foitt.sriValidator.domain.SRIValidator
 import ch.admin.foitt.sriValidator.domain.model.SRIError
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.binding
 import java.security.MessageDigest
-import java.util.Base64
 import javax.inject.Inject
 
 class SRIValidatorImpl @Inject constructor() : SRIValidator {
@@ -24,17 +24,14 @@ class SRIValidatorImpl @Inject constructor() : SRIValidator {
 
         val messageDigest = MessageDigest.getInstance(algorithm)
         val dataHash = messageDigest.digest(data)
-        val dataHashBase64 = dataHash.toBase64ByteArray()
+        val dataHashBase64 = dataHash.toNonUrlEncodedBase64String()
 
-        if (dataHashBase64.contentEquals(digest.encodeToByteArray()).not()) {
+        if (dataHashBase64 != digest) {
             Err(SRIError.ValidationFailed).bind<SRIError>()
         }
 
         Unit
     }
-
-    private fun ByteArray.toBase64ByteArray(): ByteArray =
-        Base64.getEncoder().withoutPadding().encode(this)
 
     companion object {
         private const val SHA256 = "sha256"

@@ -32,6 +32,11 @@ fun ZonedDateTime.asDayFullMonthYearHoursMinutes(locale: Locale): String {
     return formatPattern(localizedPattern, locale).uppercase(locale)
 }
 
+fun ZonedDateTime.asBestLocalizedForPattern(locale: Locale, pattern: String): String {
+    val localizedPattern = DateFormat.getBestDateTimePattern(locale, pattern)
+    return this.formatPattern(localizedPattern, locale)
+}
+
 fun Long.epochSecondsToZonedDateTime(): ZonedDateTime = Instant.ofEpochSecond(this).atZone(ZoneId.systemDefault())
 
 private fun ZonedDateTime.formatPattern(

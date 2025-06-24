@@ -1,6 +1,7 @@
 package ch.admin.foitt.wallet.platform.ssi.domain.usecase.implementation
 
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialClaimDisplay
+import ch.admin.foitt.wallet.platform.locale.domain.usecase.GetCurrentAppLocale
 import ch.admin.foitt.wallet.platform.locale.domain.usecase.GetLocalizedDisplay
 import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialClaimImage
 import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialClaimText
@@ -14,6 +15,7 @@ import ch.admin.foitt.wallet.util.assertErrorType
 import ch.admin.foitt.wallet.util.assertOk
 import io.mockk.MockKAnnotations
 import io.mockk.coEvery
+import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.mockkStatic
 import io.mockk.unmockkAll
@@ -25,6 +27,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
+import java.util.Locale
 
 class MapToCredentialClaimDataImplTest {
 
@@ -33,18 +36,25 @@ class MapToCredentialClaimDataImplTest {
     @MockK
     private lateinit var mockGetLocalizedDisplay: GetLocalizedDisplay
 
+    @MockK
+    private lateinit var mockGetCurrentAppLocale: GetCurrentAppLocale
+
     @BeforeEach
     fun setUp() {
         MockKAnnotations.init(this)
 
-        mockkStatic("ch.admin.foitt.wallet.platform.utils.ByteArrayExtKt")
-        coEvery { any<String>().base64NonUrlStringToByteArray() } returns byteArrayOf()
+        mockkStatic("ch.admin.foitt.wallet.platform.utils.StringUtilsKt")
+        every { base64NonUrlStringToByteArray(any()) } returns byteArrayOf()
+
+        mockkStatic("android.text.format.DateFormat")
 
         mapToCredentialClaimData = MapToCredentialClaimDataImpl(
-            getLocalizedDisplay = mockGetLocalizedDisplay
+            getLocalizedDisplay = mockGetLocalizedDisplay,
+            getCurrentAppLocale = mockGetCurrentAppLocale
         )
 
         coEvery { mockGetLocalizedDisplay(displays = credentialClaimDisplays) } returns credentialClaimDisplay
+        coEvery { mockGetCurrentAppLocale() } returns Locale.ENGLISH
     }
 
     @AfterEach
@@ -52,22 +62,20 @@ class MapToCredentialClaimDataImplTest {
         unmockkAll()
     }
 
-    @Test
-    fun `Claim with string valueType should return correct data`() = runTest {
-        val claimWithDisplays = buildClaimWithDisplays("string")
+    @ParameterizedTest
+    @ValueSource(
+        strings = [
+            "bool",
+            "datetime",
+            "numeric",
+            "string"
+        ]
+    )
+    fun `Claim with supported string type should return CredentialClaimText`(valueTypeString: String) = runTest {
+        val claimWithDisplays = buildClaimWithDisplays(valueTypeString)
 
         val data = mapToCredentialClaimData(claimWithDisplays).assertOk()
         assertTrue(data is CredentialClaimText, "string valueType should return ${CredentialClaimText::class.simpleName}")
-        assertEquals(credentialClaimDisplay.name, data.localizedKey)
-        assertEquals(claimWithDisplays.claim.value, (data as CredentialClaimText).value)
-    }
-
-    @Test
-    fun `Claim with bool valueType should return correct data`() = runTest {
-        val claimWithDisplays = buildClaimWithDisplays("bool")
-
-        val data = mapToCredentialClaimData(claimWithDisplays).assertOk()
-        assertTrue(data is CredentialClaimText, "bool valueType should return ${CredentialClaimText::class.simpleName}")
         assertEquals(credentialClaimDisplay.name, data.localizedKey)
         assertEquals(claimWithDisplays.claim.value, (data as CredentialClaimText).value)
     }
@@ -77,7 +85,6 @@ class MapToCredentialClaimDataImplTest {
         strings = [
             "image/png",
             "image/jpeg",
-            "image/jp2",
         ]
     )
     fun `Claim with supported image mime type should return correct data`(imageMimeType: String) = runTest {
@@ -86,12 +93,22 @@ class MapToCredentialClaimDataImplTest {
         val data = mapToCredentialClaimData(claimWithDisplays).assertOk()
         assertTrue(data is CredentialClaimImage, "$imageMimeType mime type should return ${CredentialClaimImage::class.simpleName}")
         assertEquals(credentialClaimDisplay.name, data.localizedKey)
-        assertEquals(claimWithDisplays.claim.value.base64NonUrlStringToByteArray(), (data as CredentialClaimImage).imageData)
+        assertEquals(base64NonUrlStringToByteArray(claimWithDisplays.claim.value), (data as CredentialClaimImage).imageData)
     }
 
-    @Test
-    fun `Claim with jpg valueType should return an error`() = runTest {
-        mapToCredentialClaimData(buildClaimWithDisplays("image/jpg"))
+    @ParameterizedTest
+    @ValueSource(
+        strings = [
+            "boolean",
+            "image",
+            "image/jp",
+            "image/jp2",
+            "image/jpg",
+            "imageDataUri",
+        ]
+    )
+    fun `Claim with invalid valueType should return an error`(valueTypeString: String) = runTest {
+        mapToCredentialClaimData(buildClaimWithDisplays(valueTypeString))
             .assertErrorType(MapToCredentialClaimDataError::class)
     }
 

@@ -4,13 +4,18 @@ import android.database.sqlite.SQLiteConstraintException
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import ch.admin.foitt.wallet.platform.database.data.AppDatabase
+import ch.admin.foitt.wallet.platform.database.data.dao.CredentialClaimClusterEntityDao
 import ch.admin.foitt.wallet.platform.database.data.dao.CredentialClaimDao
 import ch.admin.foitt.wallet.platform.database.data.dao.CredentialDao
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialClaim
 import ch.admin.foitt.wallet.platform.ssi.data.source.local.mock.CredentialTestData.KEY
 import ch.admin.foitt.wallet.platform.ssi.data.source.local.mock.CredentialTestData.VALUE
+import ch.admin.foitt.wallet.platform.ssi.data.source.local.mock.CredentialTestData.cluster1
+import ch.admin.foitt.wallet.platform.ssi.data.source.local.mock.CredentialTestData.cluster2
 import ch.admin.foitt.wallet.platform.ssi.data.source.local.mock.CredentialTestData.credential1
 import ch.admin.foitt.wallet.platform.ssi.data.source.local.mock.CredentialTestData.credential2
+import ch.admin.foitt.wallet.platform.ssi.data.source.local.mock.CredentialTestData.credentialClaim1
+import ch.admin.foitt.wallet.platform.ssi.data.source.local.mock.CredentialTestData.credentialClaim2
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -21,6 +26,7 @@ class CredentialClaimDaoTest {
 
     private lateinit var database: AppDatabase
     private lateinit var credentialDao: CredentialDao
+    private lateinit var credentialClaimClusterDao: CredentialClaimClusterEntityDao
     private lateinit var credentialClaimDao: CredentialClaimDao
 
     @Before
@@ -32,6 +38,11 @@ class CredentialClaimDaoTest {
         credentialDao = database.credentialDao()
         credentialDao.insert(credential1)
         credentialDao.insert(credential2)
+
+        credentialClaimClusterDao = database.credentialClaimClusterEntityDao()
+        credentialClaimClusterDao.insert(cluster1)
+        credentialClaimClusterDao.insert(cluster2)
+
         credentialClaimDao = database.credentialClaimDao()
     }
 
@@ -42,30 +53,23 @@ class CredentialClaimDaoTest {
 
     @Test
     fun insertCredentialClaimTest() = runTest {
+        val id = credentialClaimDao.insert(credentialClaim1)
+
         assertEquals(
-            emptyList<CredentialClaim>(),
-            credentialClaimDao.getByCredentialId(credentialId = credential1.id)
+            credentialClaim1.copy(id = id),
+            credentialClaimDao.getById(id)
         )
 
-        val credentialClaim =
-            CredentialClaim(id = 1, credentialId = credential1.id, key = KEY, value = VALUE, valueType = null)
-        val id = credentialClaimDao.insert(credentialClaim)
-
+        val id2 = credentialClaimDao.insert(credentialClaim2)
         assertEquals(
-            listOf(credentialClaim.copy(id = id)),
-            credentialClaimDao.getByCredentialId(credentialId = credential1.id)
-        )
-
-        credentialClaimDao.insert(credentialClaim.copy(id = 0))
-        assertEquals(
-            2,
-            credentialClaimDao.getByCredentialId(credentialId = credential1.id).size
+            credentialClaim2.copy(id = id2),
+            credentialClaimDao.getById(id2)
         )
     }
 
     @Test(expected = SQLiteConstraintException::class)
     fun insertWithoutMatchingForeignKeyShouldThrow() {
-        val credentialClaim = CredentialClaim(id = 1, credentialId = -1, key = KEY, value = VALUE, valueType = null)
+        val credentialClaim = CredentialClaim(id = 1, clusterId = -1, key = KEY, value = VALUE, valueType = null)
         credentialClaimDao.insert(credentialClaim)
     }
 }

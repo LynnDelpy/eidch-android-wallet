@@ -1,7 +1,6 @@
 package ch.admin.foitt.openid4vc.domain.model.sdjwt
 
 import ch.admin.foitt.openid4vc.domain.model.jwt.Jwt
-import ch.admin.foitt.openid4vc.utils.base64StringToByteArray
 import ch.admin.foitt.openid4vc.utils.createDigest
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
@@ -10,6 +9,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonPrimitive
 import timber.log.Timber
+import java.util.Base64
 
 /**
  * https://www.ietf.org/archive/id/draft-ietf-oauth-selective-disclosure-jwt-12.html
@@ -55,7 +55,7 @@ open class SdJwt(
     }
 
     private fun parseDisclosure(disclosure: String): Pair<String, JsonElement> {
-        val decoded = disclosure.base64StringToByteArray()
+        val decoded = base64UrlEncodedStringToByteArray(disclosure)
         val jsonString = String(decoded)
         val array = Json.parseToJsonElement(jsonString).jsonArray
         if (array.size != 3) {
@@ -63,6 +63,9 @@ open class SdJwt(
         }
         return array[1].jsonPrimitive.content to array[2]
     }
+
+    private fun base64UrlEncodedStringToByteArray(string: String): ByteArray =
+        Base64.getUrlDecoder().decode(string)
 
     private fun replaceDigestsWithClaims(
         jsonObject: JsonObject,

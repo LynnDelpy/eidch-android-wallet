@@ -3,14 +3,14 @@
 package ch.admin.foitt.wallet.platform.credential.domain.model
 
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.FetchCredentialByConfigError
-import ch.admin.foitt.openid4vc.domain.model.credentialoffer.FetchIssuerCredentialInformationError
+import ch.admin.foitt.openid4vc.domain.model.credentialoffer.FetchIssuerCredentialInfoError
 import ch.admin.foitt.wallet.platform.credential.domain.model.CredentialError.CredentialParsingError
 import ch.admin.foitt.wallet.platform.credential.domain.model.CredentialError.DatabaseError
 import ch.admin.foitt.wallet.platform.credential.domain.model.CredentialError.IntegrityCheckFailed
 import ch.admin.foitt.wallet.platform.credential.domain.model.CredentialError.InvalidCredentialOffer
+import ch.admin.foitt.wallet.platform.credential.domain.model.CredentialError.InvalidGenerateMetadataClaims
 import ch.admin.foitt.wallet.platform.credential.domain.model.CredentialError.InvalidGrant
 import ch.admin.foitt.wallet.platform.credential.domain.model.CredentialError.InvalidJsonScheme
-import ch.admin.foitt.wallet.platform.credential.domain.model.CredentialError.InvalidMetadataClaims
 import ch.admin.foitt.wallet.platform.credential.domain.model.CredentialError.NetworkError
 import ch.admin.foitt.wallet.platform.credential.domain.model.CredentialError.Unexpected
 import ch.admin.foitt.wallet.platform.credential.domain.model.CredentialError.UnknownIssuer
@@ -20,6 +20,7 @@ import ch.admin.foitt.wallet.platform.credential.domain.model.CredentialError.Un
 import ch.admin.foitt.wallet.platform.credential.domain.model.CredentialError.UnsupportedGrantType
 import ch.admin.foitt.wallet.platform.credential.domain.model.CredentialError.UnsupportedProofType
 import ch.admin.foitt.wallet.platform.oca.domain.model.FetchVcMetadataByFormatError
+import ch.admin.foitt.wallet.platform.oca.domain.model.GenerateOcaDisplaysError
 import ch.admin.foitt.wallet.platform.oca.domain.model.OcaError
 import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialOfferRepositoryError
 import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialRepositoryError
@@ -39,7 +40,11 @@ sealed interface CredentialError {
     data object UnsupportedCredentialFormat : FetchCredentialError, SaveCredentialError
     data object CredentialParsingError : FetchCredentialError, SaveCredentialError
     data object IntegrityCheckFailed : FetchCredentialError
-    data object InvalidMetadataClaims : FetchCredentialError, SaveCredentialError
+    data object InvalidGenerateMetadataClaims :
+        FetchCredentialError,
+        SaveCredentialError,
+        GenerateCredentialDisplaysError,
+        GenerateMetadataDisplaysError
     data object InvalidJsonScheme : FetchCredentialError
     data object DatabaseError : FetchCredentialError, SaveCredentialError
     data object NetworkError : FetchCredentialError
@@ -50,7 +55,9 @@ sealed interface CredentialError {
         GetAnyCredentialError,
         GetAnyCredentialsError,
         AnyCredentialError,
-        MapToCredentialDisplayDataError
+        MapToCredentialDisplayDataError,
+        GenerateCredentialDisplaysError,
+        GenerateMetadataDisplaysError
 }
 
 sealed interface FetchCredentialError
@@ -59,8 +66,10 @@ sealed interface GetAnyCredentialError
 sealed interface GetAnyCredentialsError
 sealed interface AnyCredentialError
 sealed interface MapToCredentialDisplayDataError
+sealed interface GenerateCredentialDisplaysError
+sealed interface GenerateMetadataDisplaysError
 
-fun FetchIssuerCredentialInformationError.toFetchCredentialError(): FetchCredentialError = when (this) {
+fun FetchIssuerCredentialInfoError.toFetchCredentialError(): FetchCredentialError = when (this) {
     OpenIdCredentialOfferError.NetworkInfoError -> NetworkError
     is OpenIdCredentialOfferError.Unexpected -> Unexpected(cause)
 }
@@ -84,14 +93,14 @@ fun SaveCredentialError.toFetchCredentialError(): FetchCredentialError = when (t
     is DatabaseError -> this
     is Unexpected -> this
     is UnsupportedCredentialFormat -> this
-    is InvalidMetadataClaims -> this
+    is InvalidGenerateMetadataClaims -> this
 }
 
-fun JsonParsingError.toSaveCredentialError(): SaveCredentialError = when (this) {
-    is JsonError.Unexpected -> UnsupportedCredentialFormat
+fun JsonParsingError.toGenerateMetadataDisplaysError(): GenerateMetadataDisplaysError = when (this) {
+    is JsonError.Unexpected -> Unexpected(throwable)
 }
 
-fun Throwable.toSaveCredentialError(message: String): SaveCredentialError {
+fun Throwable.toGenerateCredentialDisplaysError(message: String): GenerateCredentialDisplaysError {
     Timber.e(t = this, message = message)
     return Unexpected(this)
 }
@@ -122,4 +131,19 @@ fun FetchVcMetadataByFormatError.toFetchCredentialError(): FetchCredentialError 
     is OcaError.NetworkError -> NetworkError
     is OcaError.Unexpected -> Unexpected(cause)
     OcaError.InvalidJsonScheme -> InvalidJsonScheme
+}
+
+fun GenerateMetadataDisplaysError.toGenerateCredentialDisplaysError(): GenerateCredentialDisplaysError = when (this) {
+    is InvalidGenerateMetadataClaims -> this
+    is Unexpected -> this
+}
+
+fun GenerateOcaDisplaysError.toGenerateCredentialDisplaysError(): GenerateCredentialDisplaysError = when (this) {
+    is OcaError.InvalidRootCaptureBase -> InvalidGenerateMetadataClaims
+    is OcaError.Unexpected -> Unexpected(cause)
+}
+
+fun GenerateCredentialDisplaysError.toFetchCredentialError(): FetchCredentialError = when (this) {
+    is InvalidGenerateMetadataClaims -> this
+    is Unexpected -> this
 }

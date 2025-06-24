@@ -4,12 +4,17 @@ import ch.admin.foitt.wallet.platform.oca.domain.model.AttributeType
 import ch.admin.foitt.wallet.platform.oca.domain.model.CaptureBase1x0
 import ch.admin.foitt.wallet.platform.oca.domain.model.OcaBundle
 import ch.admin.foitt.wallet.platform.oca.domain.model.OcaError
+import ch.admin.foitt.wallet.platform.oca.domain.usecase.GetRootCaptureBase
 import ch.admin.foitt.wallet.platform.oca.domain.usecase.OcaCaptureBaseValidator
 import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.elfaExample
 import ch.admin.foitt.wallet.util.SafeJsonTestInstance
 import ch.admin.foitt.wallet.util.assertErrorType
 import ch.admin.foitt.wallet.util.assertOk
+import com.github.michaelbull.result.Err
+import com.github.michaelbull.result.Ok
 import io.mockk.MockKAnnotations
+import io.mockk.coEvery
+import io.mockk.impl.annotations.MockK
 import io.mockk.unmockkAll
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.AfterEach
@@ -17,6 +22,9 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class OcaCaptureBaseValidatorImplTest {
+
+    @MockK
+    private lateinit var mockGetRootCaptureBase: GetRootCaptureBase
 
     private val json = SafeJsonTestInstance.safeJson
 
@@ -26,7 +34,11 @@ class OcaCaptureBaseValidatorImplTest {
     fun setup() {
         MockKAnnotations.init(this)
 
-        ocaCaptureBaseValidator = OcaCaptureBaseValidatorImpl()
+        ocaCaptureBaseValidator = OcaCaptureBaseValidatorImpl(
+            getRootCaptureBase = mockGetRootCaptureBase
+        )
+
+        setupDefaultMocks()
     }
 
     @AfterEach
@@ -42,13 +54,12 @@ class OcaCaptureBaseValidatorImplTest {
     }
 
     @Test
-    fun `0 root capture bases returns an error`(): Unit = runTest {
-        ocaCaptureBaseValidator(captureBasesWithoutRootCaptureBase).assertErrorType(OcaError.InvalidRootCaptureBase::class)
-    }
+    fun `Validating capture bases maps errors from getting the root capture base`() = runTest {
+        coEvery { mockGetRootCaptureBase(any()) } returns Err(OcaError.InvalidRootCaptureBase)
 
-    @Test
-    fun `Multiple root capture bases returns an error`(): Unit = runTest {
-        ocaCaptureBaseValidator(captureBasesWithMultipleRootCaptureBases).assertErrorType(OcaError.InvalidRootCaptureBase::class)
+        val bundle = json.safeDecodeStringTo<OcaBundle>(elfaExample).value
+
+        ocaCaptureBaseValidator(bundle.captureBases).assertErrorType(OcaError.InvalidRootCaptureBase::class)
     }
 
     @Test
@@ -65,48 +76,50 @@ class OcaCaptureBaseValidatorImplTest {
 
     @Test
     fun `Capture bases containing references cycles returns an error`(): Unit = runTest {
+        coEvery { mockGetRootCaptureBase(any()) } returns Ok(defaultCaptureBase2Attributes)
         ocaCaptureBaseValidator(captureBasesWithReferenceCycles1).assertErrorType(OcaError.CaptureBaseCycleError::class)
         ocaCaptureBaseValidator(captureBasesWithReferenceCycles2).assertErrorType(OcaError.CaptureBaseCycleError::class)
+
+        coEvery { mockGetRootCaptureBase(any()) } returns Ok(defaultCaptureBase3Attributes)
         ocaCaptureBaseValidator(captureBasesWithReferenceCycles3).assertErrorType(OcaError.CaptureBaseCycleError::class)
     }
 
     @Test
     fun `Capture bases with more complex references return a success`(): Unit = runTest {
+        coEvery { mockGetRootCaptureBase(any()) } returns Ok(defaultCaptureBase3Attributes)
         ocaCaptureBaseValidator(captureBasesWithComplexReferenceGraph).assertOk()
     }
 
-    private val captureBasesWithoutRootCaptureBase = listOf(
-        CaptureBase1x0(
-            digest = "validDigest",
-            attributes = mapOf(
-                "attributeKey" to AttributeType.Text,
-                "attributeKey2" to AttributeType.Reference("validDigest"),
-            )
-        ),
+    private fun setupDefaultMocks() {
+        coEvery { mockGetRootCaptureBase(any()) } returns Ok(defaultCaptureBase)
+    }
+
+    private val defaultCaptureBase = CaptureBase1x0(
+        digest = "validDigest",
+        attributes = mapOf(
+            "attributeKey" to AttributeType.Text,
+        )
     )
 
-    private val captureBasesWithMultipleRootCaptureBases = listOf(
-        CaptureBase1x0(
-            digest = "validDigest",
-            attributes = mapOf(
-                "attributeKey" to AttributeType.Text,
-            )
-        ),
-        CaptureBase1x0(
-            digest = "validDigest2",
-            attributes = mapOf(
-                "attributeKey" to AttributeType.Text,
-            )
-        ),
+    private val defaultCaptureBase2Attributes = CaptureBase1x0(
+        digest = "validDigest",
+        attributes = mapOf(
+            "attributeKey" to AttributeType.Text,
+            "attributeKey2" to AttributeType.Reference("validDigest2"),
+        )
+    )
+
+    private val defaultCaptureBase3Attributes = CaptureBase1x0(
+        digest = "validDigest",
+        attributes = mapOf(
+            "attributeKey" to AttributeType.Text,
+            "attributeKey2" to AttributeType.Reference("validDigest2"),
+            "attributeKey3" to AttributeType.Reference("validDigest3"),
+        )
     )
 
     private val captureBasesWithInvalidReferenceCaptureBase = listOf(
-        CaptureBase1x0(
-            digest = "validDigest",
-            attributes = mapOf(
-                "attributeKey" to AttributeType.Text,
-            )
-        ),
+        defaultCaptureBase,
         CaptureBase1x0(
             digest = "validDigest2",
             attributes = mapOf(
@@ -118,12 +131,7 @@ class OcaCaptureBaseValidatorImplTest {
     )
 
     private val captureBasesWithInvalidArrayReferenceCaptureBase = listOf(
-        CaptureBase1x0(
-            digest = "validDigest",
-            attributes = mapOf(
-                "attributeKey" to AttributeType.Text,
-            )
-        ),
+        defaultCaptureBase,
         CaptureBase1x0(
             digest = "validDigest2",
             attributes = mapOf(
@@ -135,13 +143,7 @@ class OcaCaptureBaseValidatorImplTest {
     )
 
     private val captureBasesWithReferenceCycles1 = listOf(
-        CaptureBase1x0(
-            digest = "validDigest",
-            attributes = mapOf(
-                "attributeKey" to AttributeType.Text,
-                "attributeKey2" to AttributeType.Reference("validDigest2"),
-            )
-        ),
+        defaultCaptureBase2Attributes,
         CaptureBase1x0(
             digest = "validDigest2",
             attributes = mapOf(
@@ -152,13 +154,7 @@ class OcaCaptureBaseValidatorImplTest {
     )
 
     private val captureBasesWithReferenceCycles2 = listOf(
-        CaptureBase1x0(
-            digest = "validDigest",
-            attributes = mapOf(
-                "attributeKey" to AttributeType.Text,
-                "attributeKey2" to AttributeType.Reference("validDigest2"),
-            )
-        ),
+        defaultCaptureBase2Attributes,
         CaptureBase1x0(
             digest = "validDigest2",
             attributes = mapOf(
@@ -176,14 +172,7 @@ class OcaCaptureBaseValidatorImplTest {
     )
 
     private val captureBasesWithReferenceCycles3 = listOf(
-        CaptureBase1x0(
-            digest = "validDigest",
-            attributes = mapOf(
-                "attributeKey" to AttributeType.Text,
-                "attributeKey2" to AttributeType.Reference("validDigest2"),
-                "attributeKey3" to AttributeType.Reference("validDigest3"),
-            )
-        ),
+        defaultCaptureBase3Attributes,
         CaptureBase1x0(
             digest = "validDigest2",
             attributes = mapOf(
@@ -208,14 +197,7 @@ class OcaCaptureBaseValidatorImplTest {
     )
 
     private val captureBasesWithComplexReferenceGraph = listOf(
-        CaptureBase1x0(
-            digest = "validDigest",
-            attributes = mapOf(
-                "attributeKey" to AttributeType.Text,
-                "attributeKey2" to AttributeType.Reference("validDigest2"),
-                "attributeKey3" to AttributeType.Reference("validDigest3"),
-            )
-        ),
+        defaultCaptureBase3Attributes,
         CaptureBase1x0(
             digest = "validDigest2",
             attributes = mapOf(

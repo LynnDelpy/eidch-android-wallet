@@ -57,21 +57,21 @@ class FetchVcMetadataByFormatImpl @Inject constructor(
                 .bind()
 
             // ignore vc schema if not provided in type metadata, fetch for valid url, error for invalid url
-            typeMetadata.schemaUrl?.let {
-                val schemaUri = safeGetUrl(typeMetadata.schemaUrl)
+            typeMetadata.schemaUri?.let {
+                val schemaUri = safeGetUrl(typeMetadata.schemaUri)
                     .mapError(SafeGetUrlError::toFetchVcMetadataByFormatError)
                     .bind()
 
                 vcSchema = fetchVcSchema(
                     schemaUrl = schemaUri,
-                    schemaUriIntegrity = typeMetadata.schemaUrlIntegrity,
+                    schemaUriIntegrity = typeMetadata.schemaUriIntegrity,
                 ).mapError(FetchVcSchemaError::toFetchVcMetadataByFormatError)
                     .bind()
             }
 
             // validate vcSchema
             vcSchema?.let {
-                vcSdJwtJsonSchemaValidator(credential.getClaimsForPresentation().toString(), vcSchema.schema)
+                vcSdJwtJsonSchemaValidator(credential.getClaimsForPresentation().toString(), it.schema)
                     .mapError(JsonSchemaError::toFetchVcMetadataByFormatError)
                     .bind()
             }

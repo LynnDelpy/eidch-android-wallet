@@ -50,15 +50,15 @@ object TypeMetadataMocks {
     val typeMetadataWithInvalidVcSchemaUrl = """
         {
           "vct": "$VCT_URL",
-          "schema_url": "invalidUrl"
+          "schema_uri": "invalidUrl"
         }
     """.trimIndent()
 
     val typeMetadataWithoutOcaRendering = """
         {
           "vct": "$VCT_URL",
-          "schema_url": "$VC_SCHEMA_URL",
-          "schema_url#integrity": "$VC_SCHEMA_URL_INTEGRITY",
+          "schema_uri": "$VC_SCHEMA_URL",
+          "schema_uri#integrity": "$VC_SCHEMA_URL_INTEGRITY",
           "display": [
             {
               "lang": "en-US",
@@ -83,8 +83,8 @@ object TypeMetadataMocks {
     val typeMetadataWithOcaMultipleRenderings = """
         {
           "vct": "$VCT_URL",
-          "schema_url": "$VC_SCHEMA_URL",
-          "schema_url#integrity": "$VC_SCHEMA_URL_INTEGRITY",
+          "schema_uri": "$VC_SCHEMA_URL",
+          "schema_uri#integrity": "$VC_SCHEMA_URL_INTEGRITY",
           "display": [
             {
               "lang": "en-US",
@@ -251,8 +251,8 @@ object TypeMetadataMocks {
               "sd": "allowed"
             }
           ],
-          "schema_url": "$VC_SCHEMA_URL",
-          "schema_url#integrity": "$VC_SCHEMA_URL_INTEGRITY"
+          "schema_uri": "$VC_SCHEMA_URL",
+          "schema_uri#integrity": "$VC_SCHEMA_URL_INTEGRITY"
         }
     """.trimIndent()
 }

@@ -2,13 +2,16 @@ package ch.admin.foitt.wallet.platform.credential.domain.usecase.implementation
 
 import android.annotation.SuppressLint
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.CredentialOffer
-import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.IssuerCredentialInformation
+import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.IssuerCredentialInfo
+import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.RawAndParsedIssuerCredentialInfo
 import ch.admin.foitt.openid4vc.domain.model.vcSdJwt.VcSchema
 import ch.admin.foitt.openid4vc.domain.model.vcSdJwt.VcSdJwtCredential
 import ch.admin.foitt.openid4vc.domain.usecase.FetchCredentialByConfig
-import ch.admin.foitt.openid4vc.domain.usecase.FetchIssuerCredentialInformation
+import ch.admin.foitt.openid4vc.domain.usecase.FetchRawAndParsedIssuerCredentialInfo
+import ch.admin.foitt.wallet.platform.credential.domain.model.AnyDisplays
 import ch.admin.foitt.wallet.platform.credential.domain.model.CredentialError
 import ch.admin.foitt.wallet.platform.credential.domain.usecase.FetchAndSaveCredential
+import ch.admin.foitt.wallet.platform.credential.domain.usecase.GenerateAnyDisplays
 import ch.admin.foitt.wallet.platform.credential.domain.usecase.SaveCredential
 import ch.admin.foitt.wallet.platform.credential.domain.usecase.implementation.mock.MockFetchCredential.CREDENTIAL_ISSUER
 import ch.admin.foitt.wallet.platform.credential.domain.usecase.implementation.mock.MockFetchCredential.credentialConfig
@@ -19,7 +22,6 @@ import ch.admin.foitt.wallet.platform.credential.domain.usecase.implementation.m
 import ch.admin.foitt.wallet.platform.credential.domain.usecase.implementation.mock.MockFetchCredential.noMatchingIdentifierCredentialOffer
 import ch.admin.foitt.wallet.platform.credential.domain.usecase.implementation.mock.MockFetchCredential.oneConfigCredentialInformation
 import ch.admin.foitt.wallet.platform.credential.domain.usecase.implementation.mock.MockFetchCredential.oneIdentifierCredentialOffer
-import ch.admin.foitt.wallet.platform.environmentSetup.domain.repository.EnvironmentSetupRepository
 import ch.admin.foitt.wallet.platform.oca.domain.model.OcaBundle
 import ch.admin.foitt.wallet.platform.oca.domain.model.OcaError
 import ch.admin.foitt.wallet.platform.oca.domain.model.RawOcaBundle
@@ -47,19 +49,19 @@ import ch.admin.foitt.openid4vc.domain.model.credentialoffer.CredentialOfferErro
 class FetchAndSaveCredentialImplTest {
 
     @MockK
-    private lateinit var mockFetchIssuerCredentialInformation: FetchIssuerCredentialInformation
+    private lateinit var mockFetchRawAndParsedCredentialInfo: FetchRawAndParsedIssuerCredentialInfo
 
     @MockK
     private lateinit var mockFetchCredentialByConfig: FetchCredentialByConfig
-
-    @MockK
-    private lateinit var mockEnvironmentSetupRepository: EnvironmentSetupRepository
 
     @MockK
     private lateinit var mockFetchVcMetadataByFormat: FetchVcMetadataByFormat
 
     @MockK
     private lateinit var mockOcaBundler: OcaBundler
+
+    @MockK
+    private lateinit var mockGenerateAnyDisplays: GenerateAnyDisplays
 
     @MockK
     private lateinit var mockSaveCredential: SaveCredential
@@ -74,12 +76,12 @@ class FetchAndSaveCredentialImplTest {
         MockKAnnotations.init(this)
 
         useCase = FetchAndSaveCredentialImpl(
-            fetchIssuerCredentialInformation = mockFetchIssuerCredentialInformation,
+            fetchRawAndParsedIssuerCredentialInfo = mockFetchRawAndParsedCredentialInfo,
             fetchCredentialByConfig = mockFetchCredentialByConfig,
-            environmentSetupRepository = mockEnvironmentSetupRepository,
             fetchVcMetadataByFormat = mockFetchVcMetadataByFormat,
             ocaBundler = mockOcaBundler,
-            saveCredential = mockSaveCredential,
+            generateAnyDisplays = mockGenerateAnyDisplays,
+            saveCredential = mockSaveCredential
         )
 
         setupDefaultMocks()
@@ -101,10 +103,12 @@ class FetchAndSaveCredentialImplTest {
         assertEquals(CREDENTIAL_ID, credentialId)
 
         coVerify {
-            mockFetchIssuerCredentialInformation(CREDENTIAL_ISSUER, true)
+            mockFetchRawAndParsedCredentialInfo(CREDENTIAL_ISSUER)
             mockFetchCredentialByConfig(credentialConfig, oneIdentifierCredentialOffer)
             mockFetchVcMetadataByFormat(mockVcSdJwtCredential)
-            mockSaveCredential(oneConfigCredentialInformation, mockVcSdJwtCredential, credentialConfig)
+            mockOcaBundler(vcMetadata.rawOcaBundle!!.rawOcaBundle)
+            mockGenerateAnyDisplays(mockVcSdJwtCredential, oneConfigCredentialInformation, credentialConfig, ocaBundle)
+            mockSaveCredential(mockVcSdJwtCredential, anyDisplays, any())
         }
     }
 
@@ -112,7 +116,7 @@ class FetchAndSaveCredentialImplTest {
     fun `Fetching and saving credential for offer with one identifier and one matching config returns a valid id`() = runTest {
         setupDefaultMocks(
             credentialOffer = oneIdentifierCredentialOffer,
-            credentialInformation = oneConfigCredentialInformation,
+            credentialInfo = oneConfigCredentialInformation,
         )
 
         val result = useCase(oneIdentifierCredentialOffer)
@@ -125,7 +129,7 @@ class FetchAndSaveCredentialImplTest {
     fun `Fetching and saving credential for offer with multiple identifiers and multiple matching configs returns a valid id for first identifier`() = runTest {
         setupDefaultMocks(
             credentialOffer = multipleIdentifiersCredentialOffer,
-            credentialInformation = multipleConfigCredentialInformation,
+            credentialInfo = multipleConfigCredentialInformation,
         )
 
         val result = useCase(multipleIdentifiersCredentialOffer)
@@ -138,7 +142,7 @@ class FetchAndSaveCredentialImplTest {
     fun `Fetching and saving credential for offer with multiple identifiers and one matching config returns a valid id`() = runTest {
         setupDefaultMocks(
             credentialOffer = multipleIdentifiersCredentialOffer,
-            credentialInformation = oneConfigCredentialInformation,
+            credentialInfo = oneConfigCredentialInformation,
         )
 
         val result = useCase(multipleIdentifiersCredentialOffer)
@@ -151,7 +155,7 @@ class FetchAndSaveCredentialImplTest {
     fun `Fetching and saving credential for offer with one identifier and multiple matching configs returns a valid id`() = runTest {
         setupDefaultMocks(
             credentialOffer = oneIdentifierCredentialOffer,
-            credentialInformation = multipleConfigCredentialInformation,
+            credentialInfo = multipleConfigCredentialInformation,
         )
 
         val result = useCase(oneIdentifierCredentialOffer)
@@ -164,7 +168,7 @@ class FetchAndSaveCredentialImplTest {
     fun `Fetching and saving credential for offer with no matching identifier returns an error`() = runTest {
         setupDefaultMocks(
             credentialOffer = noMatchingIdentifierCredentialOffer,
-            credentialInformation = multipleConfigCredentialInformation,
+            credentialInfo = multipleConfigCredentialInformation,
         )
 
         val result = useCase(noMatchingIdentifierCredentialOffer)
@@ -176,7 +180,7 @@ class FetchAndSaveCredentialImplTest {
     fun `Fetching and saving credential for offer with no identifier returns an error`() = runTest {
         setupDefaultMocks(
             credentialOffer = noIdentifierCredentialOffer,
-            credentialInformation = multipleConfigCredentialInformation,
+            credentialInfo = multipleConfigCredentialInformation,
         )
 
         val result = useCase(noIdentifierCredentialOffer)
@@ -188,7 +192,7 @@ class FetchAndSaveCredentialImplTest {
     fun `Fetching and saving credential for information with no config returns an error`() = runTest {
         setupDefaultMocks(
             credentialOffer = multipleIdentifiersCredentialOffer,
-            credentialInformation = noConfigCredentialInformation,
+            credentialInfo = noConfigCredentialInformation,
         )
 
         val result = useCase(multipleIdentifiersCredentialOffer)
@@ -200,7 +204,7 @@ class FetchAndSaveCredentialImplTest {
     fun `Fetching and saving credential maps errors from Fetching issuer credential information`() = runTest {
         val exception = IllegalStateException()
         coEvery {
-            mockFetchIssuerCredentialInformation(any(), any())
+            mockFetchRawAndParsedCredentialInfo(any())
         } returns Err(OpenIdCredentialOfferError.Unexpected(exception))
 
         val result = useCase(oneIdentifierCredentialOffer)
@@ -223,21 +227,20 @@ class FetchAndSaveCredentialImplTest {
     }
 
     @Test
-    fun `Fetching and saving credential for prod builds does not fetch oca`() = runTest {
-        coEvery { mockEnvironmentSetupRepository.fetchOca } returns false
-
-        useCase(oneIdentifierCredentialOffer).assertOk()
-
-        coVerify(exactly = 0) {
-            mockFetchVcMetadataByFormat(any())
-        }
-    }
-
-    @Test
     fun `Fetching and saving credential maps errors from fetching the vc metadata`() = runTest {
         coEvery { mockFetchVcMetadataByFormat(mockVcSdJwtCredential) } returns Err(OcaError.InvalidOca)
 
         useCase(oneIdentifierCredentialOffer).assertErrorType(CredentialError.InvalidCredentialOffer::class)
+    }
+
+    @Test
+    fun `Fetching and saving credential maps errors from credential displays generator`() = runTest {
+        val exception = IllegalStateException()
+        coEvery {
+            mockGenerateAnyDisplays(any(), any(), any(), any())
+        } returns Err(CredentialError.Unexpected(exception))
+
+        useCase(oneIdentifierCredentialOffer).assertErrorType(CredentialError.Unexpected::class)
     }
 
     @Test
@@ -255,14 +258,14 @@ class FetchAndSaveCredentialImplTest {
 
     private fun setupDefaultMocks(
         credentialOffer: CredentialOffer = oneIdentifierCredentialOffer,
-        credentialInformation: IssuerCredentialInformation = oneConfigCredentialInformation,
+        credentialInfo: IssuerCredentialInfo = oneConfigCredentialInformation,
     ) {
         every {
             mockVcSdJwtCredential.getClaimsForPresentation()
         } returns parseToJsonElement(CREDENTIAL_CLAIMS_FOR_PRESENTATION)
 
-        coEvery { mockFetchIssuerCredentialInformation(CREDENTIAL_ISSUER, true) } returns
-            Ok(credentialInformation)
+        coEvery { mockFetchRawAndParsedCredentialInfo(CREDENTIAL_ISSUER) } returns
+            Ok(RawAndParsedIssuerCredentialInfo(issuerCredentialInfo = credentialInfo, rawIssuerCredentialInfo = ""))
 
         coEvery {
             mockFetchCredentialByConfig(
@@ -271,17 +274,19 @@ class FetchAndSaveCredentialImplTest {
             )
         } returns Ok(mockVcSdJwtCredential)
 
-        coEvery { mockEnvironmentSetupRepository.fetchOca } returns true
-
         coEvery { mockFetchVcMetadataByFormat(mockVcSdJwtCredential) } returns Ok(vcMetadata)
 
-        coEvery { mockOcaBundler(any()) } returns Ok(OcaBundle(emptyList(), emptyList()))
+        coEvery { mockOcaBundler(any()) } returns Ok(ocaBundle)
+
+        coEvery {
+            mockGenerateAnyDisplays(mockVcSdJwtCredential, credentialInfo, credentialConfig, ocaBundle)
+        } returns Ok(anyDisplays)
 
         coEvery {
             mockSaveCredential(
-                issuerInfo = credentialInformation,
                 anyCredential = mockVcSdJwtCredential,
-                credentialConfiguration = credentialConfig
+                anyDisplays = anyDisplays,
+                rawCredentialData = any()
             )
         } returns Ok(CREDENTIAL_ID)
     }
@@ -298,5 +303,7 @@ class FetchAndSaveCredentialImplTest {
         const val RAW_OCA_BUNDLE = "oca bundle"
 
         val vcMetadata = VcMetadata(vcSchema = VcSchema(VC_SCHEMA), rawOcaBundle = RawOcaBundle(RAW_OCA_BUNDLE))
+        val ocaBundle = OcaBundle(emptyList(), emptyList())
+        val anyDisplays = AnyDisplays(emptyList(), emptyList(), emptyList())
     }
 }

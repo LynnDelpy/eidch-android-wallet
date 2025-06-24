@@ -36,12 +36,13 @@ internal class CreateJWSKeyPairImpl @Inject constructor(
     override suspend operator fun invoke(
         signingAlgorithm: SigningAlgorithm,
         provider: String,
+        attestationChallenge: ByteArray?,
     ) = withContext(defaultDispatcher) {
         runSuspendCatching {
             val keyStore = KeyStore.getInstance(provider)
             keyStore.load(null)
             val keyId = generateKeyId(keyStore).getOrThrow()
-            val keyPair = createKeyPair(keyId, signingAlgorithm, provider)
+            val keyPair = createKeyPair(keyId, signingAlgorithm, provider, attestationChallenge)
 
             JWSKeyPair(
                 algorithm = signingAlgorithm,
@@ -53,13 +54,23 @@ internal class CreateJWSKeyPairImpl @Inject constructor(
         }
     }
 
-    private fun createKeyPair(keyId: String, signingAlgorithm: SigningAlgorithm, provider: String): KeyPair {
+    private fun createKeyPair(
+        keyId: String,
+        signingAlgorithm: SigningAlgorithm,
+        provider: String,
+        attestationChallenge: ByteArray? = null,
+    ): KeyPair {
         val generator =
             KeyPairGenerator.getInstance(signingAlgorithm.toKeyAlgorithm(), provider)
         val spec = KeyGenParameterSpec.Builder(keyId, KeyProperties.PURPOSE_SIGN)
             .setAlgorithmParameterSpec(signingAlgorithm.toAlgorithmParameterSpec())
             .setDigests(signingAlgorithm.toDigest())
             .setIsStrongBoxBacked(isStrongBoxAvailable())
+            .apply {
+                if (attestationChallenge != null) {
+                    setAttestationChallenge(attestationChallenge)
+                }
+            }
             .build()
         generator.initialize(spec)
         return generator.generateKeyPair()

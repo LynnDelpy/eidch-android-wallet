@@ -7,7 +7,7 @@ import ch.admin.foitt.wallet.feature.presentationRequest.domain.usecase.implemen
 import ch.admin.foitt.wallet.platform.credential.domain.model.CredentialDisplayData
 import ch.admin.foitt.wallet.platform.credentialPresentation.domain.model.CompatibleCredential
 import ch.admin.foitt.wallet.platform.ssi.domain.model.SsiError
-import ch.admin.foitt.wallet.platform.ssi.domain.usecase.GetCredentialsWithDisplaysFlow
+import ch.admin.foitt.wallet.platform.ssi.domain.usecase.GetCredentialsWithDetailsFlow
 import ch.admin.foitt.wallet.util.assertErrorType
 import ch.admin.foitt.wallet.util.assertOk
 import com.github.michaelbull.result.Err
@@ -30,7 +30,7 @@ import org.junit.jupiter.api.Test
 class GetPresentationRequestCredentialListFlowImplTest {
 
     @MockK
-    lateinit var mockGetCredentialsWithDisplaysFlow: GetCredentialsWithDisplaysFlow
+    lateinit var mockGetCredentialsWithDetailsFlow: GetCredentialsWithDetailsFlow
 
     @MockK
     lateinit var mockCredentialDisplayData1: CredentialDisplayData
@@ -48,7 +48,7 @@ class GetPresentationRequestCredentialListFlowImplTest {
         MockKAnnotations.init(this)
 
         getPresentationRequestCredentialListFlow = GetPresentationRequestCredentialListFlowImpl(
-            mockGetCredentialsWithDisplaysFlow,
+            mockGetCredentialsWithDetailsFlow,
         )
 
         setupDefaultMocks()
@@ -73,10 +73,10 @@ class GetPresentationRequestCredentialListFlowImplTest {
     }
 
     @Test
-    fun `Getting the presentation request credential list flow maps errors from GetCredentialsWithDisplaysFlow`() = runTest {
+    fun `Getting the presentation request credential list flow maps errors from GetCredentialsWithDetailsFlow`() = runTest {
         val exception = IllegalStateException("db error")
         coEvery {
-            mockGetCredentialsWithDisplaysFlow()
+            mockGetCredentialsWithDetailsFlow()
         } returns flowOf(Err(SsiError.Unexpected(exception)))
 
         val result = getPresentationRequestCredentialListFlow(
@@ -91,7 +91,7 @@ class GetPresentationRequestCredentialListFlowImplTest {
 
     private fun setupDefaultMocks() {
         coEvery {
-            mockGetCredentialsWithDisplaysFlow()
+            mockGetCredentialsWithDetailsFlow()
         } returns flowOf(Ok(listOf(mockCredentialDisplayData1, mockCredentialDisplayData2)))
 
         every { mockCredentialDisplayData1.credentialId } returns CREDENTIAL_ID1

@@ -52,7 +52,11 @@ internal class GenerateKeyPairImpl @Inject constructor(
     private suspend fun createKeyPair(
         signingAlgorithm: SigningAlgorithm
     ): Result<JWSKeyPair, FetchVerifiableCredentialError> = retryUseCase {
-        createJWSKeyPair(signingAlgorithm, ANDROID_KEY_STORE)
+        createJWSKeyPair(
+            signingAlgorithm = signingAlgorithm,
+            provider = ANDROID_KEY_STORE,
+            attestationChallenge = null,
+        )
     }.mapError(CreateJWSKeyPairError::toCredentialOfferError)
 
     // priority list of preferred signing algorithms (first position = highest priority)

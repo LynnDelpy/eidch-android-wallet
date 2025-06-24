@@ -61,7 +61,15 @@ class SRIValidatorImplTest {
         sriValidator(data, integrity).assertErrorType(SRIError.MalformedIntegrity::class)
     }
 
+    @Test
+    fun `Integrity with padding is correctly validated`() = runTest {
+        val integrity = "sha256-LPJNul+wow4m6DsqxbninhsWHlwfp0JecwQzYpOLmCQ="
+
+        sriValidator(dataWithPadding, integrity).assertOk()
+    }
+
     private companion object {
         val data = "alert('Hello, world.');".encodeToByteArray()
+        val dataWithPadding = "hello".encodeToByteArray()
     }
 }

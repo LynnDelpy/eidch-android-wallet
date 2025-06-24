@@ -99,4 +99,17 @@ class OnboardingPasswordTest {
         passwordConfirmationScreen.passwordField.assertTextEquals(maskedPassword)
     }
 
+    fun test_enter_very_long_pin() = runTest {
+        val passwordEntryScreen = PasswordEntryScreen(activityRule)
+        passwordEntryScreen.navigateToScreen()
+        passwordEntryScreen.enterPin("QxM5dtwcQ51GOL54C9arEHsTl4b7^BQGQYPmA7C57^SMdsd34%FjBWB2fv^sLfIWmJ3!c!Rb27kqNzVbHqf5DlBRb&522Yhe74KqKIPIrtCh1PuUo3Xal0bE9Y@lrWaA")
+        passwordEntryScreen.nextScreen()
+        val passwordConfirmationScreen = PasswordConfirmationScreen(activityRule)
+        passwordConfirmationScreen.isDisplayed()
+        passwordConfirmationScreen.enterPin("QxM5dtwcQ51GOL54C9arEHsTl4b7^BQGQYPmA7C57^SMdsd34%FjBWB2fv^sLfIWmJ3!c!Rb27kqNzVbHqf5DlBRb&522Yhe74KqKIPIrtCh1PuUo3Xal0bE9Y@lrWaA")
+        passwordConfirmationScreen.nextScreen()
+        val biometricScreen = OnboardingBiometricScreen(activityRule)
+        biometricScreen.isDisplayed()
+    }
+
 }

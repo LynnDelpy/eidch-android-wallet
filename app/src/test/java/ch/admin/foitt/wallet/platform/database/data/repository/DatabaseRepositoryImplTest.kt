@@ -115,10 +115,13 @@ class DatabaseRepositoryImplTest {
         every { mockAppDatabase.credentialClaimDao() } returns mockk()
         every { mockAppDatabase.credentialClaimDisplayDao() } returns mockk()
         every { mockAppDatabase.credentialIssuerDisplayDao() } returns mockk()
-        every { mockAppDatabase.credentialWithDisplaysAndClaimsDao() } returns mockk()
-        every { mockAppDatabase.credentialWithDisplaysDao() } returns mockk()
+        every { mockAppDatabase.credentialWithDisplaysAndClustersDao() } returns mockk()
+        every { mockAppDatabase.credentialClaimClusterEntityDao() } returns mockk()
+        every { mockAppDatabase.credentialClaimClusterDisplayEntityDao() } returns mockk()
         every { mockAppDatabase.eIdRequestCaseDao() } returns mockk()
         every { mockAppDatabase.eIdRequestStateDao() } returns mockk()
         every { mockAppDatabase.eIdRequestCaseWithStateDao() } returns mockk()
+        every { mockAppDatabase.rawCredentialDataDao() } returns mockk()
+        every { mockAppDatabase.clientAttestationDao() } returns mockk()
     }
 }

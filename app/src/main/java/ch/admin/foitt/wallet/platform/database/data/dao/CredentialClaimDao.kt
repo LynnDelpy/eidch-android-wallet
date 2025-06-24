@@ -11,6 +11,6 @@ interface CredentialClaimDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insert(credentialClaim: CredentialClaim): Long
 
-    @Query("SELECT * FROM CredentialClaim WHERE credentialId = :credentialId ORDER BY `order`")
-    fun getByCredentialId(credentialId: Long): List<CredentialClaim>
+    @Query("SELECT * FROM CredentialClaim WHERE id = :id")
+    fun getById(id: Long): CredentialClaim?
 }

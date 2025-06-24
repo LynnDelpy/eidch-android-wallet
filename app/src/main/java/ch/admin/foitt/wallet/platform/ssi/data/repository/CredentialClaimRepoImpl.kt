@@ -29,16 +29,6 @@ class CredentialClaimRepoImpl @Inject constructor(
         SsiError.Unexpected(throwable)
     }
 
-    override suspend fun getByCredentialId(credentialId: Long): Result<List<CredentialClaim>, CredentialClaimRepositoryError> =
-        runSuspendCatching {
-            withContext(ioDispatcher) {
-                dao().getByCredentialId(credentialId)
-            }
-        }.mapError { throwable ->
-            Timber.e(throwable)
-            SsiError.Unexpected(throwable)
-        }
-
     private suspend fun dao(): CredentialClaimDao = suspendUntilNonNull { daoFlow.value }
     private val daoFlow = daoProvider.credentialClaimDaoFlow
 }

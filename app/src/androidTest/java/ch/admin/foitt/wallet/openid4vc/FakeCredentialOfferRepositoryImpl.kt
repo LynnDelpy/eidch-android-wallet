@@ -2,13 +2,13 @@ package ch.admin.foitt.wallet.openid4vc
 
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.CredentialRequestProof
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.CredentialResponse
-import ch.admin.foitt.openid4vc.domain.model.credentialoffer.FetchIssuerConfigurationError
-import ch.admin.foitt.openid4vc.domain.model.credentialoffer.FetchIssuerCredentialInformationError
+import ch.admin.foitt.openid4vc.domain.model.credentialoffer.FetchIssuerCredentialInfoError
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.FetchVerifiableCredentialError
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.TokenResponse
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.AnyCredentialConfiguration
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.IssuerConfiguration
-import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.IssuerCredentialInformation
+import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.IssuerCredentialInfo
+import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.RawAndParsedIssuerCredentialInfo
 import ch.admin.foitt.openid4vc.domain.repository.CredentialOfferRepository
 import ch.admin.foitt.wallet.feature.credentialOffer.mock.CredentialOfferMocks.MOCK_ACCESS_TOKEN
 import ch.admin.foitt.wallet.feature.credentialOffer.mock.CredentialOfferMocks.MOCK_CREDENTIAL_RESPONSE
@@ -23,17 +23,28 @@ import javax.inject.Inject
 internal class FakeCredentialOfferRepositoryImpl @Inject constructor(
     private val safeJson: SafeJson,
 ) : CredentialOfferRepository {
-    override suspend fun fetchIssuerCredentialInformation(
-        issuerEndpoint: String, refresh: Boolean
-    ): Result<IssuerCredentialInformation, FetchIssuerCredentialInformationError> {
+    override suspend fun fetchRawAndParsedIssuerCredentialInformation(
+        issuerEndpoint: String
+    ): Result<RawAndParsedIssuerCredentialInfo, FetchIssuerCredentialInfoError> {
         Timber.d("issuer credential information fake was used")
-        return Ok(safeJson.safeDecodeStringTo<IssuerCredentialInformation>(MOCK_UETLIBERG_CREDENTIAL_METADATA).value)
+        return Ok(
+            RawAndParsedIssuerCredentialInfo(
+                issuerCredentialInfo = safeJson.safeDecodeStringTo<IssuerCredentialInfo>(MOCK_UETLIBERG_CREDENTIAL_METADATA).value,
+                rawIssuerCredentialInfo = MOCK_UETLIBERG_CREDENTIAL_METADATA
+            )
+        )
+    }
+
+    override suspend fun getIssuerCredentialInfo(
+        issuerEndpoint: String
+    ): Result<IssuerCredentialInfo, FetchIssuerCredentialInfoError> {
+        Timber.d("issuer credential information fake was used")
+        return Ok(safeJson.safeDecodeStringTo<IssuerCredentialInfo>(MOCK_UETLIBERG_CREDENTIAL_METADATA).value)
     }
 
     override suspend fun fetchIssuerConfiguration(
-        issuerEndpoint: String, refresh: Boolean
-    ): Result<IssuerConfiguration, FetchIssuerConfigurationError> =
-        Ok(safeJson.safeDecodeStringTo<IssuerConfiguration>(MOCK_OPEN_ID_CONFIG).value)
+        issuerEndpoint: String
+    ) = Ok(safeJson.safeDecodeStringTo<IssuerConfiguration>(MOCK_OPEN_ID_CONFIG).value)
 
     override suspend fun fetchAccessToken(
         tokenEndpoint: String,

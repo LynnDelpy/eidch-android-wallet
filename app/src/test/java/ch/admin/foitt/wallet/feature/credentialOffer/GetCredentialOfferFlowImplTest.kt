@@ -18,11 +18,13 @@ import ch.admin.foitt.wallet.feature.credentialOffer.mock.MockCredentialOffer.cr
 import ch.admin.foitt.wallet.platform.actorMetadata.domain.usecase.FetchAndCacheIssuerDisplayData
 import ch.admin.foitt.wallet.platform.credential.domain.model.CredentialError
 import ch.admin.foitt.wallet.platform.credential.domain.usecase.MapToCredentialDisplayData
+import ch.admin.foitt.wallet.platform.database.domain.model.ClusterWithDisplaysAndClaims
 import ch.admin.foitt.wallet.platform.database.domain.model.Credential
+import ch.admin.foitt.wallet.platform.database.domain.model.CredentialClaimClusterEntity
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialClaimWithDisplays
-import ch.admin.foitt.wallet.platform.database.domain.model.CredentialWithDisplaysAndClaims
+import ch.admin.foitt.wallet.platform.database.domain.model.CredentialWithDisplaysAndClusters
 import ch.admin.foitt.wallet.platform.ssi.domain.model.SsiError
-import ch.admin.foitt.wallet.platform.ssi.domain.repository.CredentialWithDisplaysAndClaimsRepository
+import ch.admin.foitt.wallet.platform.ssi.domain.repository.CredentialWithDisplaysAndClustersRepository
 import ch.admin.foitt.wallet.platform.ssi.domain.usecase.MapToCredentialClaimData
 import ch.admin.foitt.wallet.util.assertErrorType
 import ch.admin.foitt.wallet.util.assertOk
@@ -49,7 +51,7 @@ import org.junit.jupiter.api.Test
 class GetCredentialOfferFlowImplTest {
 
     @MockK
-    lateinit var mockCredentialWithDisplaysAndClaimsRepository: CredentialWithDisplaysAndClaimsRepository
+    lateinit var mockCredentialWithDisplaysAndClustersRepository: CredentialWithDisplaysAndClustersRepository
 
     @MockK
     lateinit var mockMapToCredentialDisplayData: MapToCredentialDisplayData
@@ -64,7 +66,10 @@ class GetCredentialOfferFlowImplTest {
     lateinit var mockCredential: Credential
 
     @MockK
-    lateinit var mockCredentialWithDisplaysAndClaims: CredentialWithDisplaysAndClaims
+    private lateinit var mockCluster: CredentialClaimClusterEntity
+
+    @MockK
+    lateinit var mockCredentialWithDisplaysAndClusters: CredentialWithDisplaysAndClusters
 
     private lateinit var getCredentialOfferFlow: GetCredentialOfferFlow
 
@@ -73,7 +78,7 @@ class GetCredentialOfferFlowImplTest {
         MockKAnnotations.init(this)
 
         getCredentialOfferFlow = GetCredentialOfferFlowImpl(
-            mockCredentialWithDisplaysAndClaimsRepository,
+            mockCredentialWithDisplaysAndClustersRepository,
             mockMapToCredentialDisplayData,
             mockMapToCredentialClaimData,
             mockFetchAndCacheIssuerDisplayData,
@@ -105,10 +110,10 @@ class GetCredentialOfferFlowImplTest {
     @Test
     fun `Getting the credential offer flow with updates returns a flow with the credential offer`() = runTest {
         coEvery {
-            mockCredentialWithDisplaysAndClaimsRepository.getNullableCredentialWithDisplaysAndClaimsFlowById(CREDENTIAL_ID)
+            mockCredentialWithDisplaysAndClustersRepository.getNullableCredentialWithDisplaysAndClustersFlowById(CREDENTIAL_ID)
         } returns flow {
-            emit(Ok(mockCredentialWithDisplaysAndClaims))
-            emit(Ok(mockCredentialWithDisplaysAndClaims))
+            emit(Ok(mockCredentialWithDisplaysAndClusters))
+            emit(Ok(mockCredentialWithDisplaysAndClusters))
         }
 
         val result = getCredentialOfferFlow(CREDENTIAL_ID).toList()
@@ -123,7 +128,7 @@ class GetCredentialOfferFlowImplTest {
     fun `Getting the credential offer flow maps errors from the repository`() = runTest {
         val exception = IllegalStateException("db error")
         coEvery {
-            mockCredentialWithDisplaysAndClaimsRepository.getNullableCredentialWithDisplaysAndClaimsFlowById(CREDENTIAL_ID)
+            mockCredentialWithDisplaysAndClustersRepository.getNullableCredentialWithDisplaysAndClustersFlowById(CREDENTIAL_ID)
         } returns flowOf(Err(SsiError.Unexpected(exception)))
 
         val result = getCredentialOfferFlow(CREDENTIAL_ID).firstOrNull()
@@ -137,7 +142,7 @@ class GetCredentialOfferFlowImplTest {
     fun `Getting the credential offer flow maps error from MapToCredentialDisplayData use case`() = runTest {
         val exception = IllegalStateException("map to credential claim display data error")
         coEvery {
-            mockMapToCredentialDisplayData(mockCredential, credentialDisplays)
+            mockMapToCredentialDisplayData(mockCredential, credentialDisplays, claims)
         } returns Err(CredentialError.Unexpected(exception))
 
         val result = getCredentialOfferFlow(CREDENTIAL_ID).firstOrNull()
@@ -164,15 +169,21 @@ class GetCredentialOfferFlowImplTest {
     private fun setupDefaultMocks() {
         every { mockCredential.issuer } returns ISSUER
 
-        every { mockCredentialWithDisplaysAndClaims.credential } returns mockCredential
-        every { mockCredentialWithDisplaysAndClaims.credentialDisplays } returns credentialDisplays
-        every { mockCredentialWithDisplaysAndClaims.claims } returns claims
+        every { mockCredentialWithDisplaysAndClusters.credential } returns mockCredential
+        every { mockCredentialWithDisplaysAndClusters.credentialDisplays } returns credentialDisplays
+        every { mockCredentialWithDisplaysAndClusters.clusters } returns listOf(
+            ClusterWithDisplaysAndClaims(
+                cluster = mockCluster,
+                displays = emptyList(),
+                claims = claims,
+            )
+        )
 
         coEvery {
-            mockCredentialWithDisplaysAndClaimsRepository.getNullableCredentialWithDisplaysAndClaimsFlowById(CREDENTIAL_ID)
-        } returns flowOf(Ok(mockCredentialWithDisplaysAndClaims))
+            mockCredentialWithDisplaysAndClustersRepository.getNullableCredentialWithDisplaysAndClustersFlowById(CREDENTIAL_ID)
+        } returns flowOf(Ok(mockCredentialWithDisplaysAndClusters))
         coEvery {
-            mockMapToCredentialDisplayData(mockCredential, credentialDisplays)
+            mockMapToCredentialDisplayData(mockCredential, credentialDisplays, claims)
         } returns Ok(credentialDisplayData)
         coEvery {
             mockMapToCredentialClaimData(claimWithDisplays1)

@@ -7,7 +7,7 @@ import ch.admin.foitt.wallet.platform.oca.domain.model.toCesrHashValidatorError
 import ch.admin.foitt.wallet.platform.oca.domain.usecase.OcaCesrHashValidator
 import ch.admin.foitt.wallet.platform.utils.JsonParsingError
 import ch.admin.foitt.wallet.platform.utils.SafeJson
-import ch.admin.foitt.wallet.platform.utils.toBase64String
+import ch.admin.foitt.wallet.platform.utils.toBase64StringUrlEncodedWithoutPadding
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
@@ -69,7 +69,7 @@ class OcaCesrHashValidatorImpl @Inject constructor(
         }.bind()
 
         val rawDigestWithPadding = ByteArray(digestAlgorithm.paddingSize) + rawDigest
-        val base64EncodedSha256Without1stChar = rawDigestWithPadding.toBase64String().drop(CHAR_TO_DROP)
+        val base64EncodedSha256Without1stChar = rawDigestWithPadding.toBase64StringUrlEncodedWithoutPadding().drop(CHAR_TO_DROP)
         val computedDigest = "${digestAlgorithm.prefix}$base64EncodedSha256Without1stChar"
 
         if (originalDigest == computedDigest) {

@@ -1,0 +1,188 @@
+package ch.admin.foitt.wallet.platform.oca.domain.usecase.implementation
+
+import ch.admin.foitt.wallet.platform.oca.domain.model.AttributeType
+import ch.admin.foitt.wallet.platform.oca.domain.model.overlays.CharacterEncoding
+import ch.admin.foitt.wallet.platform.oca.domain.model.overlays.Standard
+import ch.admin.foitt.wallet.platform.oca.domain.usecase.GenerateOcaClaimData
+import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ATTRIBUTE_KEY_AGE
+import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ATTRIBUTE_KEY_FIRSTNAME
+import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ATTRIBUTE_LABEL_AGE_DE
+import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ATTRIBUTE_LABEL_AGE_EN
+import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ATTRIBUTE_LABEL_FIRSTNAME_DE
+import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ATTRIBUTE_LABEL_FIRSTNAME_EN
+import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.CREDENTIAL_FORMAT
+import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.DIGEST
+import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.FORMAT
+import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.JSON_PATH_AGE
+import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.JSON_PATH_FIRSTNAME
+import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.LANGUAGE_DE
+import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.LANGUAGE_EN
+import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.UNKNOWN_ENCODING
+import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ocaSimpleDataSource
+import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ocaSimpleEncoding
+import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ocaSimpleEncodingNoDefault
+import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ocaSimpleFormat
+import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ocaSimpleLabel
+import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ocaSimpleOrder
+import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ocaSimpleStandard
+import io.mockk.MockKAnnotations
+import io.mockk.unmockkAll
+import kotlinx.coroutines.test.runTest
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+
+class GenerateOcaClaimDataImplTest {
+
+    private lateinit var useCase: GenerateOcaClaimData
+
+    @BeforeEach
+    fun setup() {
+        MockKAnnotations.init(this)
+
+        useCase = GenerateOcaClaimDataImpl()
+    }
+
+    @AfterEach
+    fun tearDown() {
+        unmockkAll()
+    }
+
+    @Test
+    fun `Generator correctly generates all attributes labels`() = runTest {
+        val overlayBundleAttributes =
+            useCase(overlays = ocaSimpleLabel.overlays, captureBases = ocaSimpleLabel.captureBases)
+
+        val expectedLabelsFirstname = mapOf(
+            LANGUAGE_EN to ATTRIBUTE_LABEL_FIRSTNAME_EN,
+            LANGUAGE_DE to ATTRIBUTE_LABEL_FIRSTNAME_DE,
+        )
+
+        val expectedLabelsAge = mapOf(
+            LANGUAGE_EN to ATTRIBUTE_LABEL_AGE_EN,
+            LANGUAGE_DE to ATTRIBUTE_LABEL_AGE_DE,
+        )
+
+        assertEquals(2, overlayBundleAttributes.size)
+
+        assertEquals(DIGEST, overlayBundleAttributes[0].captureBaseDigest)
+        assertEquals(ATTRIBUTE_KEY_FIRSTNAME, overlayBundleAttributes[0].name)
+        assertEquals(AttributeType.Text, overlayBundleAttributes[0].attributeType)
+        assertEquals(expectedLabelsFirstname, overlayBundleAttributes[0].labels)
+
+        assertEquals(DIGEST, overlayBundleAttributes[1].captureBaseDigest)
+        assertEquals(ATTRIBUTE_KEY_AGE, overlayBundleAttributes[1].name)
+        assertEquals(AttributeType.Numeric, overlayBundleAttributes[1].attributeType)
+        assertEquals(expectedLabelsAge, overlayBundleAttributes[1].labels)
+    }
+
+    @Test
+    fun `Generator correctly generates all attributes data sources`() = runTest {
+        val overlayBundleAttributes =
+            useCase(overlays = ocaSimpleDataSource.overlays, captureBases = ocaSimpleDataSource.captureBases)
+
+        val expectedDataSourcesFirstname = mapOf(
+            CREDENTIAL_FORMAT to JSON_PATH_FIRSTNAME
+        )
+
+        val expectedDataSourcesAge = mapOf(
+            CREDENTIAL_FORMAT to JSON_PATH_AGE
+        )
+
+        assertEquals(2, overlayBundleAttributes.size)
+
+        assertEquals(DIGEST, overlayBundleAttributes[0].captureBaseDigest)
+        assertEquals(ATTRIBUTE_KEY_FIRSTNAME, overlayBundleAttributes[0].name)
+        assertEquals(AttributeType.Text, overlayBundleAttributes[0].attributeType)
+        assertEquals(expectedDataSourcesFirstname, overlayBundleAttributes[0].dataSources)
+
+        assertEquals(DIGEST, overlayBundleAttributes[1].captureBaseDigest)
+        assertEquals(ATTRIBUTE_KEY_AGE, overlayBundleAttributes[1].name)
+        assertEquals(AttributeType.Numeric, overlayBundleAttributes[1].attributeType)
+        assertEquals(expectedDataSourcesAge, overlayBundleAttributes[1].dataSources)
+    }
+
+    @Test
+    fun `Generator correctly generates all attributes formats`() = runTest {
+        val overlayBundleAttributes =
+            useCase(overlays = ocaSimpleFormat.overlays, captureBases = ocaSimpleFormat.captureBases)
+
+        assertEquals(2, overlayBundleAttributes.size)
+
+        assertEquals(DIGEST, overlayBundleAttributes[0].captureBaseDigest)
+        assertEquals(ATTRIBUTE_KEY_FIRSTNAME, overlayBundleAttributes[0].name)
+        assertEquals(AttributeType.Text, overlayBundleAttributes[0].attributeType)
+        assertEquals(FORMAT, overlayBundleAttributes[0].format)
+
+        assertEquals(DIGEST, overlayBundleAttributes[1].captureBaseDigest)
+        assertEquals(ATTRIBUTE_KEY_AGE, overlayBundleAttributes[1].name)
+        assertEquals(AttributeType.Numeric, overlayBundleAttributes[1].attributeType)
+        assertEquals(null, overlayBundleAttributes[1].format)
+    }
+
+    @Test
+    fun `Generator correctly generates all attributes standards`() = runTest {
+        val overlayBundleAttributes =
+            useCase(overlays = ocaSimpleStandard.overlays, captureBases = ocaSimpleStandard.captureBases)
+
+        assertEquals(2, overlayBundleAttributes.size)
+
+        assertEquals(DIGEST, overlayBundleAttributes[0].captureBaseDigest)
+        assertEquals(ATTRIBUTE_KEY_FIRSTNAME, overlayBundleAttributes[0].name)
+        assertEquals(AttributeType.Text, overlayBundleAttributes[0].attributeType)
+        assertEquals(Standard.DataUrl, overlayBundleAttributes[0].standard)
+
+        assertEquals(DIGEST, overlayBundleAttributes[1].captureBaseDigest)
+        assertEquals(ATTRIBUTE_KEY_AGE, overlayBundleAttributes[1].name)
+        assertEquals(AttributeType.Numeric, overlayBundleAttributes[1].attributeType)
+        assertEquals(null, overlayBundleAttributes[1].standard)
+    }
+
+    @Test
+    fun `Generator correctly generates all attributes encodings`() = runTest {
+        val overlayBundleAttributes =
+            useCase(overlays = ocaSimpleEncoding.overlays, captureBases = ocaSimpleEncoding.captureBases)
+
+        assertEquals(2, overlayBundleAttributes.size)
+
+        assertEquals(DIGEST, overlayBundleAttributes[0].captureBaseDigest)
+        assertEquals(ATTRIBUTE_KEY_FIRSTNAME, overlayBundleAttributes[0].name)
+        assertEquals(AttributeType.Text, overlayBundleAttributes[0].attributeType)
+        assertEquals(CharacterEncoding.Base64, overlayBundleAttributes[0].characterEncoding)
+
+        assertEquals(DIGEST, overlayBundleAttributes[1].captureBaseDigest)
+        assertEquals(ATTRIBUTE_KEY_AGE, overlayBundleAttributes[1].name)
+        assertEquals(AttributeType.Numeric, overlayBundleAttributes[1].attributeType)
+        assertEquals(CharacterEncoding.Unknown(rawValue = UNKNOWN_ENCODING), overlayBundleAttributes[1].characterEncoding)
+    }
+
+    @Test
+    fun `Generator correctly generates all attributes encodings without default encoding`() = runTest {
+        val overlayBundleAttributes =
+            useCase(overlays = ocaSimpleEncodingNoDefault.overlays, captureBases = ocaSimpleEncodingNoDefault.captureBases)
+
+        assertEquals(2, overlayBundleAttributes.size)
+
+        assertEquals(DIGEST, overlayBundleAttributes[1].captureBaseDigest)
+        assertEquals(ATTRIBUTE_KEY_AGE, overlayBundleAttributes[1].name)
+        assertEquals(AttributeType.Numeric, overlayBundleAttributes[1].attributeType)
+        assertEquals(null, overlayBundleAttributes[1].characterEncoding)
+    }
+
+    @Test
+    fun `Generator correctly generate all attributes orders`() = runTest {
+        val overlayBundleAttributes =
+            useCase(overlays = ocaSimpleOrder.overlays, captureBases = ocaSimpleOrder.captureBases)
+
+        assertEquals(2, overlayBundleAttributes.size)
+
+        assertEquals(DIGEST, overlayBundleAttributes[0].captureBaseDigest)
+        assertEquals(ATTRIBUTE_KEY_FIRSTNAME, overlayBundleAttributes[0].name)
+        assertEquals(2, overlayBundleAttributes[0].order)
+
+        assertEquals(DIGEST, overlayBundleAttributes[1].captureBaseDigest)
+        assertEquals(ATTRIBUTE_KEY_AGE, overlayBundleAttributes[1].name)
+        assertEquals(1, overlayBundleAttributes[1].order)
+    }
+}

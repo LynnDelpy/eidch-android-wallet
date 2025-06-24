@@ -5,22 +5,20 @@ import ch.admin.foitt.wallet.platform.ssi.data.repository.CredentialClaimRepoImp
 import ch.admin.foitt.wallet.platform.ssi.data.repository.CredentialIssuerDisplayRepoImpl
 import ch.admin.foitt.wallet.platform.ssi.data.repository.CredentialOfferRepositoryImpl
 import ch.admin.foitt.wallet.platform.ssi.data.repository.CredentialRepoImpl
-import ch.admin.foitt.wallet.platform.ssi.data.repository.CredentialWithDisplaysAndClaimsRepositoryImpl
-import ch.admin.foitt.wallet.platform.ssi.data.repository.CredentialWithDisplaysRepositoryImpl
+import ch.admin.foitt.wallet.platform.ssi.data.repository.CredentialWithDisplaysAndClustersRepositoryImpl
 import ch.admin.foitt.wallet.platform.ssi.domain.repository.CredentialClaimDisplayRepo
 import ch.admin.foitt.wallet.platform.ssi.domain.repository.CredentialClaimRepo
 import ch.admin.foitt.wallet.platform.ssi.domain.repository.CredentialIssuerDisplayRepo
 import ch.admin.foitt.wallet.platform.ssi.domain.repository.CredentialOfferRepository
 import ch.admin.foitt.wallet.platform.ssi.domain.repository.CredentialRepo
-import ch.admin.foitt.wallet.platform.ssi.domain.repository.CredentialWithDisplaysAndClaimsRepository
-import ch.admin.foitt.wallet.platform.ssi.domain.repository.CredentialWithDisplaysRepository
+import ch.admin.foitt.wallet.platform.ssi.domain.repository.CredentialWithDisplaysAndClustersRepository
 import ch.admin.foitt.wallet.platform.ssi.domain.usecase.DeleteCredential
 import ch.admin.foitt.wallet.platform.ssi.domain.usecase.GetCredentialDetailFlow
-import ch.admin.foitt.wallet.platform.ssi.domain.usecase.GetCredentialsWithDisplaysFlow
+import ch.admin.foitt.wallet.platform.ssi.domain.usecase.GetCredentialsWithDetailsFlow
 import ch.admin.foitt.wallet.platform.ssi.domain.usecase.MapToCredentialClaimData
 import ch.admin.foitt.wallet.platform.ssi.domain.usecase.implementation.DeleteCredentialImpl
 import ch.admin.foitt.wallet.platform.ssi.domain.usecase.implementation.GetCredentialDetailFlowImpl
-import ch.admin.foitt.wallet.platform.ssi.domain.usecase.implementation.GetCredentialsWithDisplaysFlowImpl
+import ch.admin.foitt.wallet.platform.ssi.domain.usecase.implementation.GetCredentialsWithDetailsFlowImpl
 import ch.admin.foitt.wallet.platform.ssi.domain.usecase.implementation.MapToCredentialClaimDataImpl
 import dagger.Binds
 import dagger.Module
@@ -71,15 +69,9 @@ interface SsiModule {
 
     @Binds
     @ActivityRetainedScoped
-    fun bindCredentialWithDisplaysRepository(
-        repo: CredentialWithDisplaysRepositoryImpl
-    ): CredentialWithDisplaysRepository
-
-    @Binds
-    @ActivityRetainedScoped
-    fun bindCredentialWithDisplaysAndClaimsRepository(
-        repo: CredentialWithDisplaysAndClaimsRepositoryImpl
-    ): CredentialWithDisplaysAndClaimsRepository
+    fun bindCredentialWithDisplaysAndClustersRepository(
+        repo: CredentialWithDisplaysAndClustersRepositoryImpl
+    ): CredentialWithDisplaysAndClustersRepository
 
     @Binds
     fun bindGetCredentialDetailFlow(
@@ -87,7 +79,7 @@ interface SsiModule {
     ): GetCredentialDetailFlow
 
     @Binds
-    fun bindGetCredentialWithDisplaysFlow(
-        useCase: GetCredentialsWithDisplaysFlowImpl
-    ): GetCredentialsWithDisplaysFlow
+    fun bindGetCredentialWithDetailsFlow(
+        useCase: GetCredentialsWithDetailsFlowImpl
+    ): GetCredentialsWithDetailsFlow
 }

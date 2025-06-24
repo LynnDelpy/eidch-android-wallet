@@ -4,6 +4,7 @@ import ch.admin.foitt.walletcomposedestinations.destinations.CredentialOfferDecl
 import ch.admin.foitt.walletcomposedestinations.destinations.CredentialOfferScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.DeclineCredentialOfferScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.Destination
+import ch.admin.foitt.walletcomposedestinations.destinations.EIdDocumentSelectionScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.EIdGuardianConsentResultScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.EIdGuardianConsentScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.EIdGuardianSelectionScreenDestination
@@ -55,6 +56,13 @@ sealed interface ComponentScope {
             EIdGuardianSelectionScreenDestination,
             EIdGuardianConsentScreenDestination,
             EIdGuardianConsentResultScreenDestination,
+        )
+    }
+
+    object EidDocumentType : ComponentScope {
+        override val destinations = setOf(
+            EIdDocumentSelectionScreenDestination,
+            MrzChooserScreenDestination,
         )
     }
 }

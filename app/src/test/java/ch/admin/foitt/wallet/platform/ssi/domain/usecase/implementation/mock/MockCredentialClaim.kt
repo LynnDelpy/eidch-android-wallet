@@ -16,13 +16,15 @@ object MockCredentialClaim {
 
     fun buildClaimWithDisplays(
         valueType: String,
-        displays: List<CredentialClaimDisplay> = credentialClaimDisplays
+        displays: List<CredentialClaimDisplay> = credentialClaimDisplays,
+        valueDisplayInfo: String? = null
     ) = CredentialClaimWithDisplays(
         claim = CredentialClaim(
-            credentialId = 1,
+            clusterId = 1,
             key = "key",
             value = "value",
-            valueType = valueType
+            valueType = valueType,
+            valueDisplayInfo = valueDisplayInfo
         ),
         displays = displays,
     )

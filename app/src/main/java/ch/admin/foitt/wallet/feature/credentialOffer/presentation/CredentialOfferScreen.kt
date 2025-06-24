@@ -358,13 +358,15 @@ private fun StickyButtons(
             maxItemsInEachRow = 2,
         ) {
             Buttons.FilledPrimary(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f)
+                    .testTag(TestTags.STICKY_DECLINE_BUTTON.name),
                 text = stringResource(id = R.string.tk_receive_credentialOffer_button_decline),
                 startIcon = painterResource(id = R.drawable.wallet_ic_cross),
                 onClick = onDecline,
             )
             Buttons.FilledTertiary(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f)
+                    .testTag(TestTags.STICKY_ACCEPT_BUTTON.name),
                 text = stringResource(id = R.string.tk_receive_credentialOffer_button_accept),
                 startIcon = painterResource(id = R.drawable.wallet_ic_checkmark),
                 onClick = onAccept,

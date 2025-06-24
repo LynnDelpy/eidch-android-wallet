@@ -254,7 +254,7 @@ object WalletTexts {
         modifier = modifier
             .fillMaxWidth()
             .semantics { heading() }
-            .testTag("titleText"),
+            .testTag("TITLE_TEXT"),
     )
 
     @Composable

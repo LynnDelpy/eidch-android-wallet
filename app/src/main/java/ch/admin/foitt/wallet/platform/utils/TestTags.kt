@@ -12,6 +12,8 @@ enum class TestTags {
     NO_BIOMETRICS_BUTTON,
     MENU_BUTTON,
     LOADING_ICON,
+    STICKY_ACCEPT_BUTTON,
+    STICKY_DECLINE_BUTTON,
 
     // Onboarding Icons
     INTRO_ICON,
@@ -44,4 +46,18 @@ enum class TestTags {
 
     // credential request
     REQUEST_CREDENTIAL,
+    VERIFIED_TEXT,
+    UNVERIFIED_TEXT,
+    VERIFIED_BADGE,
+    UNVERIFIED_BADGE,
+    ISSUER_ICON,
+    ISSUER_NAME,
+    WRONG_DATA_LINK,
+
+    // credential Decline Screen
+    DECLINE_SCREEN_TITLE,
+
+    // Credential Wrong Data Screen
+    WRONG_DATA_IMAGE,
+    WRONG_DATA_TITLE
 }

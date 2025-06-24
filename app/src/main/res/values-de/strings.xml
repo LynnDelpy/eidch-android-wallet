@@ -446,11 +446,11 @@
     </plurals>
     <string name="tk_getEid_intro_body">Zuerst wird Ihr Ausweis überprüft. Danach folgt ein Identitätscheck.\n\nIm besten Fall dauert es etwa 5 Minuten.</string>
     <string name="tk_getEid_intro_secondaryButton">Später</string>
-    <string name="tk_getEid_intro_smallBody">Ausnahmen\nDer Schutz Ihrer Identität hat oberste Priorität. In seltenen Fällen braucht der Identitätscheck eine zusätzliche Prüfung. Dies führt zu einer Wartezeit von mehreren Tagen.</string>
+    <string name="tk_getEid_intro_smallBody">Ausnahmen\nDer Schutz Ihrer Identität hat oberste Priorität. In seltenen Fällen braucht der Identitätscheck eine zusätzliche Prüfung. Dies führt zu einer Wartezeit von mehreren Tagen.\n</string>
     <string name="tk_getEid_intro_primaryButton">Jetzt erstellen</string>
     <string name="tk_getEid_checkId_title">Ausweis überprüfen</string>
     <string name="tk_getEid_startScan_title">Nummerbereich scannen</string>
-    <string name="tk_getEid_checkId_body">Im nächsten Schritt wird die Gültigkeit Ihres Ausweises geprüft.\n\nWelche Ausweise sind möglich?\nSchweizer Pass\nSchweizer Identitätskarte\nSchweizer Ausländerausweis</string>
+    <string name="tk_getEid_checkId_body">Im nächsten Schritt wird die Gültigkeit Ihres Ausweises geprüft.\n\nWelche Ausweise sind möglich?\nSchweizer Pass\nSchweizer Identitätskarte\nSchweizer Ausländerausweis\n</string>
     <string name="tk_getEid_startScan_linkText">Wo finde ich den Nummernbereich?</string>
     <string name="tk_getEid_startScan_body">Bitte halten Sie Ihren Ausweis bereit und richten Sie die Kamera auf den Bereich mit der Codezeile.\n Erlauben Sie dafür den Zugriff auf die Kamera, damit der Scanvorgang durchgeführt werden kann.</string>
     <string name="tk_getId_notification_eidReady_body">Ihre e-ID ist bereit. Bitte starten Sie den Identifizierungsprozess bis spätestens [Datum in 72 Stunden].</string>
@@ -494,4 +494,7 @@
     <string name="tk_getEid_guardianSelection_secondary">How would you like to proceed? (deepl)</string>
     <string name="tk_getEid_guardianSelection_button_obtainConsent">Obtain consent (deepl)</string>
     <string name="tk_getEid_guardianSelection_button_continueAsGuardian">Continue as a parent/guardian (deepl)</string>
+    <string name="tk_getEid_dataPrivacy_title">Datenschutzerklärung</string>
+    <string name="tk_getEid_queuing_title">Verzögerung bei der Bearbeitung</string>
+    <string name="tk_getEid_dataPrivacy_link_text">Datenschutzerklärung</string>
 </resources>

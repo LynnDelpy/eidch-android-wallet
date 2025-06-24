@@ -1,12 +1,16 @@
 package ch.admin.foitt.wallet.platform.credential.di
 
 import ch.admin.foitt.wallet.platform.credential.domain.usecase.FetchAndSaveCredential
+import ch.admin.foitt.wallet.platform.credential.domain.usecase.GenerateAnyDisplays
+import ch.admin.foitt.wallet.platform.credential.domain.usecase.GenerateMetadataDisplays
 import ch.admin.foitt.wallet.platform.credential.domain.usecase.GetAnyCredential
 import ch.admin.foitt.wallet.platform.credential.domain.usecase.GetAnyCredentials
 import ch.admin.foitt.wallet.platform.credential.domain.usecase.IsBetaIssuer
 import ch.admin.foitt.wallet.platform.credential.domain.usecase.MapToCredentialDisplayData
 import ch.admin.foitt.wallet.platform.credential.domain.usecase.SaveCredential
 import ch.admin.foitt.wallet.platform.credential.domain.usecase.implementation.FetchAndSaveCredentialImpl
+import ch.admin.foitt.wallet.platform.credential.domain.usecase.implementation.GenerateAnyDisplaysImpl
+import ch.admin.foitt.wallet.platform.credential.domain.usecase.implementation.GenerateMetadataDisplaysImpl
 import ch.admin.foitt.wallet.platform.credential.domain.usecase.implementation.GetAnyCredentialImpl
 import ch.admin.foitt.wallet.platform.credential.domain.usecase.implementation.GetAnyCredentialsImpl
 import ch.admin.foitt.wallet.platform.credential.domain.usecase.implementation.IsBetaIssuerImpl
@@ -57,4 +61,14 @@ internal interface CredentialModule {
     fun bindMapToCredentialDisplayData(
         useCase: MapToCredentialDisplayDataImpl
     ): MapToCredentialDisplayData
+
+    @Binds
+    fun bindGenerateAnyCredentialDisplays(
+        useCase: GenerateAnyDisplaysImpl
+    ): GenerateAnyDisplays
+
+    @Binds
+    fun bindGenerateMetadataDisplays(
+        useCase: GenerateMetadataDisplaysImpl
+    ): GenerateMetadataDisplays
 }

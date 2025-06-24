@@ -7,8 +7,8 @@ import ch.admin.foitt.wallet.platform.credential.domain.model.AnyCredentialError
 import ch.admin.foitt.wallet.platform.credential.domain.model.CredentialError
 import ch.admin.foitt.wallet.platform.credential.domain.model.GetAnyCredentialError
 import ch.admin.foitt.wallet.platform.credential.domain.model.MapToCredentialDisplayDataError
-import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialWithDisplaysAndClaimsRepositoryError
-import ch.admin.foitt.wallet.platform.ssi.domain.model.GetCredentialsWithDisplaysFlowError
+import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialWithDisplaysAndClustersRepositoryError
+import ch.admin.foitt.wallet.platform.ssi.domain.model.GetCredentialsWithDetailsFlowError
 import ch.admin.foitt.wallet.platform.ssi.domain.model.MapToCredentialClaimDataError
 import ch.admin.foitt.wallet.platform.ssi.domain.model.SsiError
 import ch.admin.foitt.openid4vc.domain.model.presentationRequest.PresentationRequestError as OpenIdPresentationRequestError
@@ -46,11 +46,11 @@ fun MapToCredentialClaimDataError.toGetPresentationRequestFlowError(): GetPresen
     is SsiError.Unexpected -> PresentationRequestError.Unexpected(cause)
 }
 
-fun CredentialWithDisplaysAndClaimsRepositoryError.toGetPresentationRequestFlowError(): GetPresentationRequestFlowError = when (this) {
+fun CredentialWithDisplaysAndClustersRepositoryError.toGetPresentationRequestFlowError(): GetPresentationRequestFlowError = when (this) {
     is SsiError.Unexpected -> PresentationRequestError.Unexpected(cause)
 }
 
-fun GetCredentialsWithDisplaysFlowError.toGetPresentationRequestCredentialListFlowError():
+fun GetCredentialsWithDetailsFlowError.toGetPresentationRequestCredentialListFlowError():
     GetPresentationRequestCredentialListFlowError = when (this) {
     is SsiError.Unexpected -> PresentationRequestError.Unexpected(cause)
 }

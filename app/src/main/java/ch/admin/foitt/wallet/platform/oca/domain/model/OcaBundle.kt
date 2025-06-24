@@ -1,13 +1,9 @@
 package ch.admin.foitt.wallet.platform.oca.domain.model
 
-import ch.admin.foitt.wallet.platform.oca.domain.model.overlays.DataSourceOverlay
-import ch.admin.foitt.wallet.platform.oca.domain.model.overlays.DataSourceOverlay1x0
-import ch.admin.foitt.wallet.platform.oca.domain.model.overlays.LabelOverlay
-import ch.admin.foitt.wallet.platform.oca.domain.model.overlays.LabelOverlay1x0
 import ch.admin.foitt.wallet.platform.oca.domain.model.overlays.Overlay
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import timber.log.Timber
+import kotlinx.serialization.Transient
 
 typealias AttributeKey = String
 typealias Locale = String
@@ -18,90 +14,32 @@ typealias JsonPath = String
 data class OcaBundle(
     @SerialName("capture_bases") val captureBases: List<CaptureBase>,
     @SerialName("overlays") val overlays: List<Overlay>,
+    @Transient val ocaClaimData: List<OcaClaimData> = emptyList(),
+    @Transient val ocaCredentialData: List<OcaCredentialData> = emptyList(),
 ) {
-    val attributes = getAllAttributes()
-
-    private fun getAllAttributes(): List<OverlayBundleAttribute> = captureBases.flatMap { captureBase ->
-        val labelOverlays = getLabelsForAttributes(captureBase)
-        val dataSources = getDataSourcesForAttributes(captureBase)
-        captureBase.attributes.map { attribute ->
-            OverlayBundleAttribute(
-                captureBaseDigest = captureBase.digest,
-                name = attribute.key,
-                attributeType = attribute.value,
-                labels = labelOverlays.getOrDefault(attribute.key, emptyMap()),
-                dataSources = dataSources.getOrDefault(
-                    attribute.key,
-                    emptyMap()
-                )
-            )
-        }
-    }
-
-    private fun getLabelsForAttributes(captureBase: CaptureBase): Map<AttributeKey, Map<Locale, String>> {
-        val labelOverlays = getLatestOverlaysOfType<LabelOverlay>(captureBase.digest)
-        val labels = captureBase.attributes.keys.associateWith { attribute ->
-            labelOverlays.mapNotNull { overlay ->
-                when (overlay) {
-                    is LabelOverlay1x0 -> {
-                        overlay.attributeLabels[attribute]?.let {
-                            overlay.language to it
-                        }
-                    }
-                }
-            }.toMap()
-        }
-
-        if (labels.any { labelOverlays.size > it.value.size }) {
-            Timber.w("Duplicate in label overlays")
-        }
-
-        return labels
-    }
-
-    private fun getDataSourcesForAttributes(captureBase: CaptureBase): Map<AttributeKey, Map<DataSourceFormat, JsonPath>> {
-        val dataSourceOverlays = getLatestOverlaysOfType<DataSourceOverlay>(captureBase.digest)
-        val dataSources = captureBase.attributes.keys.associateWith { attribute ->
-            dataSourceOverlays.mapNotNull { overlay ->
-                when (overlay) {
-                    is DataSourceOverlay1x0 -> {
-                        overlay.attributeSources[attribute]?.let { jsonPathString ->
-                            overlay.format to jsonPathString
-                        }
-                    }
-                }
-            }.toMap()
-        }
-
-        if (dataSources.any { dataSourceOverlays.size > it.value.size }) {
-            Timber.w("Duplicate in data source overlays")
-        }
-
-        return dataSources
-    }
 
     /**
      * Retrieves a specific Overlay Bundle attribute from the Capture Base.
      *
      * @param name The name of the Capture Base attribute.
      * @param digest An CESR digest of the associated Capture Base.
-     * @return A [OverlayBundleAttribute] representing the Capture Base attributes with supplementary information from Overlays. When attribute is not found, `null` is returned.
+     * @return A [OcaClaimData] representing the Capture Base attributes with supplementary information from Overlays. When attribute is not found, `null` is returned.
      */
-    fun getAttribute(name: String, digest: String): OverlayBundleAttribute? {
-        return attributes.firstOrNull { it.captureBaseDigest == digest && it.name == name }
+    fun getAttribute(name: String, digest: String): OcaClaimData? {
+        return ocaClaimData.firstOrNull { it.captureBaseDigest == digest && it.name == name }
     }
 
     /**
      * Retrieves all Overlay Bundle attributes.
      *
      * @param digest An optional CESR digest of the associated Capture Base. Default: attributes for all Capture Base digests are considered.
-     * @return A list of [OverlayBundleAttribute] representing the Capture Base attributes with supplementary information from Overlays.
+     * @return A list of [OcaClaimData] representing the Capture Base attributes with supplementary information from Overlays.
      */
-    private fun getAttributes(digest: String? = null): List<OverlayBundleAttribute> {
+    fun getAttributes(digest: String? = null): List<OcaClaimData> {
         return if (digest == null) {
-            attributes
+            ocaClaimData
         } else {
-            attributes.filter { it.captureBaseDigest == digest }
+            ocaClaimData.filter { it.captureBaseDigest == digest }
         }
     }
 
@@ -110,12 +48,12 @@ data class OcaBundle(
      *
      * @param dataSourceFormat The format identifier for data source mapping, e.g. "vc+sd-jwt"
      * @param digest An optional CESR digest of the associated Capture Base. Default: attributes for all Capture Base digests are considered.
-     * @return A map of JSONPath (pointing to data source property) to [OverlayBundleAttribute] (for associated Capture Base)
+     * @return A map of JSONPath (pointing to data source property) to [OcaClaimData] (for associated Capture Base)
      */
     fun getAttributesForDataSourceFormat(
         dataSourceFormat: DataSourceFormat,
         digest: String?
-    ): Map<JsonPath, OverlayBundleAttribute> {
+    ): Map<JsonPath, OcaClaimData> {
         return getAttributes(digest = digest)
             .mapNotNull { attribute ->
                 val jsonPath = attribute.dataSources[dataSourceFormat] ?: return@mapNotNull null
@@ -159,32 +97,6 @@ data class OcaBundle(
         val matchValidationArray = arrayWildcardRegex.matchEntire(validationJsonPathArray) ?: return false
 
         return matchInputArray.groups[1] == matchValidationArray.groups[1] && matchValidationArray.groups[2]?.value == "*"
-    }
-
-    /**
-     * Retrieves Overlays for latest version by type and digest.
-     * - Parameters:
-     * - Overlay: The specific Overlay to look for. Must be a specific Overlay interface or class, e.g. [LabelOverlay] or [LabelOverlay1x0].
-     * - digest: An optional CESR digest of the associated Capture Base. Default: All Capture Bases
-     * - Returns: The list of matching [Overlay]s.
-     */
-    inline fun <reified T : Overlay> getLatestOverlaysOfType(digest: String? = null): List<T> {
-        val overlaysOfType = overlays.filterIsInstance<T>()
-        val latestOverlayType = overlaysOfType
-            .map { it.type }
-            .distinct()
-            .maxByOrNull { specType ->
-                val versionString = specType.type.split("/").last() // e.g., "1.2.3"
-                OverlayVersion(versionString)
-            }
-
-        return overlaysOfType.filter { overlay ->
-            overlay.type == latestOverlayType
-        }.let { filteredOverlays ->
-            digest?.let { digest ->
-                filteredOverlays.filter { digest == it.captureBaseDigest }
-            } ?: filteredOverlays
-        }
     }
 
     companion object {

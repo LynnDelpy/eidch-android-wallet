@@ -18,6 +18,7 @@ import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.TrustStatus
 object MockCredentialOffer {
 
     const val CREDENTIAL_ID = 5L
+    private const val CLUSTER_ID = 1L
     private const val CLAIM_ID_1 = 1L
     private const val CLAIM_ID_2 = 2L
 
@@ -42,7 +43,7 @@ object MockCredentialOffer {
 
     private val claim1 = CredentialClaim(
         id = CLAIM_ID_1,
-        credentialId = CREDENTIAL_ID,
+        clusterId = CLUSTER_ID,
         key = "key1",
         value = "value1",
         valueType = "valueType1",
@@ -51,7 +52,7 @@ object MockCredentialOffer {
 
     private val claim2 = CredentialClaim(
         id = CLAIM_ID_2,
-        credentialId = CREDENTIAL_ID,
+        clusterId = CLUSTER_ID,
         key = "key2",
         value = "value2",
         valueType = "valueType2",

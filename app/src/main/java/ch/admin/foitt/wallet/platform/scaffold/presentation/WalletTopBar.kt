@@ -216,7 +216,8 @@ fun TopBarButton(
     IconButton(
         modifier = backgroundModifier
             .then(modifier)
-            .spaceBarKeyClickable(onClick),
+            .spaceBarKeyClickable(onClick)
+            .testTag(TestTags.BACK_BUTTON.name),
         onClick = onClick
     ) {
         Icon(

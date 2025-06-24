@@ -18,3 +18,18 @@ data class CharacterEncodingOverlay1x0(
 ) : CharacterEncodingOverlay {
     override val type: OverlaySpecType = OverlaySpecType.CHARACTER_ENCODING_1_0
 }
+
+sealed interface CharacterEncoding {
+    data object Base64 : CharacterEncoding
+    data class Unknown(val rawValue: String) : CharacterEncoding
+
+    companion object {
+        fun fromString(input: String?): CharacterEncoding? {
+            return when {
+                input == null -> null
+                input.contentEquals("base64", ignoreCase = true) -> Base64
+                else -> Unknown(input)
+            }
+        }
+    }
+}

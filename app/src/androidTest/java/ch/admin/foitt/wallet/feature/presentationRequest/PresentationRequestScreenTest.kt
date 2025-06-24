@@ -96,7 +96,7 @@ class PresentationRequestScreenTest {
 
         val homeScreen = HomeScreen(activityRule)
         homeScreen.isDisplayedWithCredentials()
-        homeScreen.nextScreen()
+        homeScreen.openScanner()
 
         val cameraPermissionScreen = QrScanPermissionScreen(activityRule)
         cameraPermissionScreen.isDisplayed()

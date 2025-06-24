@@ -16,5 +16,6 @@ enum class TraversalIndex(val value: Float) {
     LOW1(1f),
     LOW2(2f),
     LOW3(3f),
+    LOW4(4f),
     LAST(Float.POSITIVE_INFINITY),
 }

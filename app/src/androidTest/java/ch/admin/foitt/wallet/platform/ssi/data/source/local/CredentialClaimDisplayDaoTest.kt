@@ -4,11 +4,14 @@ import android.database.sqlite.SQLiteConstraintException
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import ch.admin.foitt.wallet.platform.database.data.AppDatabase
+import ch.admin.foitt.wallet.platform.database.data.dao.CredentialClaimClusterEntityDao
 import ch.admin.foitt.wallet.platform.database.data.dao.CredentialClaimDao
 import ch.admin.foitt.wallet.platform.database.data.dao.CredentialClaimDisplayDao
 import ch.admin.foitt.wallet.platform.database.data.dao.CredentialDao
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialClaimDisplay
 import ch.admin.foitt.wallet.platform.ssi.data.source.local.mock.CredentialTestData.NAME1
+import ch.admin.foitt.wallet.platform.ssi.data.source.local.mock.CredentialTestData.cluster1
+import ch.admin.foitt.wallet.platform.ssi.data.source.local.mock.CredentialTestData.cluster2
 import ch.admin.foitt.wallet.platform.ssi.data.source.local.mock.CredentialTestData.credential1
 import ch.admin.foitt.wallet.platform.ssi.data.source.local.mock.CredentialTestData.credential2
 import ch.admin.foitt.wallet.platform.ssi.data.source.local.mock.CredentialTestData.credentialClaim1
@@ -25,6 +28,7 @@ class CredentialClaimDisplayDaoTest {
 
     private lateinit var database: AppDatabase
     private lateinit var credentialDao: CredentialDao
+    private lateinit var credentialClaimClusterDao: CredentialClaimClusterEntityDao
     private lateinit var credentialClaimDao: CredentialClaimDao
     private lateinit var credentialClaimDisplayDao: CredentialClaimDisplayDao
 
@@ -37,6 +41,10 @@ class CredentialClaimDisplayDaoTest {
         credentialDao = database.credentialDao()
         credentialDao.insert(credential1)
         credentialDao.insert(credential2)
+
+        credentialClaimClusterDao = database.credentialClaimClusterEntityDao()
+        credentialClaimClusterDao.insert(cluster1)
+        credentialClaimClusterDao.insert(cluster2)
 
         credentialClaimDao = database.credentialClaimDao()
         credentialClaimDao.insert(credentialClaim1)
