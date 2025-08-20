@@ -42,7 +42,7 @@ class GetCredentialsWithDetailsFlowImpl @Inject constructor(
             val credentialDisplayData = mapToCredentialDisplayData(
                 credential = credentialWithDisplaysAndClusters.credential,
                 credentialDisplays = credentialWithDisplaysAndClusters.credentialDisplays,
-                claims = cluster.claims
+                claims = cluster.claimsWithDisplays
             ).mapError(MapToCredentialDisplayDataError::toGetCredentialsWithDisplaysFlowError)
                 .bind()
 

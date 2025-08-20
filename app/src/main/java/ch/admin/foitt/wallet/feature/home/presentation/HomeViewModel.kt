@@ -23,7 +23,7 @@ import ch.admin.foitt.walletcomposedestinations.destinations.BetaIdScreenDestina
 import ch.admin.foitt.walletcomposedestinations.destinations.CredentialDetailScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.EIdGuardianSelectionScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.EIdIntroScreenDestination
-import ch.admin.foitt.walletcomposedestinations.destinations.EIdWalletPairingScreenDestination
+import ch.admin.foitt.walletcomposedestinations.destinations.EIdStartAvSessionScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.ErrorScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.QrScanPermissionScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.SettingsScreenDestination
@@ -121,7 +121,7 @@ class HomeViewModel @Inject constructor(
     private suspend fun getCredentialStateList(credentialDisplayData: List<CredentialDisplayData>) = credentialDisplayData
         .map { credentialPreview -> getCredentialCardState(credentialPreview) }
 
-    fun onStartOnlineIdentification() = navManager.navigateTo(EIdWalletPairingScreenDestination)
+    fun onStartOnlineIdentification() = navManager.navigateTo(EIdStartAvSessionScreenDestination)
 
     fun onCloseEId(caseId: String) {
         viewModelScope.launch {

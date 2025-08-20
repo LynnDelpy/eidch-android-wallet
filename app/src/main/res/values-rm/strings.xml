@@ -104,7 +104,7 @@
     <string name="tk_global_warning_alt">Avertiment</string>
     <string name="tk_receive_scanning_notfound_alt">Nagin code QR chattà. Empruvai da posiziunar da nov la camera.</string>
     <string name="tk_present_confirm_alt">Conferma</string>
-    <string name="tk_present_result_success_primary">Vossas infurmaziuns èn vegnidas verifitgadas cun success</string>
+    <string name="tk_present_result_success_primary">Lur datas èn vegnidas transmessas cun success.</string>
     <string name="tk_global_closewarning_alt">Serrar l’avertiment</string>
     <string name="tk_qrscanner_scanning_body">Per s’identifitgar u agiuntar permiss e documents d’identitad.</string>
     <string name="tk_displaydelete_displaycredential1_hiddenlink2_text">Tar las infurmaziuns persunalas</string>
@@ -216,8 +216,8 @@
     </plurals>
     <string name="tk_onboarding_code2_alt">Il pled-clav consista da sis fin sessantaquatter segns</string>
     <string name="tk_present_review_claims_section_primary">Vul leger %s infurmaziuns</string>
-    <string name="tk_present_result_canceledVerification_primary">Aborted verification (deepl)</string>
-    <string name="tk_present_result_canceledVerification_secondary">The verification was canceled and no data was transferred. (deepl)</string>
+    <string name="tk_present_result_canceledVerification_primary">Examinaziun interrutta</string>
+    <string name="tk_present_result_canceledVerification_secondary">Las datas n\'èn betg vegnidas transmessas.</string>
     <string name="tk_login_passwordfailed_android_subtitle">Vus avais anc %s emprova(s)</string>
     <string name="tk_receive_jump_to_details">Tar las infurmaziuns persunalas</string>
     <string name="tk_global_hiddenGoToTop">Turnar ensi</string>

@@ -17,7 +17,7 @@ import javax.inject.Inject
 
 class HashDataWithSaltImpl @Inject constructor(
     private val hashConfiguration: HashConfiguration,
-    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : HashDataWithSalt {
     override suspend fun invoke(
         data: String,

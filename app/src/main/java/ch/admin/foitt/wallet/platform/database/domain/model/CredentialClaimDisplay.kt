@@ -25,4 +25,5 @@ data class CredentialClaimDisplay(
     val claimId: Long, // Foreign Key
     override val name: String,
     override val locale: String,
+    val value: String?,
 ) : ClaimDisplay

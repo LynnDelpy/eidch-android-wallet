@@ -37,6 +37,27 @@ import ch.admin.foitt.wallet.theme.WalletTexts
 import ch.admin.foitt.wallet.theme.WalletTheme
 
 @Composable
+fun ScanInfoToast(
+    modifier: Modifier = Modifier,
+    shouldRequestFocus: Boolean = false,
+    text: String,
+    @StringRes iconEndContentDescription: Int? = R.string.tk_global_closewarning_alt,
+    onIconEnd: () -> Unit,
+) = Toast(
+    modifier = modifier,
+    shouldRequestFocus = shouldRequestFocus,
+    isSnackBarDesign = false,
+    backgroundColor = WalletTheme.colorScheme.surface,
+    iconStart = null,
+    textAsString = text,
+    textColor = WalletTheme.colorScheme.onSurfaceVariant,
+    iconEnd = R.drawable.wallet_ic_cross,
+    iconEndColor = WalletTheme.colorScheme.onSurfaceVariant,
+    iconEndContentDescription = iconEndContentDescription,
+    onIconEnd = onIconEnd
+)
+
+@Composable
 fun PassphraseValidationErrorToastFixed(
     modifier: Modifier = Modifier,
     shouldRequestFocus: Boolean = false,
@@ -84,7 +105,8 @@ fun Toast(
     backgroundColor: Color = WalletTheme.colorScheme.surface,
     @StringRes headline: Int? = null,
     headlineColor: Color = WalletTheme.colorScheme.onSurface,
-    @StringRes text: Int,
+    @StringRes text: Int? = null,
+    textAsString: String? = null,
     textColor: Color = WalletTheme.colorScheme.onSurfaceVariant,
     @StringRes linkText: Int? = null,
     @DrawableRes iconStart: Int? = null,
@@ -138,8 +160,10 @@ fun Toast(
                     )
                 }
 
+                val displayText = textAsString ?: text?.let { stringResource(id = it) } ?: ""
+
                 WalletTexts.LabelLarge(
-                    text = stringResource(id = text),
+                    text = displayText,
                     color = textColor,
                     modifier = Modifier.traversalIndex(TraversalIndex.HIGH2)
                 )

@@ -34,5 +34,6 @@ internal data class SIdError(
     companion object {
         const val INVALID_CLIENT_ATTESTATION = "InvalidClientAttestation"
         const val INVALID_KEY_ATTESTATION = "InvalidKeyAttestation"
+        const val INSUFFICIENT_KEY_STORAGE_RESISTANCE = "InsufficientKeyStorageResistance"
     }
 }

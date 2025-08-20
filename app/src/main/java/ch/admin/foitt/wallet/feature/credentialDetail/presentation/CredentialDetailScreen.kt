@@ -1,5 +1,6 @@
 package ch.admin.foitt.wallet.feature.credentialDetail.presentation
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -142,7 +143,11 @@ private fun CredentialDetailScreenContent(
     onBack: () -> Unit,
     onMenu: () -> Unit,
 ) {
-    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+    BoxWithConstraints(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(color = WalletTheme.colorScheme.surfaceContainerLow)
+    ) {
         when (windowWidthClass) {
             WindowWidthSizeClass.COMPACT -> CredentialDetailCompact(
                 credentialDetail = credentialDetail,
@@ -150,6 +155,7 @@ private fun CredentialDetailScreenContent(
                 onBack = onBack,
                 onMenu = onMenu,
             )
+
             else -> CredentialDetailLarge(
                 credentialDetail = credentialDetail,
                 onWrongData = onWrongData,
@@ -191,11 +197,11 @@ private fun BoxWithConstraintsScope.CredentialDetailCompact(
                 onBack = onBack,
                 onMenu = onMenu
             )
-            Spacer(Modifier.height(Sizes.s04))
+            Spacer(Modifier.height(Sizes.s06))
         }
+
         credentialClaimItems(
-            title = R.string.tk_displaydelete_displaycredential1_title2,
-            claims = credentialDetail.claims,
+            claimItems = credentialDetail.clusterItems,
             showIssuer = true,
             issuer = credentialDetail.issuer.name,
             issuerIcon = credentialDetail.issuer.painter,
@@ -236,8 +242,8 @@ private fun BoxWithConstraintsScope.CredentialDetailLarge(
                 contentPadding = PaddingValues(bottom = Sizes.s02),
             ) {
                 credentialClaimItems(
-                    title = R.string.tk_displaydelete_displaycredential1_title2,
-                    claims = credentialDetail.claims,
+                    claimItems = credentialDetail.clusterItems,
+                    showIssuer = true,
                     issuer = credentialDetail.issuer.name,
                     issuerIcon = credentialDetail.issuer.painter,
                     onWrongData = onWrongData,
@@ -342,7 +348,7 @@ private fun ExampleScreen(windowWidthClass: WindowWidthSizeClass) {
         isLoading = false,
         credentialDetail = CredentialDetailUiState(
             credential = CredentialMocks.cardState01,
-            claims = CredentialMocks.claimList,
+            clusterItems = CredentialMocks.clusterList,
             issuer = ActorUiState(
                 name = "Issuer",
                 painter = painterResource(id = R.drawable.ic_swiss_cross_small),

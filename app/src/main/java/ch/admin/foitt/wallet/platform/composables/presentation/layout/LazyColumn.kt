@@ -1,6 +1,6 @@
 package ch.admin.foitt.wallet.platform.composables.presentation.layout
 
-import android.annotation.SuppressLint
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -14,10 +14,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 
-@SuppressLint(
-    "ComposableLambdaParameterNaming",
-    "ComposableLambdaParameterPosition"
-)
 @Composable
 fun WalletLayouts.LazyColumn(
     modifier: Modifier = Modifier,
@@ -27,11 +23,13 @@ fun WalletLayouts.LazyColumn(
     contentPadding: PaddingValues = PaddingValues(
         bottom = paddingContentBottom,
     ),
+    verticalArrangement: Arrangement.Vertical = Arrangement.Top,
     lazyListContent: LazyListScope.() -> Unit,
 ) = androidx.compose.foundation.lazy.LazyColumn(
     modifier = modifier,
     state = state,
     contentPadding = contentPadding,
+    verticalArrangement = verticalArrangement,
 ) {
     if (useTopInsets) {
         item {

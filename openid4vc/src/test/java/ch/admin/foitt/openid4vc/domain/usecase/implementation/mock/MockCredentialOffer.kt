@@ -1,20 +1,22 @@
 package ch.admin.foitt.openid4vc.domain.usecase.implementation.mock
 
+import ch.admin.foitt.openid4vc.domain.model.SigningAlgorithm
 import ch.admin.foitt.openid4vc.domain.model.VerifiableCredential
+import ch.admin.foitt.openid4vc.domain.model.VerifiableCredentialParams
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.CredentialOffer
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.CredentialRequestProofJwt
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.CredentialResponse
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.Grant
-import ch.admin.foitt.openid4vc.domain.model.credentialoffer.JWSKeyPair
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.PreAuthorizedContent
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.TokenResponse
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.CredentialFormat
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.IssuerConfiguration
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.IssuerCredentialInfo
-import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.SigningAlgorithm
+import ch.admin.foitt.openid4vc.domain.model.keyBinding.KeyBinding
+import ch.admin.foitt.openid4vc.domain.model.keyBinding.KeyBindingType
+import ch.admin.foitt.openid4vc.domain.usecase.implementation.mock.MockIssuerCredentialConfiguration.proofTypeConfigHardwareBinding
+import ch.admin.foitt.openid4vc.domain.usecase.implementation.mock.MockIssuerCredentialConfiguration.proofTypeConfigSoftwareBinding
 import ch.admin.foitt.openid4vc.domain.usecase.implementation.mock.MockIssuerCredentialConfiguration.vcSdJwtCredentialConfiguration
-import io.mockk.mockk
-import java.security.KeyPair
 
 internal object MockCredentialOffer {
     const val CREDENTIAL_ISSUER = "credentialIssuer"
@@ -30,6 +32,7 @@ internal object MockCredentialOffer {
     val offerWithoutMatchingCredentialIdentifier =
         offerWithPreAuthorizedCode.copy(credentialConfigurationIds = listOf("otherCredentialIdentifier"))
 
+    const val KEY_ATTESTATION_JWT = "keyAttestationJwt"
     private const val ACCESS_TOKEN = "accessToken"
     const val C_NONCE = "cNonce"
     private const val C_NONCE_EXPIRES_IN = 1
@@ -63,36 +66,54 @@ internal object MockCredentialOffer {
     val jwtProof = CredentialRequestProofJwt(PROOF_JWT)
 
     private val ALGORITHM = SigningAlgorithm.ES512
-    private val mockKeyPair = mockk<KeyPair>()
-
-    val validKeyPairES256 = JWSKeyPair(
-        algorithm = SigningAlgorithm.ES256,
-        keyPair = mockKeyPair,
-        keyId = KEY_ID,
-    )
-
-    val validKeyPairES512 = JWSKeyPair(
-        algorithm = SigningAlgorithm.ES512,
-        keyPair = mockKeyPair,
-        keyId = KEY_ID,
-    )
 
     private const val CREDENTIAL = "credential"
     private const val TRANSACTION_ID = "transaction_id"
     private const val NOTIFICATION_ID = "notification_id"
     val validCredentialResponse = CredentialResponse(
         credential = CREDENTIAL,
-        format = CredentialFormat.VC_SD_JWT.format,
         transactionId = TRANSACTION_ID,
         cNonce = C_NONCE,
         cNonceExpiresIn = C_NONCE_EXPIRES_IN,
         notificationId = NOTIFICATION_ID,
     )
 
+    private val keyBinding = KeyBinding(
+        identifier = KEY_ID,
+        algorithm = ALGORITHM,
+        bindingType = KeyBindingType.SOFTWARE,
+    )
+
     val validVerifiableCredential = VerifiableCredential(
         format = CredentialFormat.VC_SD_JWT,
         credential = CREDENTIAL,
-        keyBindingIdentifier = KEY_ID,
-        keyBindingAlgorithm = ALGORITHM,
+        keyBinding = keyBinding
+    )
+
+    val verifiableCredentialParamsSoftwareBinding = VerifiableCredentialParams(
+        proofTypeConfig = proofTypeConfigSoftwareBinding,
+        tokenEndpoint = validIssuerConfig.tokenEndpoint,
+        grants = offerWithPreAuthorizedCode.grants,
+        issuerEndpoint = offerWithPreAuthorizedCode.credentialIssuer,
+        credentialEndpoint = validIssuerCredentialInfo.credentialEndpoint,
+        credentialConfiguration = vcSdJwtCredentialConfiguration,
+    )
+
+    val verifiableCredentialParamsHardwareBinding = VerifiableCredentialParams(
+        proofTypeConfig = proofTypeConfigHardwareBinding,
+        tokenEndpoint = validIssuerConfig.tokenEndpoint,
+        grants = offerWithPreAuthorizedCode.grants,
+        issuerEndpoint = offerWithPreAuthorizedCode.credentialIssuer,
+        credentialEndpoint = validIssuerCredentialInfo.credentialEndpoint,
+        credentialConfiguration = vcSdJwtCredentialConfiguration,
+    )
+
+    val verifiableCredentialParamsWithoutBinding = VerifiableCredentialParams(
+        proofTypeConfig = null,
+        tokenEndpoint = validIssuerConfig.tokenEndpoint,
+        grants = offerWithPreAuthorizedCode.grants,
+        issuerEndpoint = offerWithPreAuthorizedCode.credentialIssuer,
+        credentialEndpoint = validIssuerCredentialInfo.credentialEndpoint,
+        credentialConfiguration = vcSdJwtCredentialConfiguration,
     )
 }

@@ -12,7 +12,7 @@
     <string name="tk_global_no">No</string>
     <string name="tk_global_close">Chiudi</string>
     <string name="tk_global_welcomeback">Le diamo il benvenuto!</string>
-    <string name="tk_present_result_error_button_retry">Riprovare</string>
+    <string name="tk_present_result_error_button_retry">Riprova</string>
     <string name="tk_global_checkage">desidera verificare la Sua età</string>
     <string name="tk_global_loginpassword_secondarybutton">Accesso con password</string>
     <string name="tk_global_cancel">Annulla</string>
@@ -99,15 +99,15 @@
     <string name="tk_qrscanner_invalidcode_body">Questo codice QR è già stato utilizzato. Ne richieda uno nuovo.</string>
     <string name="tk_present_noinformationprovided_title">Purtroppo non è stato possibile trasmettere i dati.</string>
     <string name="tk_present_confirm_alt">Conferma</string>
-    <string name="tk_qrscanner_scanning_body">Per provare la propria identità o aggiungere documenti.</string>
+    <string name="tk_qrscanner_scanning_body">Per identificarsi o aggiungere documenti e attestati.</string>
     <string name="tk_global_closewarning_alt">Chiudere l’avviso</string>
     <string name="tk_error_issuer_notregistered_body">This issuer is not registered.</string>
     <string name="tk_global_loginbiometric_primarybutton">Accesso biometrico</string>
-    <string name="tk_present_result_success_primary">I dati sono stati verificati con successo.</string>
+    <string name="tk_present_result_success_primary">Dati trasmessi con successo.</string>
     <string name="tk_present_warning_alt">Avviso</string>
     <string name="tk_displaydelete_displaycredential1_hiddenlink2_text">Accedi ai dati personali</string>
     <string name="tk_present_approval_title">Dati richiesti</string>
-    <string name="tk_present_review_loading_alt">Attendere per favore, l’invio dei dati è in corso.</string>
+    <string name="tk_present_review_loading_alt">Attenda per favore, l’invio dei Suoi dati è in corso.</string>
     <string name="tk_displaydelete_displaycredential1_hiddenlink1_text">Tornare in alto</string>
     <string name="tk_receive_scanning_notfound_alt">Non è stato trovato alcun codice QR. Provi a posizionare diversamente la fotocamera.</string>
     <string name="tk_receive_scanning_alt">La fotocamera sta cercando il codice QR.</string>
@@ -134,7 +134,7 @@
     <string name="tk_credential_status_invalid_alt">Il documento è scaduto.</string>
     <string name="tk_login_passwordfailed_alt">La password non è corretta, riprovi.</string>
     <string name="tk_login_forgottenpassword_alt">Maggiori informazioni</string>
-    <string name="tk_present_review_credential_section_primary">desidera verificare il Suo documento</string>
+    <string name="tk_present_review_credential_section_primary">Desidera verificare il Suo documento</string>
     <string name="tk_credential_status_unknown_alt">Stato di validità sconosciuto</string>
     <string name="tk_credential_status_suspended_alt">Il documento è temporaneamente bloccato.</string>
     <string name="tk_credential_status_revoked_alt">Il documento è stato revocato.</string>
@@ -223,8 +223,8 @@
     </plurals>
     <string name="tk_onboarding_code2_alt">La password è composta da un minimo di sei a un massimo di sessantaquattro caratteri.</string>
     <string name="tk_present_review_claims_section_primary">Accedi ai contenuti %s</string>
-    <string name="tk_present_result_canceledVerification_primary">Aborted verification (deepl)</string>
-    <string name="tk_present_result_canceledVerification_secondary">The verification was canceled and no data was transferred. (deepl)</string>
+    <string name="tk_present_result_canceledVerification_primary">Verifica interrotta</string>
+    <string name="tk_present_result_canceledVerification_secondary">Non sono stati trasmessi dati.</string>
     <string name="tk_receive_jump_to_details">Accedi ai dati personali</string>
     <string name="tk_global_hiddenGoToTop">Tornare in alto</string>
     <string name="tk_login_passwordfailed_android_subtitle">Le restano %s tentativi/o</string>
@@ -247,7 +247,7 @@
     <string name="tk_getBetaId_added_note">È stato aggiunto il Beta-ID</string>
     <string name="tk_login_confirmPassword_alt">Confermare la password swiyu</string>
     <string name="tk_login_locked_secondarybutton_value">https://www.eid.admin.ch/it/help-publicbeta-i</string>
-    <string name="tk_present_result_error_secondary">Riprovare</string>
+    <string name="tk_present_result_error_secondary">Prova ancora una volta per favore.</string>
     <string name="tk_present_result_error_primary">Oops, qualcosa è andato storto!</string>
     <string name="login_biometricTitle">Accedere all\'app swiyu</string>
     <string name="tk_receive_cameraaccessneeded2_title">Autorizza l’accesso alla fotocamera</string>

@@ -12,6 +12,12 @@ import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ATTRIBUTE_LABEL_FIRSTNAM
 import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ATTRIBUTE_LABEL_FIRSTNAME_EN
 import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.CREDENTIAL_FORMAT
 import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.DIGEST
+import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ENTRY_CODE_A
+import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ENTRY_CODE_A_DE
+import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ENTRY_CODE_A_EN
+import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ENTRY_CODE_B
+import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ENTRY_CODE_B_DE
+import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ENTRY_CODE_B_EN
 import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.FORMAT
 import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.JSON_PATH_AGE
 import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.JSON_PATH_FIRSTNAME
@@ -21,6 +27,7 @@ import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.UNKNOWN_ENCODING
 import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ocaSimpleDataSource
 import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ocaSimpleEncoding
 import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ocaSimpleEncodingNoDefault
+import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ocaSimpleEntry
 import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ocaSimpleFormat
 import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ocaSimpleLabel
 import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ocaSimpleOrder
@@ -184,5 +191,28 @@ class GenerateOcaClaimDataImplTest {
         assertEquals(DIGEST, overlayBundleAttributes[1].captureBaseDigest)
         assertEquals(ATTRIBUTE_KEY_AGE, overlayBundleAttributes[1].name)
         assertEquals(1, overlayBundleAttributes[1].order)
+    }
+
+    @Test
+    fun `Generator correctly generates all attributes entry mappings`() = runTest {
+        val ocaClaimData = useCase(overlays = ocaSimpleEntry.overlays, captureBases = ocaSimpleEntry.captureBases)
+
+        assertEquals(2, ocaClaimData.size)
+
+        val expectedEntriesFirstname = mapOf(
+            LANGUAGE_EN to mapOf(ENTRY_CODE_A to ENTRY_CODE_A_EN),
+            LANGUAGE_DE to mapOf(ENTRY_CODE_A to ENTRY_CODE_A_DE),
+        )
+
+        val expectedEntriesAge = mapOf(
+            LANGUAGE_EN to mapOf(ENTRY_CODE_B to ENTRY_CODE_B_EN),
+            LANGUAGE_DE to mapOf(ENTRY_CODE_B to ENTRY_CODE_B_DE),
+        )
+
+        assertEquals(DIGEST, ocaClaimData[0].captureBaseDigest)
+        assertEquals(expectedEntriesFirstname, ocaClaimData[0].entryMappings)
+
+        assertEquals(DIGEST, ocaClaimData[1].captureBaseDigest)
+        assertEquals(expectedEntriesAge, ocaClaimData[1].entryMappings)
     }
 }

@@ -22,7 +22,9 @@ internal class FetchPresentationRequestImpl @Inject constructor(
     private val safeJson: SafeJson,
     private val presentationRequestRepository: PresentationRequestRepository,
 ) : FetchPresentationRequest {
-    override suspend fun invoke(url: URL): Result<PresentationRequestContainer, FetchPresentationRequestError> = coroutineBinding {
+    override suspend fun invoke(
+        url: URL,
+    ): Result<PresentationRequestContainer, FetchPresentationRequestError> = coroutineBinding {
         val presentationRequestPayload = presentationRequestRepository.fetchPresentationRequest(url)
             .bind()
 
@@ -35,7 +37,9 @@ internal class FetchPresentationRequestImpl @Inject constructor(
 
         val presentationRequestContainer = presentationRequestJwt.mapBoth(
             success = { PresentationRequestContainer.Jwt(jwt = it) },
-            failure = { mapToJsonPresentationRequest(presentationRequestPayload).bind() }
+            failure = {
+                mapToJsonPresentationRequest(requestPayload = presentationRequestPayload).bind()
+            }
         )
 
         presentationRequestContainer

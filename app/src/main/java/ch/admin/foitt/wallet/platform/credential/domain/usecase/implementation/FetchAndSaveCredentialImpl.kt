@@ -3,9 +3,11 @@ package ch.admin.foitt.wallet.platform.credential.domain.usecase.implementation
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.CredentialOffer
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.FetchCredentialByConfigError
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.FetchIssuerCredentialInfoError
+import ch.admin.foitt.openid4vc.domain.model.credentialoffer.PrepareFetchVerifiableCredentialError
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.AnyCredentialConfiguration
 import ch.admin.foitt.openid4vc.domain.usecase.FetchCredentialByConfig
 import ch.admin.foitt.openid4vc.domain.usecase.FetchRawAndParsedIssuerCredentialInfo
+import ch.admin.foitt.openid4vc.domain.usecase.GetVerifiableCredentialParams
 import ch.admin.foitt.wallet.platform.credential.domain.model.CredentialError
 import ch.admin.foitt.wallet.platform.credential.domain.model.FetchCredentialError
 import ch.admin.foitt.wallet.platform.credential.domain.model.GenerateCredentialDisplaysError
@@ -15,6 +17,8 @@ import ch.admin.foitt.wallet.platform.credential.domain.usecase.FetchAndSaveCred
 import ch.admin.foitt.wallet.platform.credential.domain.usecase.GenerateAnyDisplays
 import ch.admin.foitt.wallet.platform.credential.domain.usecase.SaveCredential
 import ch.admin.foitt.wallet.platform.database.domain.model.RawCredentialData
+import ch.admin.foitt.wallet.platform.holderBinding.domain.model.GenerateKeyPairError
+import ch.admin.foitt.wallet.platform.holderBinding.domain.usecase.GenerateKeyPair
 import ch.admin.foitt.wallet.platform.oca.domain.model.FetchVcMetadataByFormatError
 import ch.admin.foitt.wallet.platform.oca.domain.usecase.FetchVcMetadataByFormat
 import ch.admin.foitt.wallet.platform.oca.domain.usecase.OcaBundler
@@ -29,6 +33,8 @@ import javax.inject.Inject
 
 class FetchAndSaveCredentialImpl @Inject constructor(
     private val fetchRawAndParsedIssuerCredentialInfo: FetchRawAndParsedIssuerCredentialInfo,
+    private val getVerifiableCredentialParams: GetVerifiableCredentialParams,
+    private val generateKeyPair: GenerateKeyPair,
     private val fetchCredentialByConfig: FetchCredentialByConfig,
     private val fetchVcMetadataByFormat: FetchVcMetadataByFormat,
     private val ocaBundler: OcaBundler,
@@ -47,12 +53,26 @@ class FetchAndSaveCredentialImpl @Inject constructor(
             credentials = credentialOffer.credentialConfigurationIds,
             credentialConfigurations = issuerInfo.credentialConfigurations
         ).bind()
-        val credential = fetchCredentialByConfig(
-            credentialConfig = config,
+
+        val verifiableCredentialParams = getVerifiableCredentialParams(
+            credentialConfiguration = config,
             credentialOffer = credentialOffer,
+        ).mapError(PrepareFetchVerifiableCredentialError::toFetchCredentialError).bind()
+
+        val keyPair = when (val proofTypeConfig = verifiableCredentialParams.proofTypeConfig) {
+            null -> null
+            else -> generateKeyPair(proofTypeConfig)
+                .mapError(GenerateKeyPairError::toFetchCredentialError)
+                .bind()
+        }
+
+        val anyCredential = fetchCredentialByConfig(
+            verifiableCredentialParams = verifiableCredentialParams,
+            keyPair = keyPair?.keyPair,
+            attestationJwt = keyPair?.attestationJwt
         ).mapError(FetchCredentialByConfigError::toFetchCredentialError).bind()
 
-        val vcMetadata = fetchVcMetadataByFormat(credential)
+        val vcMetadata = fetchVcMetadataByFormat(anyCredential)
             .mapError(FetchVcMetadataByFormatError::toFetchCredentialError)
             .bind()
 
@@ -62,7 +82,7 @@ class FetchAndSaveCredentialImpl @Inject constructor(
         }
 
         val displays = generateAnyDisplays(
-            anyCredential = credential,
+            anyCredential = anyCredential,
             issuerInfo = issuerInfo,
             metadata = config,
             ocaBundle = ocaBundle,
@@ -75,7 +95,7 @@ class FetchAndSaveCredentialImpl @Inject constructor(
         )
 
         saveCredential(
-            anyCredential = credential,
+            anyCredential = anyCredential,
             anyDisplays = displays,
             rawCredentialData = rawCredentialData
         ).mapError(SaveCredentialError::toFetchCredentialError).bind()

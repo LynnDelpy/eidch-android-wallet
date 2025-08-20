@@ -1,17 +1,17 @@
 package ch.admin.foitt.wallet.platform.ssi.di
 
 import ch.admin.foitt.wallet.platform.ssi.data.repository.CredentialClaimDisplayRepoImpl
-import ch.admin.foitt.wallet.platform.ssi.data.repository.CredentialClaimRepoImpl
 import ch.admin.foitt.wallet.platform.ssi.data.repository.CredentialIssuerDisplayRepoImpl
 import ch.admin.foitt.wallet.platform.ssi.data.repository.CredentialOfferRepositoryImpl
 import ch.admin.foitt.wallet.platform.ssi.data.repository.CredentialRepoImpl
 import ch.admin.foitt.wallet.platform.ssi.data.repository.CredentialWithDisplaysAndClustersRepositoryImpl
+import ch.admin.foitt.wallet.platform.ssi.data.repository.CredentialWithKeyBindingRepositoryImpl
 import ch.admin.foitt.wallet.platform.ssi.domain.repository.CredentialClaimDisplayRepo
-import ch.admin.foitt.wallet.platform.ssi.domain.repository.CredentialClaimRepo
 import ch.admin.foitt.wallet.platform.ssi.domain.repository.CredentialIssuerDisplayRepo
 import ch.admin.foitt.wallet.platform.ssi.domain.repository.CredentialOfferRepository
 import ch.admin.foitt.wallet.platform.ssi.domain.repository.CredentialRepo
 import ch.admin.foitt.wallet.platform.ssi.domain.repository.CredentialWithDisplaysAndClustersRepository
+import ch.admin.foitt.wallet.platform.ssi.domain.repository.CredentialWithKeyBindingRepository
 import ch.admin.foitt.wallet.platform.ssi.domain.usecase.DeleteCredential
 import ch.admin.foitt.wallet.platform.ssi.domain.usecase.GetCredentialDetailFlow
 import ch.admin.foitt.wallet.platform.ssi.domain.usecase.GetCredentialsWithDetailsFlow
@@ -34,11 +34,6 @@ interface SsiModule {
     fun bindCredentialClaimDisplayRepo(
         useCase: CredentialClaimDisplayRepoImpl
     ): CredentialClaimDisplayRepo
-
-    @Binds
-    fun bindCredentialClaimRepo(
-        useCase: CredentialClaimRepoImpl
-    ): CredentialClaimRepo
 
     @Binds
     fun bindCredentialRepo(
@@ -82,4 +77,10 @@ interface SsiModule {
     fun bindGetCredentialWithDetailsFlow(
         useCase: GetCredentialsWithDetailsFlowImpl
     ): GetCredentialsWithDetailsFlow
+
+    @ActivityRetainedScoped
+    @Binds
+    fun bindCredentialWithKeyBindingRepository(
+        repo: CredentialWithKeyBindingRepositoryImpl
+    ): CredentialWithKeyBindingRepository
 }

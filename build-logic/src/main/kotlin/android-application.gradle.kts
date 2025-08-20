@@ -32,10 +32,10 @@ android {
     }
 
     kotlin {
-        jvmToolchain(17)
-    }
-    kotlinOptions {
-        allWarningsAsErrors = true
+        jvmToolchain(21)
+        compilerOptions {
+            allWarningsAsErrors.set(true)
+        }
     }
     buildFeatures {
         compose = true

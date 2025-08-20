@@ -8,6 +8,7 @@ import ch.admin.foitt.wallet.R
 import ch.admin.foitt.wallet.platform.credential.presentation.model.CredentialCardState
 import ch.admin.foitt.wallet.platform.credentialStatus.domain.model.CredentialDisplayStatus
 import ch.admin.foitt.wallet.platform.preview.ComposableWrapper
+import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialClaimCluster
 import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialClaimText
 
 object CredentialMocks {
@@ -80,11 +81,38 @@ object CredentialMocks {
         )
     }
 
-    val claimList by lazy {
+    val clusterList by lazy {
         listOf(
-            CredentialClaimText(localizedKey = "Vorname", value = "Max"),
-            CredentialClaimText(localizedKey = "Nachname", value = "Mustermann"),
-            CredentialClaimText(localizedKey = "Geburtsdatum", value = "01.01.1970"),
+            CredentialClaimCluster(
+                id = 1,
+                order = 1,
+                localizedLabel = "Personal data",
+                parentId = null,
+                items = mutableListOf(
+                    CredentialClaimText(localizedLabel = "First name", order = 1, value = "Max"),
+                    CredentialClaimText(localizedLabel = "Last name", order = 2, value = "Mustermann"),
+                    CredentialClaimText(localizedLabel = "Date of birth", order = 3, value = "01.01.1970"),
+                    CredentialClaimCluster(
+                        id = 2,
+                        order = 2,
+                        localizedLabel = "Address",
+                        parentId = 1,
+                        items = mutableListOf(
+                            CredentialClaimText(localizedLabel = "Street", order = 1, value = "1 Ipsum Avenue"),
+                            CredentialClaimText(localizedLabel = "City", order = 2, value = "3000 Loremburg"),
+                        )
+                    )
+                )
+            ),
+            CredentialClaimCluster(
+                id = 2,
+                order = 2,
+                localizedLabel = "",
+                parentId = null,
+                items = mutableListOf(
+                    CredentialClaimText(localizedLabel = "AHV", order = 1, value = "756.9217.0769.85"),
+                )
+            )
         )
     }
 }

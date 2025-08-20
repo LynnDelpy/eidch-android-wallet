@@ -9,6 +9,7 @@ import ch.admin.foitt.wallet.platform.credentialPresentation.domain.model.Proces
 import ch.admin.foitt.wallet.platform.utils.JsonError
 import ch.admin.foitt.wallet.platform.utils.JsonParsingError
 import timber.log.Timber
+import java.net.URI
 
 interface InvitationError {
     data object UnknownSchema : ValidateInvitationError
@@ -26,6 +27,8 @@ interface InvitationError {
     data object CredentialOfferExpired : ProcessInvitationError
     data object UnknownIssuer : ProcessInvitationError
     data object UnknownVerifier : ProcessInvitationError
+    data object UnsupportedKeyStorageSecurityLevel : ProcessInvitationError
+    data object IncompatibleDeviceKeyStorage : ProcessInvitationError
     data object Unexpected : ProcessInvitationError, GetPresentationRequestError, ValidateInvitationError
 }
 
@@ -69,6 +72,8 @@ internal fun FetchCredentialError.toProcessInvitationError(): ProcessInvitationE
     CredentialError.DatabaseError,
     is CredentialError.Unexpected -> InvitationError.Unexpected
     CredentialError.UnknownIssuer -> InvitationError.UnknownIssuer
+    CredentialError.UnsupportedKeyStorageSecurityLevel -> InvitationError.UnsupportedKeyStorageSecurityLevel
+    CredentialError.IncompatibleDeviceKeyStorage -> InvitationError.IncompatibleDeviceKeyStorage
 }
 
 internal fun ValidateInvitationError.toProcessInvitationError(): ProcessInvitationError = when (this) {
@@ -98,5 +103,11 @@ internal fun ProcessPresentationRequestError.toProcessInvitationError(): Process
     is CredentialPresentationError.Unexpected -> InvitationError.Unexpected
     is CredentialPresentationError.UnknownVerifier -> InvitationError.UnknownVerifier
     CredentialPresentationError.NetworkError -> InvitationError.NetworkError
+}
+
+internal fun Throwable.toGetPresentationRequestError(uri: URI): GetPresentationRequestError {
+    // do not log this to dynatrace
+    Timber.d("Invalid uri: $uri")
+    return InvitationError.InvalidUri
 }
 //endregion

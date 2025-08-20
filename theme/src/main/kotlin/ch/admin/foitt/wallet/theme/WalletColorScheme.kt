@@ -72,7 +72,9 @@ data class WalletColorScheme(
     val onWhiteTransparentFixed: Color,
 
     val errorBackgroundLight: Color,
-    val errorBackgroundDark: Color
+    val errorBackgroundDark: Color,
+
+    val listItemBackground: Color,
 ) {
     @Stable
     internal val materialColorScheme: ColorScheme by lazy {
@@ -184,7 +186,9 @@ data class WalletColorScheme(
                 onWhiteTransparentFixed = WalletColors.white,
 
                 errorBackgroundLight = WalletColors.red49,
-                errorBackgroundDark = WalletColors.red16
+                errorBackgroundDark = WalletColors.red16,
+
+                listItemBackground = WalletColors.white,
             )
         }
 
@@ -255,7 +259,9 @@ data class WalletColorScheme(
                 onWhiteTransparentFixed = WalletColors.white,
 
                 errorBackgroundLight = WalletColors.red49,
-                errorBackgroundDark = WalletColors.red16
+                errorBackgroundDark = WalletColors.red16,
+
+                listItemBackground = WalletColors.grey17,
             )
         }
     }

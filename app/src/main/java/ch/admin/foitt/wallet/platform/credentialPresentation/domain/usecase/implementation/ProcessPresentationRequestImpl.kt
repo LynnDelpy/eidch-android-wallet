@@ -38,7 +38,9 @@ class ProcessPresentationRequestImpl @Inject constructor(
         val shouldFetchTrustStatement = presentationRequestContainer.shouldFetchTrustStatements()
 
         when {
-            compatibleCredentials.isEmpty() -> Err(CredentialPresentationError.NoCompatibleCredential).bind()
+            compatibleCredentials.isEmpty() -> Err(
+                CredentialPresentationError.NoCompatibleCredential
+            ).bind<ProcessPresentationRequestResult>()
             compatibleCredentials.size == 1 -> ProcessPresentationRequestResult.Credential(
                 credential = compatibleCredentials.first(),
                 presentationRequest = presentationRequest,
@@ -61,7 +63,7 @@ class ProcessPresentationRequestImpl @Inject constructor(
             .bind()
 
         if (credentials.isEmpty()) {
-            Err(CredentialPresentationError.EmptyWallet).bind()
+            Err(CredentialPresentationError.EmptyWallet).bind<Unit>()
         }
     }
 

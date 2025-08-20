@@ -79,13 +79,13 @@ class GenerateAnyDisplaysImpl @Inject constructor(
             .bind()
         val conf: Configuration = Configuration.builder().options(Option.SUPPRESS_EXCEPTIONS, Option.ALWAYS_RETURN_LIST).build()
         // Map<JsonPath, value>
-        val credentialClaims: Map<String, String> = using(conf)
+        val credentialClaims: Map<String, String?> = using(conf)
             .parse(credentialJson)
             .read<List<Map<String, JsonElement>>>(anyCredential.claimsPath)
             .firstOrNull()
             ?.mapValues {
                 when (it.value) {
-                    is JsonPrimitive -> it.value.jsonPrimitive.contentOrNull ?: ""
+                    is JsonPrimitive -> it.value.jsonPrimitive.contentOrNull
                     is JsonArray -> it.value.jsonArray.toString()
                     is JsonObject -> it.value.jsonObject.toString()
                 }

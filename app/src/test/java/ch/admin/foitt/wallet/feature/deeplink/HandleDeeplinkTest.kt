@@ -13,6 +13,8 @@ import ch.admin.foitt.wallet.platform.invitation.domain.model.ProcessInvitationE
 import ch.admin.foitt.wallet.platform.invitation.domain.model.ProcessInvitationResult
 import ch.admin.foitt.wallet.platform.invitation.domain.usecase.ProcessInvitation
 import ch.admin.foitt.wallet.platform.navArgs.domain.model.CredentialOfferNavArg
+import ch.admin.foitt.wallet.platform.navArgs.domain.model.PresentationCredentialListNavArg
+import ch.admin.foitt.wallet.platform.navArgs.domain.model.PresentationRequestNavArg
 import ch.admin.foitt.wallet.platform.navigation.NavigationManager
 import ch.admin.foitt.wallet.platform.scaffold.extension.navigateUpOrToRoot
 import ch.admin.foitt.walletcomposedestinations.destinations.CredentialOfferScreenDestination
@@ -20,6 +22,8 @@ import ch.admin.foitt.walletcomposedestinations.destinations.EIdIntroScreenDesti
 import ch.admin.foitt.walletcomposedestinations.destinations.HomeScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.InvitationFailureScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.OnboardingSuccessScreenDestination
+import ch.admin.foitt.walletcomposedestinations.destinations.PresentationCredentialListScreenDestination
+import ch.admin.foitt.walletcomposedestinations.destinations.PresentationRequestScreenDestination
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
 import com.ramcosta.composedestinations.spec.Direction
@@ -200,27 +204,39 @@ class HandleDeeplinkTest {
     }
 
     @Test
-    fun `On presentation request, navigate to an error`() = runTest {
+    fun `On presentation request, navigate to presentation request screen`() = runTest {
         coEvery { mockProcessInvitation(SOME_DEEP_LINK) } returns Ok(mockPresentationRequestResult)
         handleDeeplinkUseCase(false).navigate()
 
         coVerify(exactly = 1) {
             mockNavigationManager.navigateToAndClearCurrent(any())
             mockNavigationManager.navigateToAndClearCurrent(
-                direction = InvitationFailureScreenDestination(InvitationErrorScreenState.UNEXPECTED),
+                direction = PresentationRequestScreenDestination(
+                    PresentationRequestNavArg(
+                        compatibleCredential = mockPresentationRequestResult.credential,
+                        presentationRequest = mockPresentationRequestResult.request,
+                        shouldFetchTrustStatement = mockPresentationRequestResult.shouldCheckTrustStatement,
+                    )
+                )
             )
         }
     }
 
     @Test
-    fun `On presentation request with multiple credentials, navigate to an error`() = runTest {
+    fun `On presentation request with multiple credentials, navigate to presentation credential list screen`() = runTest {
         coEvery { mockProcessInvitation(SOME_DEEP_LINK) } returns Ok(mockPresentationRequestListResult)
         handleDeeplinkUseCase(false).navigate()
 
         coVerify(exactly = 1) {
             mockNavigationManager.navigateToAndClearCurrent(any())
             mockNavigationManager.navigateToAndClearCurrent(
-                direction = InvitationFailureScreenDestination(InvitationErrorScreenState.UNEXPECTED),
+                direction = PresentationCredentialListScreenDestination(
+                    PresentationCredentialListNavArg(
+                        compatibleCredentials = mockPresentationRequestListResult.credentials.toTypedArray(),
+                        presentationRequest = mockPresentationRequestListResult.request,
+                        shouldFetchTrustStatement = mockPresentationRequestListResult.shouldCheckTrustStatement,
+                    )
+                )
             )
         }
     }
@@ -228,10 +244,11 @@ class HandleDeeplinkTest {
     @Test
     fun `On deeplink processing failure, navigate to the defined error screen`() = runTest {
         val definedErrorDestinations: Map<ProcessInvitationError, Direction> = mapOf(
-            InvitationError.EmptyWallet to InvitationFailureScreenDestination(InvitationErrorScreenState.UNEXPECTED),
+            InvitationError.InvalidPresentationRequest to InvitationFailureScreenDestination(InvitationErrorScreenState.INVALID_PRESENTATION),
+            InvitationError.EmptyWallet to InvitationFailureScreenDestination(InvitationErrorScreenState.EMPTY_WALLET),
             InvitationError.InvalidCredentialOffer to InvitationFailureScreenDestination(InvitationErrorScreenState.INVALID_CREDENTIAL),
             InvitationError.InvalidInput to InvitationFailureScreenDestination(InvitationErrorScreenState.INVALID_CREDENTIAL),
-            InvitationError.NoCompatibleCredential to InvitationFailureScreenDestination(InvitationErrorScreenState.UNEXPECTED),
+            InvitationError.NoCompatibleCredential to InvitationFailureScreenDestination(InvitationErrorScreenState.NO_COMPATIBLE_CREDENTIAL),
             InvitationError.Unexpected to InvitationFailureScreenDestination(InvitationErrorScreenState.UNEXPECTED),
             InvitationError.NetworkError to InvitationFailureScreenDestination(InvitationErrorScreenState.NETWORK_ERROR),
             InvitationError.UnknownIssuer to InvitationFailureScreenDestination(InvitationErrorScreenState.UNKNOWN_ISSUER),

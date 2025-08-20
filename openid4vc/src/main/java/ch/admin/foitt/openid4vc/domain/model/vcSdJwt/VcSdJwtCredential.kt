@@ -3,7 +3,7 @@ package ch.admin.foitt.openid4vc.domain.model.vcSdJwt
 import ch.admin.foitt.openid4vc.domain.model.anycredential.AnyCredential
 import ch.admin.foitt.openid4vc.domain.model.anycredential.CredentialValidity
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.CredentialFormat
-import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.SigningAlgorithm
+import ch.admin.foitt.openid4vc.domain.model.keyBinding.KeyBinding
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
@@ -11,8 +11,7 @@ import java.time.Instant
 
 class VcSdJwtCredential(
     override val id: Long? = null,
-    override val keyBindingIdentifier: String?,
-    override val keyBindingAlgorithm: SigningAlgorithm?,
+    override val keyBinding: KeyBinding? = null,
     override val payload: String,
     validFrom: Long? = null,
     validUntil: Long? = null,

@@ -47,7 +47,7 @@ class EnableBiometricsViewModel @Inject constructor(
     private val navManager: NavigationManager,
     setTopBarState: SetTopBarState,
     savedStateHandle: SavedStateHandle,
-    @ApplicationContext private val appContext: Context,
+    @param:ApplicationContext private val appContext: Context,
 ) : ScreenViewModel(setTopBarState) {
     override val topBarState = TopBarState.Details(::close, R.string.change_biometrics_title)
 

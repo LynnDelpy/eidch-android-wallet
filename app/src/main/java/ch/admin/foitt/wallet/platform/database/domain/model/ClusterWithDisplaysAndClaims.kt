@@ -5,29 +5,23 @@ import androidx.room.Relation
 
 data class ClusterWithDisplaysAndClaims(
     @Embedded
-    val cluster: CredentialClaimClusterEntity,
-
-    @Relation(
-        entity = CredentialClaimClusterDisplayEntity::class,
-        parentColumn = "id",
-        entityColumn = "clusterId",
-    )
-    val displays: List<CredentialClaimClusterDisplayEntity>,
+    val clusterWithDisplays: CredentialClusterWithDisplays,
 
     @Relation(
         entity = CredentialClaim::class,
         parentColumn = "id",
         entityColumn = "clusterId"
     )
-    val claims: List<CredentialClaimWithDisplays>,
+    val claimsWithDisplays: List<CredentialClaimWithDisplays>,
+)
 
-    /*
+data class CredentialClusterWithDisplays(
+    @Embedded
+    val cluster: CredentialClaimClusterEntity,
     @Relation(
-        entity = ClusterEntity::class,
+        entity = CredentialClaimClusterDisplayEntity::class,
         parentColumn = "id",
-        entityColumn = "parentClusterId",
+        entityColumn = "clusterId",
     )
-    val childClusters: List<ClusterWithDisplaysAndClaims>
-
-     */
+    val displays: List<CredentialClaimClusterDisplayEntity>,
 )

@@ -2,17 +2,21 @@
 
 package ch.admin.foitt.wallet.platform.appAttestation.domain.model
 
-import ch.admin.foitt.openid4vc.domain.model.CreateJWSKeyPairError
 import ch.admin.foitt.openid4vc.domain.model.CreateJwkError
+import ch.admin.foitt.openid4vc.domain.model.GetKeyPairError
 import ch.admin.foitt.openid4vc.domain.model.JwkError
-import ch.admin.foitt.openid4vc.domain.model.KeyPairError
 import ch.admin.foitt.wallet.platform.appAttestation.domain.model.AttestationError.NetworkError
 import ch.admin.foitt.wallet.platform.appAttestation.domain.model.AttestationError.Unexpected
 import ch.admin.foitt.wallet.platform.appAttestation.domain.model.AttestationError.ValidationError
+import ch.admin.foitt.wallet.platform.holderBinding.domain.model.CreateJWSKeyPairError
+import ch.admin.foitt.wallet.platform.holderBinding.domain.model.KeyPairError
 import timber.log.Timber
 import java.io.IOException
+import ch.admin.foitt.openid4vc.domain.model.KeyPairError as OIDKeyPairError
 
 interface AttestationError {
+    data object IncompatibleDeviceKeyStorage : RequestKeyAttestationError
+    data object UnsupportedKeyStorageSecurityLevel : RequestKeyAttestationError
     data class ValidationError(val message: String?) :
         RequestClientAttestationError,
         ValidateClientAttestationError,
@@ -26,18 +30,22 @@ interface AttestationError {
     data class Unexpected(val throwable: Throwable?) :
         RequestClientAttestationError,
         AppAttestationRepositoryError,
+        ClientAttestationRepositoryError,
         ValidateClientAttestationError,
         AppIntegrityRepositoryError,
         RequestKeyAttestationError,
-        ValidateKeyAttestationError
+        ValidateKeyAttestationError,
+        GenerateProofOfPossessionError
 }
 
 sealed interface AppAttestationRepositoryError
 sealed interface AppIntegrityRepositoryError
+sealed interface ClientAttestationRepositoryError
 sealed interface RequestClientAttestationError
 sealed interface ValidateClientAttestationError
 sealed interface RequestKeyAttestationError
 sealed interface ValidateKeyAttestationError
+sealed interface GenerateProofOfPossessionError
 
 internal fun Throwable.toAppAttestationRepositoryError(message: String): AppAttestationRepositoryError {
     Timber.e(t = this, message = message)
@@ -55,6 +63,13 @@ internal fun Throwable.toAppIntegrityRepositoryError(message: String): AppIntegr
     }
 }
 
+internal fun Throwable.toClientAttestationRepositoryError(message: String): ClientAttestationRepositoryError {
+    Timber.e(t = this, message = message)
+    return when (this) {
+        else -> Unexpected(this)
+    }
+}
+
 internal fun Throwable.toRequestClientAttestationError(message: String): RequestClientAttestationError {
     Timber.e(t = this, message = message)
     return Unexpected(this)
@@ -63,6 +78,16 @@ internal fun Throwable.toRequestClientAttestationError(message: String): Request
 internal fun Throwable.toRequestKeyAttestationError(message: String): RequestKeyAttestationError {
     Timber.e(t = this, message = message)
     return Unexpected(this)
+}
+
+internal fun Throwable.toGenerateProofOfPossessionError(message: String): GenerateProofOfPossessionError {
+    Timber.e(t = this, message = message)
+    return Unexpected(this)
+}
+
+internal fun GetKeyPairError.toGenerateProofOfPossessionError(): GenerateProofOfPossessionError = when (this) {
+    OIDKeyPairError.NotFound -> Unexpected(IllegalStateException("KeyPair not found"))
+    is OIDKeyPairError.Unexpected -> Unexpected(throwable)
 }
 
 internal fun ValidateClientAttestationError.toRequestClientAttestationError(): RequestClientAttestationError = when (this) {
@@ -80,7 +105,13 @@ internal fun AppIntegrityRepositoryError.toRequestClientAttestationError(): Requ
     is Unexpected -> this
 }
 
+internal fun ClientAttestationRepositoryError.toRequestClientAttestationError(): RequestClientAttestationError = when (this) {
+    is Unexpected -> this
+}
+
 internal fun CreateJWSKeyPairError.toRequestClientAttestationError(): RequestClientAttestationError = when (this) {
+    is KeyPairError.IncompatibleDeviceKeyStorage,
+    is KeyPairError.UnsupportedKeyStorageSecurityLevel -> Unexpected(null)
     is KeyPairError.Unexpected -> Unexpected(throwable)
 }
 
@@ -100,6 +131,8 @@ internal fun AppAttestationRepositoryError.toRequestKeyAttestationError(): Reque
 }
 
 internal fun CreateJWSKeyPairError.toRequestKeyAttestationError(): RequestKeyAttestationError = when (this) {
+    is KeyPairError.IncompatibleDeviceKeyStorage -> AttestationError.IncompatibleDeviceKeyStorage
+    is KeyPairError.UnsupportedKeyStorageSecurityLevel -> AttestationError.UnsupportedKeyStorageSecurityLevel
     is KeyPairError.Unexpected -> Unexpected(throwable)
 }
 

@@ -11,6 +11,7 @@ import ch.admin.foitt.wallet.platform.database.domain.model.CredentialClaimDispl
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialClaimWithDisplays
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialDisplay
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialStatus
+import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialClaimCluster
 import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialClaimText
 import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialDetail
 
@@ -26,10 +27,8 @@ object MockCredentialDetail {
     private val credential = Credential(
         id = CREDENTIAL_ID,
         status = CredentialStatus.VALID,
-        keyBindingIdentifier = "privateKeyIdentifier",
         payload = "payload",
         format = CredentialFormat.VC_SD_JWT,
-        keyBindingAlgorithm = "signingAlgorithm",
         issuer = ISSUER,
         validFrom = 0,
         validUntil = 17768026519L,
@@ -76,6 +75,7 @@ object MockCredentialDetail {
         claimId = CLAIM_ID_1,
         name = "name1",
         locale = "locale1",
+        value = null,
     )
 
     private val claimDisplay2 = CredentialClaimDisplay(
@@ -83,6 +83,7 @@ object MockCredentialDetail {
         claimId = CLAIM_ID_1,
         name = "name2",
         locale = "locale2",
+        value = null,
     )
 
     private val claimDisplay3 = CredentialClaimDisplay(
@@ -90,6 +91,7 @@ object MockCredentialDetail {
         claimId = CLAIM_ID_2,
         name = "name3",
         locale = "locale3",
+        value = null,
     )
 
     private val claimDisplay4 = CredentialClaimDisplay(
@@ -97,6 +99,7 @@ object MockCredentialDetail {
         claimId = CLAIM_ID_2,
         name = "name4",
         locale = "locale4",
+        value = null,
     )
 
     val claimWithDisplays1 = CredentialClaimWithDisplays(
@@ -118,13 +121,25 @@ object MockCredentialDetail {
     val claims = listOf(claimWithDisplays1, claimWithDisplays2)
 
     val claimData1 = CredentialClaimText(
-        localizedKey = claimDisplay1.name,
+        localizedLabel = claimDisplay1.name,
+        order = 1,
         value = claim1.value,
     )
 
     val claimData2 = CredentialClaimText(
-        localizedKey = claimDisplay3.name,
+        localizedLabel = claimDisplay3.name,
+        order = 2,
         value = claim2.value,
+    )
+
+    val listOfCredentialClaimCluster = listOf(
+        CredentialClaimCluster(
+            id = 1,
+            order = 1,
+            localizedLabel = "label",
+            parentId = null,
+            items = mutableListOf(claimData1, claimData2),
+        )
     )
 
     val credentialDisplayData = CredentialDisplayData(
@@ -136,12 +151,12 @@ object MockCredentialDetail {
 
     val credentialDetail = CredentialDetail(
         credential = credentialDisplayData,
-        claims = listOf(claimData1, claimData2),
+        clusterItems = listOfCredentialClaimCluster
     )
 
     val credentialDetail2 = CredentialDetail(
         credential = credentialDisplayData,
-        claims = listOf(claimData1, claimData2),
+        clusterItems = listOfCredentialClaimCluster
     )
 
     val credentialDisplayData1 = CredentialDisplayData(

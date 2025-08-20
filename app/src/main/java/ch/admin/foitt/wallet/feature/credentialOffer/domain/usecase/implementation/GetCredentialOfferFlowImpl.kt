@@ -7,15 +7,11 @@ import ch.admin.foitt.wallet.feature.credentialOffer.domain.usecase.GetCredentia
 import ch.admin.foitt.wallet.platform.actorMetadata.domain.usecase.FetchAndCacheIssuerDisplayData
 import ch.admin.foitt.wallet.platform.credential.domain.model.MapToCredentialDisplayDataError
 import ch.admin.foitt.wallet.platform.credential.domain.usecase.MapToCredentialDisplayData
-import ch.admin.foitt.wallet.platform.database.domain.model.CredentialClaimWithDisplays
-import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialClaimData
+import ch.admin.foitt.wallet.platform.credentialCluster.domain.usercase.MapToCredentialClaimCluster
 import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialWithDisplaysAndClustersRepositoryError
-import ch.admin.foitt.wallet.platform.ssi.domain.model.MapToCredentialClaimDataError
 import ch.admin.foitt.wallet.platform.ssi.domain.repository.CredentialWithDisplaysAndClustersRepository
-import ch.admin.foitt.wallet.platform.ssi.domain.usecase.MapToCredentialClaimData
 import ch.admin.foitt.wallet.platform.utils.andThen
 import ch.admin.foitt.wallet.platform.utils.mapError
-import ch.admin.foitt.wallet.platform.utils.sortByOrder
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.coroutines.coroutineBinding
 import com.github.michaelbull.result.mapError
@@ -25,7 +21,7 @@ import javax.inject.Inject
 class GetCredentialOfferFlowImpl @Inject constructor(
     private val credentialWithDisplaysAndClustersRepository: CredentialWithDisplaysAndClustersRepository,
     private val mapToCredentialDisplayData: MapToCredentialDisplayData,
-    private val mapToCredentialClaimData: MapToCredentialClaimData,
+    private val mapToCredentialClaimCluster: MapToCredentialClaimCluster,
     private val fetchAndCacheIssuerDisplayData: FetchAndCacheIssuerDisplayData,
 ) : GetCredentialOfferFlow {
     override fun invoke(credentialId: Long): Flow<Result<CredentialOffer?, GetCredentialOfferFlowError>> =
@@ -33,34 +29,21 @@ class GetCredentialOfferFlowImpl @Inject constructor(
             .mapError(CredentialWithDisplaysAndClustersRepositoryError::toGetCredentialOfferFlowError)
             .andThen { credentialWithDisplaysAndClusters ->
                 coroutineBinding {
-                    credentialWithDisplaysAndClusters?.let {
-                        val credential = it.credential
-                        val cluster = it.clusters.first()
-
+                    credentialWithDisplaysAndClusters?.let { credentialWithDisplaysAndClusters ->
                         val credentialDisplayData = mapToCredentialDisplayData(
-                            credential = credential,
-                            credentialDisplays = it.credentialDisplays,
-                            claims = cluster.claims,
+                            credential = credentialWithDisplaysAndClusters.credential,
+                            credentialDisplays = credentialWithDisplaysAndClusters.credentialDisplays,
+                            claims = credentialWithDisplaysAndClusters.clusters.flatMap { it.claimsWithDisplays }
                         ).mapError(MapToCredentialDisplayDataError::toGetCredentialOfferFlowError)
                             .bind()
-                        fetchAndCacheIssuerDisplayData(credentialId, credential.issuer)
 
-                        val claims = getCredentialClaimData(cluster.claims.sortByOrder()).bind()
+                        fetchAndCacheIssuerDisplayData(credentialId, credentialWithDisplaysAndClusters.credential.issuer)
+
                         CredentialOffer(
                             credential = credentialDisplayData,
-                            claims = claims
+                            claims = mapToCredentialClaimCluster(credentialWithDisplaysAndClusters.clusters)
                         )
                     }
                 }
             }
-
-    private suspend fun getCredentialClaimData(
-        claims: List<CredentialClaimWithDisplays>
-    ): Result<List<CredentialClaimData>, GetCredentialOfferFlowError> = coroutineBinding {
-        claims.map { claimWithDisplays ->
-            mapToCredentialClaimData(
-                claimWithDisplays
-            ).mapError(MapToCredentialClaimDataError::toGetCredentialOfferFlowError).bind()
-        }
-    }
 }

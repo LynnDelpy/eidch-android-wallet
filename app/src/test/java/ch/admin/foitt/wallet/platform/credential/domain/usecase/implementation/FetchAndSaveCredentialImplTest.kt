@@ -1,6 +1,7 @@
 package ch.admin.foitt.wallet.platform.credential.domain.usecase.implementation
 
 import android.annotation.SuppressLint
+import ch.admin.foitt.openid4vc.domain.model.VerifiableCredentialParams
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.CredentialOffer
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.IssuerCredentialInfo
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.RawAndParsedIssuerCredentialInfo
@@ -8,6 +9,7 @@ import ch.admin.foitt.openid4vc.domain.model.vcSdJwt.VcSchema
 import ch.admin.foitt.openid4vc.domain.model.vcSdJwt.VcSdJwtCredential
 import ch.admin.foitt.openid4vc.domain.usecase.FetchCredentialByConfig
 import ch.admin.foitt.openid4vc.domain.usecase.FetchRawAndParsedIssuerCredentialInfo
+import ch.admin.foitt.openid4vc.domain.usecase.GetVerifiableCredentialParams
 import ch.admin.foitt.wallet.platform.credential.domain.model.AnyDisplays
 import ch.admin.foitt.wallet.platform.credential.domain.model.CredentialError
 import ch.admin.foitt.wallet.platform.credential.domain.usecase.FetchAndSaveCredential
@@ -22,6 +24,15 @@ import ch.admin.foitt.wallet.platform.credential.domain.usecase.implementation.m
 import ch.admin.foitt.wallet.platform.credential.domain.usecase.implementation.mock.MockFetchCredential.noMatchingIdentifierCredentialOffer
 import ch.admin.foitt.wallet.platform.credential.domain.usecase.implementation.mock.MockFetchCredential.oneConfigCredentialInformation
 import ch.admin.foitt.wallet.platform.credential.domain.usecase.implementation.mock.MockFetchCredential.oneIdentifierCredentialOffer
+import ch.admin.foitt.wallet.platform.credential.domain.usecase.implementation.mock.MockFetchCredential.proofTypeConfigHardwareBinding
+import ch.admin.foitt.wallet.platform.credential.domain.usecase.implementation.mock.MockFetchCredential.proofTypeConfigSoftwareBinding
+import ch.admin.foitt.wallet.platform.credential.domain.usecase.implementation.mock.MockFetchCredential.validHardwareKeyPair
+import ch.admin.foitt.wallet.platform.credential.domain.usecase.implementation.mock.MockFetchCredential.validSoftwareKeyPair
+import ch.admin.foitt.wallet.platform.credential.domain.usecase.implementation.mock.MockFetchCredential.verifiableCredentialParamsHardwareBinding
+import ch.admin.foitt.wallet.platform.credential.domain.usecase.implementation.mock.MockFetchCredential.verifiableCredentialParamsNoBinding
+import ch.admin.foitt.wallet.platform.credential.domain.usecase.implementation.mock.MockFetchCredential.verifiableCredentialParamsSoftwareBinding
+import ch.admin.foitt.wallet.platform.holderBinding.domain.model.KeyPairError
+import ch.admin.foitt.wallet.platform.holderBinding.domain.usecase.GenerateKeyPair
 import ch.admin.foitt.wallet.platform.oca.domain.model.OcaBundle
 import ch.admin.foitt.wallet.platform.oca.domain.model.OcaError
 import ch.admin.foitt.wallet.platform.oca.domain.model.RawOcaBundle
@@ -52,6 +63,12 @@ class FetchAndSaveCredentialImplTest {
     private lateinit var mockFetchRawAndParsedCredentialInfo: FetchRawAndParsedIssuerCredentialInfo
 
     @MockK
+    private lateinit var mockGetVerifiableCredentialParams: GetVerifiableCredentialParams
+
+    @MockK
+    private lateinit var mockGenerateKeyPair: GenerateKeyPair
+
+    @MockK
     private lateinit var mockFetchCredentialByConfig: FetchCredentialByConfig
 
     @MockK
@@ -77,6 +94,8 @@ class FetchAndSaveCredentialImplTest {
 
         useCase = FetchAndSaveCredentialImpl(
             fetchRawAndParsedIssuerCredentialInfo = mockFetchRawAndParsedCredentialInfo,
+            getVerifiableCredentialParams = mockGetVerifiableCredentialParams,
+            generateKeyPair = mockGenerateKeyPair,
             fetchCredentialByConfig = mockFetchCredentialByConfig,
             fetchVcMetadataByFormat = mockFetchVcMetadataByFormat,
             ocaBundler = mockOcaBundler,
@@ -104,7 +123,13 @@ class FetchAndSaveCredentialImplTest {
 
         coVerify {
             mockFetchRawAndParsedCredentialInfo(CREDENTIAL_ISSUER)
-            mockFetchCredentialByConfig(credentialConfig, oneIdentifierCredentialOffer)
+            mockGetVerifiableCredentialParams(credentialConfig, oneIdentifierCredentialOffer)
+            mockGenerateKeyPair(proofTypeConfigHardwareBinding)
+            mockFetchCredentialByConfig(
+                verifiableCredentialParamsHardwareBinding,
+                validHardwareKeyPair.keyPair,
+                validHardwareKeyPair.attestationJwt
+            )
             mockFetchVcMetadataByFormat(mockVcSdJwtCredential)
             mockOcaBundler(vcMetadata.rawOcaBundle!!.rawOcaBundle)
             mockGenerateAnyDisplays(mockVcSdJwtCredential, oneConfigCredentialInformation, credentialConfig, ocaBundle)
@@ -214,10 +239,63 @@ class FetchAndSaveCredentialImplTest {
     }
 
     @Test
+    fun `Fetching and saving credential maps errors from fetching verifiable credential params`() = runTest {
+        coEvery {
+            mockGetVerifiableCredentialParams(any(), any())
+        } returns Err(OpenIdCredentialOfferError.UnsupportedProofType)
+
+        useCase(oneIdentifierCredentialOffer).assertErrorType(CredentialError.UnsupportedProofType::class)
+    }
+
+    @Test
+    fun `Fetching and saving credential generates a key pair for hardware bound credentials`() = runTest {
+        setupDefaultMocks()
+
+        useCase(oneIdentifierCredentialOffer).assertOk()
+
+        coVerify(exactly = 1) {
+            mockGenerateKeyPair(proofTypeConfigHardwareBinding)
+        }
+    }
+
+    @Test
+    fun `Fetching and saving credential generates a key pair for software bound credentials`() = runTest {
+        setupDefaultMocks(verifiableCredentialParams = verifiableCredentialParamsSoftwareBinding)
+
+        useCase(oneIdentifierCredentialOffer).assertOk()
+
+        coVerify(exactly = 1) {
+            mockGenerateKeyPair(proofTypeConfigSoftwareBinding)
+        }
+    }
+
+    @Test
+    fun `Fetching and saving credential does not generate a key pair for credentials without binding`() = runTest {
+        setupDefaultMocks(verifiableCredentialParams = verifiableCredentialParamsNoBinding)
+
+        val result = useCase(oneIdentifierCredentialOffer)
+
+        result.assertOk()
+
+        coVerify(exactly = 0) {
+            mockGenerateKeyPair(any())
+        }
+    }
+
+    @Test
+    fun `Fetching and saving credential maps errors from generating the key pair`() = runTest {
+        coEvery {
+            mockGenerateKeyPair(any())
+        } returns Err(KeyPairError.IncompatibleDeviceKeyStorage)
+
+        useCase(oneIdentifierCredentialOffer).assertErrorType(CredentialError.IncompatibleDeviceKeyStorage::class)
+    }
+
+    @Test
     fun `Fetching and saving credential maps errors from Fetching and saving credential by config`() = runTest {
         val exception = IllegalStateException()
         coEvery {
-            mockFetchCredentialByConfig(any(), any())
+            mockFetchCredentialByConfig(any(), any(), any())
         } returns Err(OpenIdCredentialOfferError.Unexpected(exception))
 
         val result = useCase(oneIdentifierCredentialOffer)
@@ -259,6 +337,7 @@ class FetchAndSaveCredentialImplTest {
     private fun setupDefaultMocks(
         credentialOffer: CredentialOffer = oneIdentifierCredentialOffer,
         credentialInfo: IssuerCredentialInfo = oneConfigCredentialInformation,
+        verifiableCredentialParams: VerifiableCredentialParams = verifiableCredentialParamsHardwareBinding,
     ) {
         every {
             mockVcSdJwtCredential.getClaimsForPresentation()
@@ -268,10 +347,14 @@ class FetchAndSaveCredentialImplTest {
             Ok(RawAndParsedIssuerCredentialInfo(issuerCredentialInfo = credentialInfo, rawIssuerCredentialInfo = ""))
 
         coEvery {
-            mockFetchCredentialByConfig(
-                credentialConfig = credentialConfig,
-                credentialOffer = credentialOffer,
-            )
+            mockGetVerifiableCredentialParams(credentialConfig, credentialOffer)
+        } returns Ok(verifiableCredentialParams)
+
+        coEvery { mockGenerateKeyPair(proofTypeConfigHardwareBinding) } returns Ok(validHardwareKeyPair)
+        coEvery { mockGenerateKeyPair(proofTypeConfigSoftwareBinding) } returns Ok(validSoftwareKeyPair)
+
+        coEvery {
+            mockFetchCredentialByConfig(any(), any(), any())
         } returns Ok(mockVcSdJwtCredential)
 
         coEvery { mockFetchVcMetadataByFormat(mockVcSdJwtCredential) } returns Ok(vcMetadata)

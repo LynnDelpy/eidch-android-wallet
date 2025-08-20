@@ -1,7 +1,7 @@
 package ch.admin.foitt.openid4vc.domain.usecase.vcSdJwt.implementation
 
+import ch.admin.foitt.openid4vc.domain.model.SigningAlgorithm
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.CredentialFormat
-import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.SigningAlgorithm
 import ch.admin.foitt.openid4vc.domain.model.presentationRequest.Constraints
 import ch.admin.foitt.openid4vc.domain.model.presentationRequest.DescriptorMap
 import ch.admin.foitt.openid4vc.domain.model.presentationRequest.InputDescriptor

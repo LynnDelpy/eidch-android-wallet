@@ -23,8 +23,7 @@ class SaveCredentialImpl @Inject constructor(
         rawCredentialData: RawCredentialData
     ): Result<Long, SaveCredentialError> = coroutineBinding {
         credentialOfferRepository.saveCredentialOffer(
-            keyBindingIdentifier = anyCredential.keyBindingIdentifier,
-            keyBindingAlgorithm = anyCredential.keyBindingAlgorithm,
+            keyBinding = anyCredential.keyBinding,
             payload = anyCredential.payload,
             format = anyCredential.format,
             validFrom = anyCredential.validFromInstant?.epochSecond,

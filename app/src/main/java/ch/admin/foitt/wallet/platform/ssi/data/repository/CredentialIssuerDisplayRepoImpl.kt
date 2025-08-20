@@ -23,7 +23,7 @@ import javax.inject.Inject
 @OptIn(ExperimentalCoroutinesApi::class)
 class CredentialIssuerDisplayRepoImpl @Inject constructor(
     daoProvider: DaoProvider,
-    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : CredentialIssuerDisplayRepo {
 
     override suspend fun getIssuerDisplays(

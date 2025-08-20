@@ -12,7 +12,7 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class CanUseBiometricsForLoginImpl @Inject constructor(
-    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val biometricsStatus: BiometricsStatus,
     private val biometricLoginEnabled: BiometricLoginEnabled,
     private val getBiometricsCipher: GetBiometricsCipher,

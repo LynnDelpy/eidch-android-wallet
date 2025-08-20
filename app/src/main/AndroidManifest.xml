@@ -44,6 +44,8 @@
 
                 <data android:scheme="${deepLinkCredentialOfferScheme}" />
                 <data android:scheme="${deepLinkCredentialOfferSchemeSwiyu}" />
+                <data android:scheme="${deepLinkPresentationRequestSchemeOID}" />
+                <data android:scheme="${deepLinkPresentationRequestSchemeSwiyu}" />
             </intent-filter>
         </activity>
         <service

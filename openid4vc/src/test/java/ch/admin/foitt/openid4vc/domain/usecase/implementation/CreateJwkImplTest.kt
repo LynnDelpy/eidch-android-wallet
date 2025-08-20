@@ -3,7 +3,7 @@ package ch.admin.foitt.openid4vc.domain.usecase.implementation
 import ch.admin.foitt.openid4vc.domain.model.JwkError
 import ch.admin.foitt.openid4vc.domain.usecase.CreateJwk
 import ch.admin.foitt.openid4vc.domain.usecase.implementation.mock.MockKeyPairs.UNSUPPORTED_KEY_PAIR
-import ch.admin.foitt.openid4vc.domain.usecase.implementation.mock.MockKeyPairs.VALID_KEY_PAIR
+import ch.admin.foitt.openid4vc.domain.usecase.implementation.mock.MockKeyPairs.VALID_KEY_PAIR_HARDWARE
 import ch.admin.foitt.openid4vc.util.assertErrorType
 import ch.admin.foitt.openid4vc.util.assertOk
 import kotlinx.coroutines.test.runTest
@@ -22,7 +22,7 @@ class CreateJwkImplTest {
 
     @Test
     fun `creating a did jwk successfully returns the did jwk`() = runTest {
-        val keyPair = VALID_KEY_PAIR
+        val keyPair = VALID_KEY_PAIR_HARDWARE
 
         val result = createJwk(
             algorithm = keyPair.algorithm,

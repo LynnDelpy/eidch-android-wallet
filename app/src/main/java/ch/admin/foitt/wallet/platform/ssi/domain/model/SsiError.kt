@@ -18,7 +18,8 @@ interface SsiError {
         MapToCredentialClaimDataError,
         CredentialOfferRepositoryError,
         GetCredentialDetailFlowError,
-        GetCredentialsWithDetailsFlowError
+        GetCredentialsWithDetailsFlowError,
+        CredentialWithKeyBindingRepositoryError
 }
 
 sealed interface CredentialClaimDisplayRepositoryError
@@ -32,8 +33,13 @@ sealed interface DeleteCredentialError
 sealed interface MapToCredentialClaimDataError
 sealed interface GetCredentialDetailFlowError
 sealed interface GetCredentialsWithDetailsFlowError
+sealed interface CredentialWithKeyBindingRepositoryError
 
 internal fun CredentialRepositoryError.toDeleteCredentialError() = when (this) {
+    is SsiError.Unexpected -> SsiError.Unexpected(cause)
+}
+
+internal fun CredentialWithKeyBindingRepositoryError.toDeleteCredentialError() = when (this) {
     is SsiError.Unexpected -> SsiError.Unexpected(cause)
 }
 

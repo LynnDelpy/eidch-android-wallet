@@ -1,7 +1,6 @@
 package ch.admin.foitt.openid4vc.domain.model.presentationRequest
 
-import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.SigningAlgorithm
-import ch.admin.foitt.openid4vc.domain.model.presentationRequest.InputDescriptorFormat.VcSdJwt.Companion.VC_SD_JWT_KEY
+import ch.admin.foitt.openid4vc.domain.model.SigningAlgorithm
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.addAll

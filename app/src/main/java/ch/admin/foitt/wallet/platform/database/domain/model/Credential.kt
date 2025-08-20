@@ -13,8 +13,6 @@ data class Credential(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
     val status: CredentialStatus = CredentialStatus.UNKNOWN,
-    val keyBindingIdentifier: String?,
-    val keyBindingAlgorithm: String?,
     val payload: String,
     val issuer: String?,
     val format: CredentialFormat,

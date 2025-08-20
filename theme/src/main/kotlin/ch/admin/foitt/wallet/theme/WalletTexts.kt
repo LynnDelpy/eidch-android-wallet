@@ -1,6 +1,11 @@
 package ch.admin.foitt.wallet.theme
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -12,7 +17,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.sp
 
 @Suppress("detekt:TooManyFunctions")
 object WalletTexts {
@@ -31,16 +35,48 @@ object WalletTexts {
     )
 
     @Composable
-    fun Headline(
+    fun ClusterHeadline(
         text: String,
-        modifier: Modifier = Modifier,
-    ) = Text(
-        text = text,
-        color = MaterialTheme.colorScheme.onSurface,
-        style = MaterialTheme.typography.headlineLarge,
-        overflow = TextOverflow.Ellipsis,
-        modifier = modifier,
-    )
+        depth: Int,
+    ) {
+        val h1TopPadding = Sizes.s04
+        val h2TopPadding = Sizes.s08
+        val h3TopPadding = Sizes.s06
+
+        if (text.isNotBlank()) {
+            // Show text if not blank. Set padding, style and textItem according to depth
+            val paddingValues = when (depth) {
+                0 -> PaddingValues(start = Sizes.s08, top = h1TopPadding, bottom = Sizes.s01, end = Sizes.s04)
+                1 -> PaddingValues(start = Sizes.s04, top = h2TopPadding, end = Sizes.s04)
+                else -> PaddingValues(start = Sizes.s04, top = h3TopPadding, end = Sizes.s04)
+            }
+
+            when (depth) {
+                0 -> HeadlineMedium(
+                    text = text,
+                    modifier = Modifier.padding(paddingValues)
+                )
+
+                1 -> TitleLarge(
+                    text = text,
+                    modifier = Modifier.padding(paddingValues).background(WalletTheme.colorScheme.listItemBackground),
+                )
+
+                else -> TitleMedium(
+                    text = text,
+                    modifier = Modifier.padding(paddingValues).background(WalletTheme.colorScheme.listItemBackground),
+                )
+            }
+        } else {
+            // If text is blank, add a spacer with height according to depth
+            val height = when (depth) {
+                0 -> h1TopPadding
+                1 -> h2TopPadding
+                else -> h3TopPadding
+            }
+            Spacer(modifier = Modifier.height(height))
+        }
+    }
 
     @Composable
     fun LargeCredentialTitle(
@@ -107,36 +143,6 @@ object WalletTexts {
     )
 
     @Composable
-    fun TitleScreenMultiLine(
-        text: String,
-        modifier: Modifier = Modifier,
-    ) = Text(
-        text = text,
-        color = MaterialTheme.colorScheme.onBackground,
-        style = MaterialTheme.typography.titleLarge,
-        textAlign = TextAlign.Start,
-        overflow = TextOverflow.Ellipsis,
-        minLines = 2,
-        maxLines = 2,
-        modifier = modifier,
-    )
-
-    @Composable
-    fun TitleMedium(
-        text: String,
-        modifier: Modifier = Modifier,
-        textAlign: TextAlign = TextAlign.Start,
-        color: Color = WalletTheme.colorScheme.onSurface,
-    ) = Text(
-        text = text,
-        color = color,
-        style = WalletTheme.typography.titleMedium,
-        textAlign = textAlign,
-        overflow = TextOverflow.Ellipsis,
-        modifier = modifier,
-    )
-
-    @Composable
     fun Body(
         text: String,
         modifier: Modifier = Modifier,
@@ -147,34 +153,6 @@ object WalletTexts {
         color = color,
         style = MaterialTheme.typography.bodyMedium,
         textAlign = textAlign,
-        overflow = TextOverflow.Ellipsis,
-        modifier = modifier,
-    )
-
-    @Composable
-    fun BodySmallCentered(
-        text: String,
-        modifier: Modifier = Modifier,
-        color: Color = MaterialTheme.colorScheme.onBackground,
-    ) = Text(
-        text = text,
-        color = color,
-        style = MaterialTheme.typography.bodySmall,
-        textAlign = TextAlign.Center,
-        overflow = TextOverflow.Ellipsis,
-        modifier = modifier,
-    )
-
-    @Composable
-    fun LabelMedium(
-        text: String,
-        modifier: Modifier = Modifier,
-        color: Color = MaterialTheme.colorScheme.onSurface,
-    ) = Text(
-        text = text,
-        color = color,
-        style = MaterialTheme.typography.labelMedium,
-        textAlign = TextAlign.Center,
         overflow = TextOverflow.Ellipsis,
         modifier = modifier,
     )
@@ -205,21 +183,6 @@ object WalletTexts {
         textAlign = TextAlign.Start,
         overflow = TextOverflow.Ellipsis,
         modifier = modifier,
-    )
-
-    @Composable
-    fun InfoLabel(
-        text: String,
-        modifier: Modifier = Modifier,
-        color: Color = MaterialTheme.colorScheme.onSecondary,
-    ) = Text(
-        text = text,
-        color = color,
-        style = MaterialTheme.typography.labelSmall,
-        lineHeight = 18.sp,
-        textAlign = TextAlign.Start,
-        overflow = TextOverflow.Ellipsis,
-        modifier = modifier
     )
 
     //region PublicWallet Texts
@@ -258,6 +221,21 @@ object WalletTexts {
     )
 
     @Composable
+    fun HeadlineMedium(
+        modifier: Modifier = Modifier,
+        text: String,
+        textAlign: TextAlign = TextAlign.Start,
+        color: Color = WalletTheme.colorScheme.primary,
+    ) = Text(
+        text = text,
+        color = color,
+        style = WalletTheme.typography.headlineMedium,
+        textAlign = textAlign,
+        overflow = TextOverflow.Ellipsis,
+        modifier = modifier,
+    )
+
+    @Composable
     fun TitleLarge(
         text: String,
         modifier: Modifier = Modifier,
@@ -273,6 +251,21 @@ object WalletTexts {
         maxLines = maxLines,
         modifier = modifier
             .semantics { heading() },
+    )
+
+    @Composable
+    fun TitleMedium(
+        text: String,
+        modifier: Modifier = Modifier,
+        textAlign: TextAlign = TextAlign.Start,
+        color: Color = WalletTheme.colorScheme.onSurface
+    ) = Text(
+        modifier = modifier,
+        text = text,
+        color = color,
+        style = WalletTheme.typography.titleMedium,
+        textAlign = textAlign,
+        overflow = TextOverflow.Ellipsis,
     )
 
     @Composable
@@ -333,5 +326,20 @@ object WalletTexts {
         overflow = TextOverflow.Ellipsis,
         modifier = modifier,
     )
+
+    @Composable
+    fun LabelMedium(
+        text: String,
+        modifier: Modifier = Modifier,
+        color: Color = WalletTheme.colorScheme.secondary,
+    ) = Text(
+        text = text,
+        color = color,
+        style = WalletTheme.typography.labelMedium,
+        textAlign = TextAlign.Start,
+        overflow = TextOverflow.Ellipsis,
+        modifier = modifier,
+    )
+
 //endregion
 }

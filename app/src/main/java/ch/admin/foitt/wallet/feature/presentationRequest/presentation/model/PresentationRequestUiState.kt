@@ -3,11 +3,12 @@ package ch.admin.foitt.wallet.feature.presentationRequest.presentation.model
 import androidx.compose.ui.graphics.Color
 import ch.admin.foitt.wallet.platform.credential.presentation.model.CredentialCardState
 import ch.admin.foitt.wallet.platform.credentialStatus.domain.model.CredentialDisplayStatus
-import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialClaimData
+import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialClaimCluster
 
 data class PresentationRequestUiState(
     val credential: CredentialCardState,
-    val requestedClaims: List<CredentialClaimData>,
+    val requestedClaims: List<CredentialClaimCluster>,
+    val numberOfClaims: Int,
 ) {
     companion object {
         val EMPTY by lazy {
@@ -24,6 +25,7 @@ data class PresentationRequestUiState(
                     isCredentialFromBetaIssuer = false,
                 ),
                 requestedClaims = emptyList(),
+                numberOfClaims = 0,
             )
         }
     }

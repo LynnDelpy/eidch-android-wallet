@@ -40,7 +40,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LockoutViewModel @Inject constructor(
-    @ApplicationContext private val appContext: Context,
+    @param:ApplicationContext private val appContext: Context,
     private val navManager: NavigationManager,
     private val getLockoutDuration: GetLockoutDuration,
     private val resetLockout: ResetLockout,

@@ -1,13 +1,48 @@
 package ch.admin.foitt.wallet.platform.credential.domain.usecase.implementation.mock
 
+import ch.admin.foitt.openid4vc.domain.model.KeyStorageSecurityLevel
+import ch.admin.foitt.openid4vc.domain.model.SigningAlgorithm
+import ch.admin.foitt.openid4vc.domain.model.VerifiableCredentialParams
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.CredentialOffer
+import ch.admin.foitt.openid4vc.domain.model.credentialoffer.JWSKeyPair
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.IssuerCredentialInfo
+import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.KeyAttestationConfig
+import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.ProofTypeConfig
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.RawAndParsedIssuerCredentialInfo
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.VcSdJwtCredentialConfiguration
+import ch.admin.foitt.openid4vc.domain.model.jwt.Jwt
+import ch.admin.foitt.wallet.platform.holderBinding.domain.model.BindingKeyPair
 import io.mockk.every
 import io.mockk.mockk
 
 internal object MockFetchCredential {
+    const val CREDENTIAL_IDENTIFIER = "credentialIdentifier"
+    const val CREDENTIAL_IDENTIFIER_2 = "credentialIdentifier2"
+    const val CREDENTIAL_ISSUER = "credentialIssuer"
+    const val CREDENTIAL_ENDPOINT = "credentialEndpoint"
+    private val SIGNING_ALG = SigningAlgorithm.ES256
+    private val PROOF_SIGNING_ALG_VALUES_SUPPORTED = listOf(SIGNING_ALG)
+    val strongboxKeyStorage = listOf(KeyStorageSecurityLevel.HIGH)
+
+    val proofTypeConfigSoftwareBinding = ProofTypeConfig(PROOF_SIGNING_ALG_VALUES_SUPPORTED)
+    val proofTypeConfigHardwareBinding = ProofTypeConfig(
+        proofSigningAlgValuesSupported = PROOF_SIGNING_ALG_VALUES_SUPPORTED,
+        keyAttestationsRequired = KeyAttestationConfig(
+            keyStorage = strongboxKeyStorage,
+            userAuthentication = listOf(KeyStorageSecurityLevel.HIGH)
+        )
+    )
+
+    val validSoftwareKeyPair = BindingKeyPair(
+        keyPair = mockk<JWSKeyPair>(),
+        attestationJwt = null,
+    )
+
+    val validHardwareKeyPair = BindingKeyPair(
+        keyPair = mockk<JWSKeyPair>(),
+        attestationJwt = mockk<Jwt>(),
+    )
+
     val credentialConfig = mockk<VcSdJwtCredentialConfiguration> {
         every { identifier } returns CREDENTIAL_IDENTIFIER
     }
@@ -55,8 +90,15 @@ internal object MockFetchCredential {
         every { credentialConfigurationIds } returns emptyList()
     }
 
-    const val CREDENTIAL_IDENTIFIER = "credentialIdentifier"
-    const val CREDENTIAL_IDENTIFIER_2 = "credentialIdentifier2"
-    const val CREDENTIAL_ISSUER = "credentialIssuer"
-    const val CREDENTIAL_ENDPOINT = "credentialEndpoint"
+    val verifiableCredentialParamsHardwareBinding = mockk<VerifiableCredentialParams> {
+        every { proofTypeConfig } returns proofTypeConfigHardwareBinding
+    }
+
+    val verifiableCredentialParamsSoftwareBinding = mockk<VerifiableCredentialParams> {
+        every { proofTypeConfig } returns proofTypeConfigSoftwareBinding
+    }
+
+    val verifiableCredentialParamsNoBinding = mockk<VerifiableCredentialParams> {
+        every { proofTypeConfig } returns null
+    }
 }

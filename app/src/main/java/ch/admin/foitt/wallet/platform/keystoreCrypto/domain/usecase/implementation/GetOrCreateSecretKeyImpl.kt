@@ -19,7 +19,7 @@ import javax.crypto.SecretKey
 import javax.inject.Inject
 
 internal class GetOrCreateSecretKeyImpl @Inject constructor(
-    @ApplicationContext private val appContext: Context,
+    @param:ApplicationContext private val appContext: Context,
 ) : GetOrCreateSecretKey {
     @CheckResult
     override fun invoke(keystoreKeyConfig: KeystoreKeyConfig): Result<SecretKey, GetOrCreateSecretKeyError> = runSuspendCatching {

@@ -16,7 +16,7 @@ import javax.inject.Inject
 @HiltViewModel
 class UserPrivacyPolicyViewModel @Inject constructor(
     private val navManager: NavigationManager,
-    @ApplicationContext private val appContext: Context,
+    @param:ApplicationContext private val appContext: Context,
     setTopBarState: SetTopBarState,
     private val applyUserPrivacyPolicy: ApplyUserPrivacyPolicy,
 ) : ScreenViewModel(setTopBarState) {

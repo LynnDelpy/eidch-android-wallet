@@ -45,7 +45,7 @@ class RegisterBiometricsViewModel @Inject constructor(
     val biometricsStatus: BiometricsStatus,
     val saveOnboardingState: SaveOnboardingState,
     private val navManager: NavigationManager,
-    @ApplicationContext private val appContext: Context,
+    @param:ApplicationContext private val appContext: Context,
     private val setTopBarState: SetTopBarState,
     savedStateHandle: SavedStateHandle,
 ) : ScreenViewModel(setTopBarState) {

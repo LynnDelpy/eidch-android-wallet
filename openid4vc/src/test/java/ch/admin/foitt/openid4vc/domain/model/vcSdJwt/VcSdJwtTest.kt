@@ -15,7 +15,7 @@ class VcSdJwtTest {
         assertEquals(KID, vcSdJwt.kid)
         assertEquals(ISS, vcSdJwt.iss)
         assertEquals(VCT, vcSdJwt.vct)
-        assertEquals(SafeJsonTestInstance.json.parseToJsonElement(CNF), vcSdJwt.cnf)
+        assertEquals(SafeJsonTestInstance.json.parseToJsonElement(CNF_JWK), vcSdJwt.cnfJwk)
         assertEquals(SafeJsonTestInstance.json.parseToJsonElement(STATUS), vcSdJwt.status)
     }
 
@@ -43,7 +43,21 @@ class VcSdJwtTest {
     @Test
     fun `Creating a VcSdJwt without the cnf claim succeeds but has a null field`() = runTest {
         val vcSdJwt = VcSdJwt(VC_SD_JWT_WITHOUT_CNF)
-        assertNull(vcSdJwt.cnf)
+        assertNull(vcSdJwt.cnfJwk)
+    }
+
+    // Support for both malformed and standard format of cnf claim
+    @Test
+    fun `Creating a VcSdJwt with a malformed cnf claim still succeeds and has a valid cnfJwk field`() = runTest {
+        val vcSdJwt = VcSdJwt(VC_SD_JWT_WITH_MALFORMED_CNF)
+        assertEquals(SafeJsonTestInstance.json.parseToJsonElement(CNF_JWK), vcSdJwt.cnfJwk)
+    }
+
+    // Support for both malformed and standard format of cnf claim
+    @Test
+    fun `Creating a VcSdJwt with an expanded cnf claim still succeeds and use the contract cnfJwk field`() = runTest {
+        val vcSdJwt = VcSdJwt(VC_SD_JWT_WITH_EXPANDED_CNF)
+        assertEquals(SafeJsonTestInstance.json.parseToJsonElement(CNF_JWK), vcSdJwt.cnfJwk)
     }
 
     @Test
@@ -59,7 +73,7 @@ class VcSdJwtTest {
         const val ISS = "issuer"
         const val VCT = "vct"
 
-        val CNF = """
+        val CNF_JWK = """
           {
             "kty": "EC",
             "crv": "P-256",
@@ -78,6 +92,18 @@ class VcSdJwtTest {
         """.trimIndent()
 
         /*
+        -----BEGIN PUBLIC KEY-----
+        MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAERqVXn+o+6zEOpWEsGw5CsB+wd8zO
+        jxu0uASGpiGP+wYfcc1unyMxcStbDzUjRuObY8DalaCJ9/J6UrkQkZBtZw==
+        -----END PUBLIC KEY-----
+        -----BEGIN PRIVATE KEY-----
+        MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQglBnO+qn+RecAQ31T
+        jBklNu+AwiFN5eVHBFbnjecmMryhRANCAARGpVef6j7rMQ6lYSwbDkKwH7B3zM6P
+        G7S4BIamIY/7Bh9xzW6fIzFxK1sPNSNG45tjwNqVoIn38npSuRCRkG1n
+        -----END PRIVATE KEY-----
+         */
+
+        /*
         header:
         {
           "alg":"ES256",
@@ -89,10 +115,12 @@ class VcSdJwtTest {
           "iss":"issuer",
           "vct":"vct",
           "cnf": {
-            "kty": "EC",
-            "crv": "P-256",
-            "x": "xValue",
-            "y": "yValue"
+            "jwk": {
+              "kty": "EC",
+              "crv": "P-256",
+              "x": "xValue",
+              "y": "yValue"
+            }
           },
           "status": {
             "status_list": {
@@ -102,11 +130,21 @@ class VcSdJwtTest {
           }
         }
          */
-        const val VALID_VC_SD_JWT = "ewogICJhbGciOiJFUzI1NiIsCiAgInR5cCI6InR5cGUiLAogICJraWQiOiJrZXlJZCIKfQ.ewogICJpc3MiOiJpc3N1ZXIiLAogICJ2Y3QiOiJ2Y3QiLAogICJjbmYiOiB7CiAgICAia3R5IjogIkVDIiwKICAgICJjcnYiOiAiUC0yNTYiLAogICAgIngiOiAieFZhbHVlIiwKICAgICJ5IjogInlWYWx1ZSIKICB9LCAgCiAgInN0YXR1cyI6IHsKICAgICJzdGF0dXNfbGlzdCI6IHsKICAgICAgInVyaSI6ICJleGFtcGxlLmNvbSIsCiAgICAgICJpZHgiOiAxCiAgICB9CiAgfQp9.ZXdvZ0lDSmhiR2NpT2lKRlV6STFOaUlzQ2lBZ0luUjVjQ0k2SW5SNWNHVWlMQW9nSUNKcmFXUWlPaUpyWlhsSlpDSUtmUS4uUmx6cXJYa0xXMlhHWTN1V3lEeFJwQlZEWm9wNnhjcC1mV0lXd2tSWEtuOWRRa1lueDZSODRLX3B0MV9uR2kwaTQzekhRTXJ4aXZPX3ltOFNpeU44LWc"
-        const val VC_SD_JWT_MISSING_ISS = "ewogICJhbGciOiJFUzI1NiIsCiAgInR5cCI6InR5cGUiLAogICJraWQiOiJrZXlJZCIKfQ.ewogICJ2Y3QiOiJ2Y3QiLAogICJjbmYiOiB7CiAgICAia3R5IjogIkVDIiwKICAgICJjcnYiOiAiUC0yNTYiLAogICAgIngiOiAieFZhbHVlIiwKICAgICJ5IjogInlWYWx1ZSIKICB9LCAgCiAgInN0YXR1cyI6IHsKICAgICJzdGF0dXNfbGlzdCI6IHsKICAgICAgInVyaSI6ICJleGFtcGxlLmNvbSIsCiAgICAgICJpZHgiOiAxCiAgICB9CiAgfQp9.ZXdvZ0lDSmhiR2NpT2lKRlV6STFOaUlzQ2lBZ0luUjVjQ0k2SW5SNWNHVWlMQW9nSUNKcmFXUWlPaUpyWlhsSlpDSUtmUS4uZ2lmbVd6NkZzMmdPbU9uNVNoLTI4M29wMEdXaW01Zm9FbmRLZkptRXZaQkNFd0h5STB6Q20tT1NqZG9MdmJzSTFuQ2wwYUVtSjN2b24tdGpDdHVBVUE"
-        const val VC_SD_JWT_MISSING_KID = "ewogICJhbGciOiJFUzI1NiIsCiAgInR5cCI6InR5cGUiCn0.ewogICJpc3MiOiJpc3N1ZXIiLAogICJ2Y3QiOiJ2Y3QiLAogICJjbmYiOiB7CiAgICAia3R5IjogIkVDIiwKICAgICJjcnYiOiAiUC0yNTYiLAogICAgIngiOiAieFZhbHVlIiwKICAgICJ5IjogInlWYWx1ZSIKICB9LCAgCiAgInN0YXR1cyI6IHsKICAgICJzdGF0dXNfbGlzdCI6IHsKICAgICAgInVyaSI6ICJleGFtcGxlLmNvbSIsCiAgICAgICJpZHgiOiAxCiAgICB9CiAgfQp9.ZXdvZ0lDSmhiR2NpT2lKRlV6STFOaUlzQ2lBZ0luUjVjQ0k2SW5SNWNHVWlDbjAuLkJ3RDM5UzdJT0hvT1VhcDNJWmxCWlJOWFBPZGJIRkVTR2xwWG01RzEycHhOWnQ4VV9sbGZCYlcyMXloNFFlTEk2NXZLSlZYM1Y1QlFXcGk3dUtfMTNn"
-        const val VC_SD_JWT_MISSING_VCT = "ewogICJhbGciOiJFUzI1NiIsCiAgInR5cCI6InR5cGUiLAogICJraWQiOiJrZXlJZCIKfQ.ewogICJpc3MiOiJpc3N1ZXIiLAogICJjbmYiOiB7CiAgICAia3R5IjogIkVDIiwKICAgICJjcnYiOiAiUC0yNTYiLAogICAgIngiOiAieFZhbHVlIiwKICAgICJ5IjogInlWYWx1ZSIKICB9LCAgCiAgInN0YXR1cyI6IHsKICAgICJzdGF0dXNfbGlzdCI6IHsKICAgICAgInVyaSI6ICJleGFtcGxlLmNvbSIsCiAgICAgICJpZHgiOiAxCiAgICB9CiAgfQp9.ZXdvZ0lDSmhiR2NpT2lKRlV6STFOaUlzQ2lBZ0luUjVjQ0k2SW5SNWNHVWlMQW9nSUNKcmFXUWlPaUpyWlhsSlpDSUtmUS4uYV9wMzZ3WHd5dFI2Z25UYUpYS2FOTDRQbi1sazZlcFZFLWwyRG9nVWNhSXIwbkZxYVk4T25vTWNTNDEzQkJHalhMQ1hmMzZWQXVSNDJwdjVIdGhMdlE"
-        const val VC_SD_JWT_WITHOUT_CNF = "ewogICJhbGciOiJFUzI1NiIsCiAgInR5cCI6InR5cGUiLAogICJraWQiOiJrZXlJZCIKfQ.ewogICJpc3MiOiJpc3N1ZXIiLAogICJ2Y3QiOiJ2Y3QiLAogICJzdGF0dXMiOiB7CiAgICAic3RhdHVzX2xpc3QiOiB7CiAgICAgICJ1cmkiOiAiZXhhbXBsZS5jb20iLAogICAgICAiaWR4IjogMQogICAgfQogIH0KfQ.ZXdvZ0lDSmhiR2NpT2lKRlV6STFOaUlzQ2lBZ0luUjVjQ0k2SW5SNWNHVWlMQW9nSUNKcmFXUWlPaUpyWlhsSlpDSUtmUS4udzJval9aVEx1RUNueElwcG94cVBZSTE0U2wybklqeE9nbzdRcWFwYjZ3MVo3Y2U0cFJBQXdJczBUSnNocDhha2NuX05QRldBc28xVF9UU24zUTRKRnc"
-        const val VC_SD_JWT_WITHOUT_STATUS = "ewogICJhbGciOiJFUzI1NiIsCiAgInR5cCI6InR5cGUiLAogICJraWQiOiJrZXlJZCIKfQ.ewogICJpc3MiOiJpc3N1ZXIiLAogICJ2Y3QiOiJ2Y3QiLAogICJjbmYiOiB7CiAgICAia3R5IjogIkVDIiwKICAgICJjcnYiOiAiUC0yNTYiLAogICAgIngiOiAieFZhbHVlIiwKICAgICJ5IjogInlWYWx1ZSIKICB9Cn0.ZXdvZ0lDSmhiR2NpT2lKRlV6STFOaUlzQ2lBZ0luUjVjQ0k2SW5SNWNHVWlMQW9nSUNKcmFXUWlPaUpyWlhsSlpDSUtmUS4uX1hWbE5jb292alMzUnZfaXBNZDdCaEdQR3RPSkpSNGRqOUJnOFNScFZnd3NrMWZPTXZkLVhzemwwUGtFZmpneFpyYkJIMkFSN2ZHbE9qZjFPUWNXSXc"
+        const val VALID_VC_SD_JWT =
+            "eyJhbGciOiJFUzI1NiIsInR5cCI6InR5cGUiLCJraWQiOiJrZXlJZCJ9.eyJpc3MiOiJpc3N1ZXIiLCJ2Y3QiOiJ2Y3QiLCJjbmYiOnsiandrIjp7Imt0eSI6IkVDIiwiY3J2IjoiUC0yNTYiLCJ4IjoieFZhbHVlIiwieSI6InlWYWx1ZSJ9fSwic3RhdHVzIjp7InN0YXR1c19saXN0Ijp7InVyaSI6ImV4YW1wbGUuY29tIiwiaWR4IjoxfX19.m1LjSGvqosKczHnNyRKhYa4NJY0OytOkobmOLLEPEeY8W7_ziWqENWvDZvWwQN8pUQWSklEjx4hpP3P5L8Nxvw"
+        const val VC_SD_JWT_MISSING_ISS =
+            "eyJhbGciOiJFUzI1NiIsInR5cCI6InR5cGUiLCJraWQiOiJrZXlJZCJ9.eyJ2Y3QiOiJ2Y3QiLCJjbmYiOnsiandrIjp7Imt0eSI6IkVDIiwiY3J2IjoiUC0yNTYiLCJ4IjoieFZhbHVlIiwieSI6InlWYWx1ZSJ9fSwic3RhdHVzIjp7InN0YXR1c19saXN0Ijp7InVyaSI6ImV4YW1wbGUuY29tIiwiaWR4IjoxfX19.RD4NLxbY2xTGLYIhfubdIa3FHdo0xoiWSBip1kWn2gKTyfhHNfpr_YnxjoPfmTtX24RU7aF60zOg4VVch-ytqA"
+        const val VC_SD_JWT_MISSING_KID =
+            "eyJhbGciOiJFUzI1NiIsInR5cCI6InR5cGUifQ.eyJpc3MiOiJpc3N1ZXIiLCJ2Y3QiOiJ2Y3QiLCJjbmYiOnsiandrIjp7Imt0eSI6IkVDIiwiY3J2IjoiUC0yNTYiLCJ4IjoieFZhbHVlIiwieSI6InlWYWx1ZSJ9fSwic3RhdHVzIjp7InN0YXR1c19saXN0Ijp7InVyaSI6ImV4YW1wbGUuY29tIiwiaWR4IjoxfX19._4Rq8DUl-0zVn0cTJz48aTHxq-taHNm6oaKRxq3m3VwhUj27FnSVDSPSu7wEiIQ-rrV_0zppPXiN9jGiCqygvA"
+        const val VC_SD_JWT_MISSING_VCT =
+            "eyJhbGciOiJFUzI1NiIsInR5cCI6InR5cGUiLCJraWQiOiJrZXlJZCJ9.eyJpc3MiOiJpc3N1ZXIiLCJjbmYiOnsiandrIjp7Imt0eSI6IkVDIiwiY3J2IjoiUC0yNTYiLCJ4IjoieFZhbHVlIiwieSI6InlWYWx1ZSJ9fSwic3RhdHVzIjp7InN0YXR1c19saXN0Ijp7InVyaSI6ImV4YW1wbGUuY29tIiwiaWR4IjoxfX19.8J3_OBp2BYVhavLgOUPtT-z7uEnmbQGo5bw9jLk4H6KZmKFvT3RHbwiUAVC55LEqC0l6DoXLtZzF_4jBBJ2HqQ"
+        const val VC_SD_JWT_WITHOUT_CNF =
+            "eyJhbGciOiJFUzI1NiIsInR5cCI6InR5cGUiLCJraWQiOiJrZXlJZCJ9.eyJpc3MiOiJpc3N1ZXIiLCJ2Y3QiOiJ2Y3QiLCJzdGF0dXMiOnsic3RhdHVzX2xpc3QiOnsidXJpIjoiZXhhbXBsZS5jb20iLCJpZHgiOjF9fX0.1ma9gUUfhPY1_1DAQ6zs7oGP_Dqaebk1bE4SxYJ6xogLG0K-XAfXcbyCUpoH4Esj2-p0qR-cX3bv__NkgvpvEQ"
+        const val VC_SD_JWT_WITH_MALFORMED_CNF =
+            "eyJhbGciOiJFUzI1NiIsInR5cCI6InR5cGUiLCJraWQiOiJrZXlJZCJ9.eyJpc3MiOiJpc3N1ZXIiLCJ2Y3QiOiJ2Y3QiLCJjbmYiOnsia3R5IjoiRUMiLCJjcnYiOiJQLTI1NiIsIngiOiJ4VmFsdWUiLCJ5IjoieVZhbHVlIn0sInN0YXR1cyI6eyJzdGF0dXNfbGlzdCI6eyJ1cmkiOiJleGFtcGxlLmNvbSIsImlkeCI6MX19fQ.zEjzlliqCDzlcs7UFAOJQi9xXi_uQNXcLKqZZ2cQq-ZpnUHsxZoScxokLcFv1L4j1QKDsZXlg3yhQYQo6D66Hg"
+        const val VC_SD_JWT_WITH_EXPANDED_CNF =
+            "eyJ0eXAiOiJ0eXBlIiwiYWxnIjoiRVMyNTYiLCJraWQiOiJrZXlJZCJ9.eyJpc3MiOiJpc3N1ZXIiLCJ2Y3QiOiJ2Y3QiLCJjbmYiOnsia3R5IjoiRUIiLCJjcnYiOiJQLUJhZCIsIngiOiJiYWRYIiwieSI6ImJhZFkiLCJqd2siOnsia3R5IjoiRUMiLCJjcnYiOiJQLTI1NiIsIngiOiJ4VmFsdWUiLCJ5IjoieVZhbHVlIn19LCJzdGF0dXMiOnsic3RhdHVzX2xpc3QiOnsidXJpIjoiZXhhbXBsZS5jb20iLCJpZHgiOjF9fX0.QaR1Zi1mwPiWPg4fkUzs9KMPAeYx1sRQzN4WbWrZB52AKrknZUXrfiutUHj0f2l15VSReyADUsLduLMHFcHFWg~"
+        const val VC_SD_JWT_WITHOUT_STATUS =
+            "eyJhbGciOiJFUzI1NiIsInR5cCI6InR5cGUiLCJraWQiOiJrZXlJZCJ9.eyJpc3MiOiJpc3N1ZXIiLCJ2Y3QiOiJ2Y3QiLCJjbmYiOnsiandrIjp7Imt0eSI6IkVDIiwiY3J2IjoiUC0yNTYiLCJ4IjoieFZhbHVlIiwieSI6InlWYWx1ZSJ9fX0.C9hZ3sNghE7U749Di6nNNrrhiC1aRmewfBcDTYD2qgPa2WpwpCuh2EOExwzNWXpop9RWXez9-Rbyni7o30aE1g"
     }
 }

@@ -1,6 +1,7 @@
 package ch.admin.foitt.wallet.platform.ssi.domain.model
 
 data class CredentialClaimText(
-    override val localizedKey: String,
-    val value: String,
-) : CredentialClaimData
+    override val localizedLabel: String,
+    override val order: Int,
+    val value: String?,
+) : CredentialClaimItem

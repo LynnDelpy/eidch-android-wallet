@@ -32,6 +32,8 @@ class GenerateNestedOcaDisplaysImplTest {
     @MockK
     private lateinit var mockGetRootCaptureBase: GetRootCaptureBase
 
+    private val generateOcaClaimDisplays = GenerateOcaClaimDisplaysImpl()
+
     @MockK
     private lateinit var mockOcaBundle: OcaBundle
 
@@ -49,6 +51,7 @@ class GenerateNestedOcaDisplaysImplTest {
 
         useCase = GenerateOcaDisplaysImpl(
             getRootCaptureBase = mockGetRootCaptureBase,
+            generateOcaClaimDisplays = generateOcaClaimDisplays,
         )
 
         setupDefaultMocks()

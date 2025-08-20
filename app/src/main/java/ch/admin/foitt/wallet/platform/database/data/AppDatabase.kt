@@ -18,7 +18,9 @@ import ch.admin.foitt.wallet.platform.database.data.dao.CredentialClaimDisplayDa
 import ch.admin.foitt.wallet.platform.database.data.dao.CredentialDao
 import ch.admin.foitt.wallet.platform.database.data.dao.CredentialDisplayDao
 import ch.admin.foitt.wallet.platform.database.data.dao.CredentialIssuerDisplayDao
+import ch.admin.foitt.wallet.platform.database.data.dao.CredentialKeyBindingEntityDao
 import ch.admin.foitt.wallet.platform.database.data.dao.CredentialWithDisplaysAndClustersDao
+import ch.admin.foitt.wallet.platform.database.data.dao.CredentialWithKeyBindingDao
 import ch.admin.foitt.wallet.platform.database.data.dao.EIdRequestCaseDao
 import ch.admin.foitt.wallet.platform.database.data.dao.EIdRequestCaseWithStateDao
 import ch.admin.foitt.wallet.platform.database.data.dao.EIdRequestStateDao
@@ -31,6 +33,7 @@ import ch.admin.foitt.wallet.platform.database.domain.model.CredentialClaimClust
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialClaimDisplay
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialDisplay
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialIssuerDisplay
+import ch.admin.foitt.wallet.platform.database.domain.model.CredentialKeyBindingEntity
 import ch.admin.foitt.wallet.platform.database.domain.model.DatabaseError
 import ch.admin.foitt.wallet.platform.database.domain.model.EIdRequestCase
 import ch.admin.foitt.wallet.platform.database.domain.model.EIdRequestState
@@ -50,6 +53,7 @@ import timber.log.Timber
         CredentialIssuerDisplay::class,
         CredentialClaimClusterEntity::class,
         CredentialClaimClusterDisplayEntity::class,
+        CredentialKeyBindingEntity::class,
         EIdRequestCase::class,
         EIdRequestState::class,
         RawCredentialData::class,
@@ -59,6 +63,8 @@ import timber.log.Timber
     autoMigrations = [
         AutoMigration(from = 3, to = 4),
         AutoMigration(from = 4, to = 5),
+        AutoMigration(from = 7, to = 8),
+        AutoMigration(from = 8, to = 9),
     ], // see also migrations in SqlCipherDatabaseInitializer
     exportSchema = true,
 )
@@ -73,6 +79,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun credentialWithDisplaysAndClustersDao(): CredentialWithDisplaysAndClustersDao
     abstract fun credentialClaimClusterEntityDao(): CredentialClaimClusterEntityDao
     abstract fun credentialClaimClusterDisplayEntityDao(): CredentialClaimClusterDisplayEntityDao
+    abstract fun credentialKeyBindingEntityDao(): CredentialKeyBindingEntityDao
+    abstract fun credentialWithKeyBindingDao(): CredentialWithKeyBindingDao
 
     abstract fun eIdRequestCaseDao(): EIdRequestCaseDao
     abstract fun eIdRequestStateDao(): EIdRequestStateDao
@@ -110,6 +118,6 @@ abstract class AppDatabase : RoomDatabase() {
     }
 
     companion object {
-        internal const val DATABASE_VERSION = 6 // db scheme v3.7
+        internal const val DATABASE_VERSION = 9 // db scheme v3.10
     }
 }

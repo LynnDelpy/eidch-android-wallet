@@ -4,6 +4,7 @@ package ch.admin.foitt.wallet.platform.credential.domain.model
 
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.FetchCredentialByConfigError
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.FetchIssuerCredentialInfoError
+import ch.admin.foitt.openid4vc.domain.model.credentialoffer.PrepareFetchVerifiableCredentialError
 import ch.admin.foitt.wallet.platform.credential.domain.model.CredentialError.CredentialParsingError
 import ch.admin.foitt.wallet.platform.credential.domain.model.CredentialError.DatabaseError
 import ch.admin.foitt.wallet.platform.credential.domain.model.CredentialError.IntegrityCheckFailed
@@ -19,11 +20,13 @@ import ch.admin.foitt.wallet.platform.credential.domain.model.CredentialError.Un
 import ch.admin.foitt.wallet.platform.credential.domain.model.CredentialError.UnsupportedCryptographicSuite
 import ch.admin.foitt.wallet.platform.credential.domain.model.CredentialError.UnsupportedGrantType
 import ch.admin.foitt.wallet.platform.credential.domain.model.CredentialError.UnsupportedProofType
+import ch.admin.foitt.wallet.platform.holderBinding.domain.model.GenerateKeyPairError
+import ch.admin.foitt.wallet.platform.holderBinding.domain.model.KeyPairError
 import ch.admin.foitt.wallet.platform.oca.domain.model.FetchVcMetadataByFormatError
 import ch.admin.foitt.wallet.platform.oca.domain.model.GenerateOcaDisplaysError
 import ch.admin.foitt.wallet.platform.oca.domain.model.OcaError
 import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialOfferRepositoryError
-import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialRepositoryError
+import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialWithKeyBindingRepositoryError
 import ch.admin.foitt.wallet.platform.ssi.domain.model.SsiError
 import ch.admin.foitt.wallet.platform.utils.JsonError
 import ch.admin.foitt.wallet.platform.utils.JsonParsingError
@@ -45,10 +48,13 @@ sealed interface CredentialError {
         SaveCredentialError,
         GenerateCredentialDisplaysError,
         GenerateMetadataDisplaysError
+
     data object InvalidJsonScheme : FetchCredentialError
     data object DatabaseError : FetchCredentialError, SaveCredentialError
     data object NetworkError : FetchCredentialError
     data object UnknownIssuer : FetchCredentialError
+    data object UnsupportedKeyStorageSecurityLevel : FetchCredentialError
+    data object IncompatibleDeviceKeyStorage : FetchCredentialError
     data class Unexpected(val cause: Throwable?) :
         FetchCredentialError,
         SaveCredentialError,
@@ -57,7 +63,8 @@ sealed interface CredentialError {
         AnyCredentialError,
         MapToCredentialDisplayDataError,
         GenerateCredentialDisplaysError,
-        GenerateMetadataDisplaysError
+        GenerateMetadataDisplaysError,
+        KeyBindingError
 }
 
 sealed interface FetchCredentialError
@@ -68,6 +75,7 @@ sealed interface AnyCredentialError
 sealed interface MapToCredentialDisplayDataError
 sealed interface GenerateCredentialDisplaysError
 sealed interface GenerateMetadataDisplaysError
+sealed interface KeyBindingError
 
 fun FetchIssuerCredentialInfoError.toFetchCredentialError(): FetchCredentialError = when (this) {
     OpenIdCredentialOfferError.NetworkInfoError -> NetworkError
@@ -86,6 +94,24 @@ fun FetchCredentialByConfigError.toFetchCredentialError(): FetchCredentialError 
     is OpenIdCredentialOfferError.UnsupportedCredentialFormat -> UnsupportedCredentialFormat
     is OpenIdCredentialOfferError.Unexpected -> Unexpected(cause)
     is OpenIdCredentialOfferError.UnknownIssuer -> UnknownIssuer
+    is OpenIdCredentialOfferError.UnsupportedKeyStorageSecurityLevel -> CredentialError.UnsupportedKeyStorageSecurityLevel
+    is OpenIdCredentialOfferError.IncompatibleDeviceKeyStorage -> CredentialError.IncompatibleDeviceKeyStorage
+}
+
+fun PrepareFetchVerifiableCredentialError.toFetchCredentialError(): FetchCredentialError = when (this) {
+    is OpenIdCredentialOfferError.UnsupportedProofType -> UnsupportedProofType
+    is OpenIdCredentialOfferError.UnsupportedCryptographicSuite -> UnsupportedCryptographicSuite
+    is OpenIdCredentialOfferError.InvalidCredentialOffer -> InvalidCredentialOffer
+    is OpenIdCredentialOfferError.NetworkInfoError -> NetworkError
+    is OpenIdCredentialOfferError.Unexpected -> Unexpected(cause)
+}
+
+fun GenerateKeyPairError.toFetchCredentialError(): FetchCredentialError = when (this) {
+    is KeyPairError.InvalidKeyAttestation -> Unexpected(null)
+    is KeyPairError.UnsupportedCryptographicSuite -> InvalidCredentialOffer
+    is KeyPairError.IncompatibleDeviceKeyStorage -> CredentialError.IncompatibleDeviceKeyStorage
+    is KeyPairError.UnsupportedKeyStorageSecurityLevel -> CredentialError.UnsupportedKeyStorageSecurityLevel
+    is KeyPairError.Unexpected -> Unexpected(throwable)
 }
 
 fun SaveCredentialError.toFetchCredentialError(): FetchCredentialError = when (this) {
@@ -106,14 +132,6 @@ fun Throwable.toGenerateCredentialDisplaysError(message: String): GenerateCreden
 }
 
 fun CredentialOfferRepositoryError.toSaveCredentialError(): SaveCredentialError = when (this) {
-    is SsiError.Unexpected -> Unexpected(cause)
-}
-
-fun CredentialRepositoryError.toGetAnyCredentialError(): GetAnyCredentialError = when (this) {
-    is SsiError.Unexpected -> Unexpected(cause)
-}
-
-fun CredentialRepositoryError.toGetAnyCredentialsError(): GetAnyCredentialsError = when (this) {
     is SsiError.Unexpected -> Unexpected(cause)
 }
 
@@ -145,5 +163,22 @@ fun GenerateOcaDisplaysError.toGenerateCredentialDisplaysError(): GenerateCreden
 
 fun GenerateCredentialDisplaysError.toFetchCredentialError(): FetchCredentialError = when (this) {
     is InvalidGenerateMetadataClaims -> this
+    is Unexpected -> this
+}
+
+fun CredentialWithKeyBindingRepositoryError.toGetAnyCredentialsError(): GetAnyCredentialsError = when (this) {
+    is SsiError.Unexpected -> Unexpected(cause)
+}
+
+fun CredentialWithKeyBindingRepositoryError.toGetAnyCredentialError(): GetAnyCredentialError = when (this) {
+    is SsiError.Unexpected -> Unexpected(cause)
+}
+
+fun Throwable.toKeyBindingError(message: String): KeyBindingError {
+    Timber.e(t = this, message = message)
+    return Unexpected(this)
+}
+
+fun KeyBindingError.toAnyCredentialError(): AnyCredentialError = when (this) {
     is Unexpected -> this
 }

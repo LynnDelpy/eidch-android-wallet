@@ -1,6 +1,6 @@
 package ch.admin.foitt.openid4vc.domain.usecase.implementation
 
-import ch.admin.foitt.openid4vc.domain.model.credentialoffer.CredentialOffer
+import ch.admin.foitt.openid4vc.domain.model.VerifiableCredentialParams
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.CredentialOfferError
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.CredentialFormat
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.VcSdJwtCredentialConfiguration
@@ -34,7 +34,7 @@ class FetchCredentialByConfigImplTest {
     private lateinit var mockVcSdJwtCredentialConfig: VcSdJwtCredentialConfiguration
 
     @MockK
-    private lateinit var mockCredentialOffer: CredentialOffer
+    private lateinit var mockVerifiableCredentialParams: VerifiableCredentialParams
 
     private lateinit var useCase: FetchCredentialByConfig
 
@@ -46,12 +46,10 @@ class FetchCredentialByConfigImplTest {
             fetchVcSdJwtCredential = mockFetchVcSdJwtCredential,
         )
 
+        every { mockVerifiableCredentialParams.credentialConfiguration } returns mockVcSdJwtCredentialConfig
         every { mockVcSdJwtCredentialConfig.format } returns CredentialFormat.VC_SD_JWT
         coEvery {
-            mockFetchVcSdJwtCredential(mockVcSdJwtCredentialConfig, mockCredentialOffer)
-        } returns Ok(mockVcSdJwtCredential)
-        coEvery {
-            mockFetchVcSdJwtCredential(mockVcSdJwtCredentialConfig, mockCredentialOffer)
+            mockFetchVcSdJwtCredential(mockVerifiableCredentialParams, null, null)
         } returns Ok(mockVcSdJwtCredential)
     }
 
@@ -62,7 +60,7 @@ class FetchCredentialByConfigImplTest {
 
     @Test
     fun `Fetching credential by config with vc+sd_jwt config returns a valid credential`() = runTest {
-        val result = useCase(mockVcSdJwtCredentialConfig, mockCredentialOffer)
+        val result = useCase(mockVerifiableCredentialParams, null, null)
 
         val credential = result.assertOk()
         assertEquals(mockVcSdJwtCredential, credential)
@@ -72,10 +70,10 @@ class FetchCredentialByConfigImplTest {
     fun `Fetching vc+sd_jwt credential by config maps error from fetching jwt vc json credential`() = runTest {
         val exception = IllegalStateException()
         coEvery {
-            mockFetchVcSdJwtCredential(any(), any())
+            mockFetchVcSdJwtCredential(any(), any(), any())
         } returns Err(CredentialOfferError.Unexpected(exception))
 
-        val result = useCase(mockVcSdJwtCredentialConfig, mockCredentialOffer)
+        val result = useCase(mockVerifiableCredentialParams, null, null)
 
         val error = result.assertErrorType(CredentialOfferError.Unexpected::class)
         assertEquals(exception, error.cause)

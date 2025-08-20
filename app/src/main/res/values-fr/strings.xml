@@ -105,7 +105,7 @@
     <string name="tk_error_issuer_notregistered_body">L’émetteur n’est pas répertorié.</string>
     <string name="tk_global_loginbiometric_primarybutton">Connexion biométrique</string>
     <string name="tk_present_warning_alt">Avertissement</string>
-    <string name="tk_present_result_success_primary">Vérification réussie de vos données</string>
+    <string name="tk_present_result_success_primary">Données transmises avec succès.</string>
     <string name="tk_present_confirm_alt">Confirmation</string>
     <string name="tk_receive_scanning_notfound_alt">Le code QR n’a pas été trouvé. Essayez de repositionner la caméra.</string>
     <string name="tk_receive_scanning_alt">La caméra cherche le code QR.</string>
@@ -138,7 +138,7 @@
     <string name="tk_login_passwordfailed_alt">Mot de passe incorrect. Veuillez réessayer.</string>
     <string name="tk_global_invisible_alt">Afficher le mot de passe</string>
     <string name="tk_onboarding_nopasswordmismatch_alt">Veuillez confirmer le mot de passe.</string>
-    <string name="tk_present_review_credential_section_primary">Souhaite vérifier votre document</string>
+    <string name="tk_present_review_credential_section_primary">Souhaite vérifier votre document</string>
     <string name="tk_credential_status_valid_alt">Le document est valable</string>
     <string name="tk_global_back_alt">Retour</string>
     <string name="tk_credential_status_unknown_alt">Statut de validité inconnu</string>
@@ -201,7 +201,7 @@
         <item quantity="many">Le mot de passe est incorrect. Il vous reste %s tentatives.</item>
         <item quantity="other">Le mot de passe est incorrect. Il vous reste %s tentatives.</item>
     </plurals>
-    <string name="tk_present_compatibleCredentials_primary">Choisir un moyen de preuve</string>
+    <string name="tk_present_compatibleCredentials_primary">Choisir un document</string>
     <string name="tk_global_getbetaid_link_value">https://www.bcs.admin.ch/bcs-web/?lang=FR</string>
     <string name="tk_menu_securityPrivacy_status_passwordChangeSuccessful">Changement de mot de passe réussi</string>
     <string name="tk_displaydelete_credentialdelete_body">Le moyen de preuve et toutes les données qui s’y rapportent seront complètement supprimés de votre appareil.</string>
@@ -223,8 +223,8 @@
     </plurals>
     <string name="tk_onboarding_code2_alt">Le mot de passe doit comporter entre six et soixante-quatre caractères.</string>
     <string name="tk_present_review_claims_section_primary">Demande l’accès à %s donnée(s)</string>
-    <string name="tk_present_result_canceledVerification_primary">Aborted verification (deepl)</string>
-    <string name="tk_present_result_canceledVerification_secondary">The verification was canceled and no data was transferred. (deepl)</string>
+    <string name="tk_present_result_canceledVerification_primary">Vérification interrompue</string>
+    <string name="tk_present_result_canceledVerification_secondary">Aucune donnée n\'a été transmise.</string>
     <string name="tk_login_passwordfailed_android_subtitle">Il vous reste %s tentative(s)</string>
     <string name="tk_receive_jump_to_details">Accéder aux données personnelles</string>
     <string name="tk_global_hiddenGoToTop">Retour en haut de page</string>
@@ -278,7 +278,7 @@
     <string name="impressum_more_information_link_text">https://www.bit.admin.ch</string>
     <string name="impressum_build_number">Build number</string>
     <string name="impressum_app_version">App Version</string>
-    <string name="tk_present_result_declined_primary">Les données n\'ont pas été transmises.</string>
+    <string name="tk_present_result_declined_primary">Les données n\'ont pas été transmises</string>
     <string name="tk_menu_setting_wallet_feedback">Envoyer un feedback</string>
     <string name="impressum_disclaimer_title">Clause de non-responsabilité</string>
     <string name="impressum_disclaimer_text">L\'auteur n\'assume aucune responsabilité quant à la fiabilité et à l\'exhaustivité des informations. Les références et les liens vers des sites web tiers ne relèvent pas de notre responsabilité.</string>

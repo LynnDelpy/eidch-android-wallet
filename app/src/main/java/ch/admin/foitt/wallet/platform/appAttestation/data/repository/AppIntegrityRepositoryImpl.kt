@@ -19,7 +19,7 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
 class AppIntegrityRepositoryImpl @Inject constructor(
-    @ApplicationContext private val appContext: Context,
+    @param:ApplicationContext private val appContext: Context,
 ) : AppIntegrityRepository {
     override suspend fun fetchIntegrityToken(tokenNonce: String) = runSuspendCatching<IntegrityToken> {
         val integrityManager = IntegrityManagerFactory.create(appContext)
@@ -37,7 +37,7 @@ class AppIntegrityRepositoryImpl @Inject constructor(
         throwable.toAppIntegrityRepositoryError("Fetch integrity token failed")
     }
 
-    suspend fun <T> Task<T>.awaitResult(): Result<T, Throwable> = runSuspendCatching {
+    private suspend fun <T> Task<T>.awaitResult(): Result<T, Throwable> = runSuspendCatching {
         suspendCancellableCoroutine { continuation ->
             addOnSuccessListener { result ->
                 continuation.resume(result)

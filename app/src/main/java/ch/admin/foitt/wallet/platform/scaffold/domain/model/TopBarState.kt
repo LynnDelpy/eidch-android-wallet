@@ -8,14 +8,14 @@ sealed interface TopBarState {
 
     data class DetailsWithCloseButton(
         val onUp: () -> Unit,
-        @StringRes
+        @param:StringRes
         val titleId: Int?,
         val onClose: () -> Unit,
     ) : TopBarState
 
     data class Details(
         val onUp: () -> Unit,
-        @StringRes
+        @param:StringRes
         val titleId: Int?,
     ) : TopBarState
 
@@ -25,7 +25,7 @@ sealed interface TopBarState {
 
     data class OnGradient(
         val onUp: () -> Unit,
-        @StringRes
+        @param:StringRes
         val titleId: Int,
     ) : TopBarState
 }

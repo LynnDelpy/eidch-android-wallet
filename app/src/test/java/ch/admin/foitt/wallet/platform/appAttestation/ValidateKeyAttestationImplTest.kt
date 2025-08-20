@@ -4,7 +4,6 @@ import ch.admin.foitt.openid4vc.domain.model.jwt.Jwt
 import ch.admin.foitt.openid4vc.domain.model.keyBinding.Jwk
 import ch.admin.foitt.openid4vc.domain.model.vcSdJwt.VcSdJwtError
 import ch.admin.foitt.openid4vc.domain.usecase.VerifyJwtSignature
-import ch.admin.foitt.wallet.platform.appAttestation.domain.model.KeyAttestation
 import ch.admin.foitt.wallet.platform.appAttestation.domain.model.KeyAttestationJwt
 import ch.admin.foitt.wallet.platform.appAttestation.domain.usecase.ValidateKeyAttestation
 import ch.admin.foitt.wallet.platform.appAttestation.domain.usecase.implementation.ValidateKeyAttestationImpl
@@ -43,11 +42,9 @@ class ValidateKeyAttestationImplTest {
 
     private var safeJson = spyk(SafeJsonTestInstance.safeJson)
 
-    private val keyStoreAlias = "keyStoreAlias"
-    private val keyAttestionJwt = Jwt(KeyAttestationMocks.jwtAttestation01.value)
-    private val keyAttestation = KeyAttestation(keyStoreAlias, keyAttestionJwt)
+    private val keyAttestationJwt = Jwt(KeyAttestationMocks.jwtAttestation01.value)
     private val jwk = Jwk.fromEcKey(KeyAttestationMocks.jwkEcP256_01, null).getOrThrow()
-    private val issuerDid = "Did"
+    private val issuerDid = "did:tdw:example.com"
 
     private val attestationJwt = KeyAttestationMocks.jwtAttestation01
 
@@ -56,20 +53,12 @@ class ValidateKeyAttestationImplTest {
     @BeforeEach
     fun setUp() {
         MockKAnnotations.init(this)
-        mockkConstructor(Jwt::class)
-        mockkConstructor(Jwk::class)
 
         useCase = ValidateKeyAttestationImpl(
             environmentSetupRepo = mockEnvironmentSetupRepository,
             verifyJwtSignature = mockVerifyJwtSignature,
             safeJson = safeJson,
         )
-
-        coEvery { anyConstructed<Jwt>().iss } returns issuerDid
-        coEvery { anyConstructed<Jwt>().keyId } returns "$issuerDid#key01"
-        coEvery { anyConstructed<Jwt>().expInstant } returns Instant.MAX
-        coEvery { mockEnvironmentSetupRepository.attestationsServiceTrustedDids } returns listOf(issuerDid)
-        coEvery { mockVerifyJwtSignature(any(), any(), any()) } returns Ok(Unit)
     }
 
     @AfterEach
@@ -79,19 +68,21 @@ class ValidateKeyAttestationImplTest {
 
     @Test
     fun `valid key attestation passes validation`() = runTest {
-        val result = useCase(keyStoreAlias, jwk, attestationJwt)
+        setupDefaultMocks(useMockJwt = false)
+
+        val result = useCase(jwk, attestationJwt)
 
         val attestation = result.assertOk()
 
-        assertEquals(keyAttestation.keyStoreAlias, attestation.keyStoreAlias)
-        assertEquals(keyAttestation.attestation.rawJwt, attestation.attestation.rawJwt)
+        assertEquals(keyAttestationJwt.rawJwt, attestation.rawJwt)
     }
 
     @Test
     fun `invalid Jwt fails validation`() = runTest {
+        setupDefaultMocks()
         val wrongJwt = KeyAttestationJwt("wrongJwt")
 
-        val result = useCase(keyStoreAlias, jwk, wrongJwt)
+        val result = useCase(jwk, wrongJwt)
 
         result.assertErr()
 
@@ -104,9 +95,10 @@ class ValidateKeyAttestationImplTest {
 
     @Test
     fun `missing issuer fails validation`() = runTest {
+        setupDefaultMocks()
         coEvery { anyConstructed<Jwt>().iss } returns null
 
-        val result = useCase(keyStoreAlias, jwk, attestationJwt)
+        val result = useCase(jwk, attestationJwt)
 
         result.assertErr()
 
@@ -120,8 +112,9 @@ class ValidateKeyAttestationImplTest {
 
     @Test
     fun `unexpected did fails validation`() = runTest {
+        setupDefaultMocks()
         coEvery { anyConstructed<Jwt>().iss } returns "otherDid"
-        val result = useCase(keyStoreAlias, jwk, attestationJwt)
+        val result = useCase(jwk, attestationJwt)
 
         result.assertErr()
 
@@ -137,8 +130,9 @@ class ValidateKeyAttestationImplTest {
 
     @Test
     fun `missing kid fails validation`() = runTest {
+        setupDefaultMocks()
         coEvery { anyConstructed<Jwt>().keyId } returns null
-        val result = useCase(keyStoreAlias, jwk, attestationJwt)
+        val result = useCase(jwk, attestationJwt)
 
         result.assertErr()
 
@@ -153,8 +147,9 @@ class ValidateKeyAttestationImplTest {
 
     @Test
     fun `unexpected kid fails validation`() = runTest {
+        setupDefaultMocks()
         coEvery { anyConstructed<Jwt>().keyId } returns "kid#key01"
-        val result = useCase(keyStoreAlias, jwk, attestationJwt)
+        val result = useCase(jwk, attestationJwt)
 
         result.assertErr()
 
@@ -169,9 +164,10 @@ class ValidateKeyAttestationImplTest {
 
     @Test
     fun `failed signature verification fails validation`() = runTest {
+        setupDefaultMocks()
         coEvery { mockVerifyJwtSignature.invoke(any(), any(), any()) } returns Err(VcSdJwtError.IssuerValidationFailed)
 
-        val result = useCase(keyStoreAlias, jwk, attestationJwt)
+        val result = useCase(jwk, attestationJwt)
 
         result.assertErr()
 
@@ -182,9 +178,10 @@ class ValidateKeyAttestationImplTest {
 
     @Test
     fun `unsupported algorithm fails validation`() = runTest {
+        setupDefaultMocks()
         coEvery { anyConstructed<Jwt>().algorithm } returns "unsupportedAlgorithm"
 
-        val result = useCase(keyStoreAlias, jwk, attestationJwt)
+        val result = useCase(jwk, attestationJwt)
 
         result.assertErr()
 
@@ -199,9 +196,10 @@ class ValidateKeyAttestationImplTest {
 
     @Test
     fun `unsupported attestation type fails validation`() = runTest {
+        setupDefaultMocks()
         coEvery { anyConstructed<Jwt>().type } returns "unsupportedType"
 
-        val result = useCase(keyStoreAlias, jwk, attestationJwt)
+        val result = useCase(jwk, attestationJwt)
 
         result.assertErr()
 
@@ -216,9 +214,10 @@ class ValidateKeyAttestationImplTest {
 
     @Test
     fun `missing iat fails validation`() = runTest {
+        setupDefaultMocks()
         coEvery { anyConstructed<Jwt>().issuedAt } returns null
 
-        val result = useCase(keyStoreAlias, jwk, attestationJwt)
+        val result = useCase(jwk, attestationJwt)
 
         result.assertErr()
 
@@ -229,9 +228,10 @@ class ValidateKeyAttestationImplTest {
 
     @Test
     fun `missing exp fails validation`() = runTest {
+        setupDefaultMocks()
         coEvery { anyConstructed<Jwt>().expInstant } returns null
 
-        val result = useCase(keyStoreAlias, jwk, attestationJwt)
+        val result = useCase(jwk, attestationJwt)
 
         result.assertErr()
 
@@ -242,9 +242,10 @@ class ValidateKeyAttestationImplTest {
 
     @Test
     fun `expired exp fails validation`() = runTest {
+        setupDefaultMocks()
         coEvery { anyConstructed<Jwt>().expInstant } returns Instant.ofEpochSecond(0)
 
-        val result = useCase(keyStoreAlias, jwk, attestationJwt)
+        val result = useCase(jwk, attestationJwt)
 
         result.assertErr()
 
@@ -255,9 +256,10 @@ class ValidateKeyAttestationImplTest {
 
     @Test
     fun `missing attested keys field fails validation`() = runTest {
+        setupDefaultMocks()
         coEvery { anyConstructed<Jwt>().payloadJson } returns JsonObject(mapOf())
 
-        val result = useCase(keyStoreAlias, jwk, attestationJwt)
+        val result = useCase(jwk, attestationJwt)
 
         result.assertErr()
 
@@ -272,13 +274,14 @@ class ValidateKeyAttestationImplTest {
 
     @Test
     fun `empty attested keys fails validation`() = runTest {
+        setupDefaultMocks()
         coEvery { anyConstructed<Jwt>().payloadJson } returns JsonObject(
             mapOf(
                 "attested_keys" to JsonArray(listOf())
             )
         )
 
-        val result = useCase(keyStoreAlias, jwk, attestationJwt)
+        val result = useCase(jwk, attestationJwt)
 
         result.assertErr()
 
@@ -292,6 +295,7 @@ class ValidateKeyAttestationImplTest {
 
     @Test
     fun `attested key with missing parameters fails validation`() = runTest {
+        setupDefaultMocks()
         val jwkString = JsonObject(
             mapOf(
                 "z" to JsonPrimitive("x"),
@@ -307,7 +311,7 @@ class ValidateKeyAttestationImplTest {
             )
         )
 
-        val result = useCase(keyStoreAlias, jwk, attestationJwt)
+        val result = useCase(jwk, attestationJwt)
 
         result.assertErr()
 
@@ -318,11 +322,12 @@ class ValidateKeyAttestationImplTest {
 
     @Test
     fun `attested key different from original fails validation`() = runTest {
+        setupDefaultMocks()
         coEvery { safeJson.safeDecodeElementTo<Jwk>(any()) } returns Ok(
             Jwk.fromEcKey(KeyAttestationMocks.jwkEcP256_02, null).getOrThrow().copy(x = "x")
         )
 
-        val result = useCase(keyStoreAlias, jwk, attestationJwt)
+        val result = useCase(jwk, attestationJwt)
 
         result.assertErr()
 
@@ -333,13 +338,27 @@ class ValidateKeyAttestationImplTest {
 
     @Test
     fun `missing key storage value fails validation`() = runTest {
-        val result = useCase(keyStoreAlias, jwk, KeyAttestationMocks.jwtAttestation02NoStorage)
+        setupDefaultMocks()
+        val result = useCase(jwk, KeyAttestationMocks.jwtAttestation02NoStorage)
         result.assertErr()
     }
 
     @Test
     fun `attested key with unknown key storage value fails validation`() = runTest {
-        val result = useCase(keyStoreAlias, jwk, KeyAttestationMocks.jwtAttestation03UnknownStorage)
+        setupDefaultMocks()
+        val result = useCase(jwk, KeyAttestationMocks.jwtAttestation03UnknownStorage)
         result.assertErr()
+    }
+
+    private fun setupDefaultMocks(useMockJwt: Boolean = true) {
+        if (useMockJwt) {
+            mockkConstructor(Jwt::class)
+            mockkConstructor(Jwk::class)
+            coEvery { anyConstructed<Jwt>().iss } returns issuerDid
+            coEvery { anyConstructed<Jwt>().keyId } returns "$issuerDid#key01"
+            coEvery { anyConstructed<Jwt>().expInstant } returns Instant.MAX
+        }
+        coEvery { mockEnvironmentSetupRepository.attestationsServiceTrustedDids } returns listOf(issuerDid)
+        coEvery { mockVerifyJwtSignature(any(), any(), any()) } returns Ok(Unit)
     }
 }

@@ -1,6 +1,7 @@
 package ch.admin.foitt.openid4vc.domain.model.presentationRequest
 
 import ch.admin.foitt.openid4vc.domain.model.GetKeyPairError
+import ch.admin.foitt.openid4vc.domain.model.GetSoftwareKeyPairError
 import ch.admin.foitt.openid4vc.domain.model.KeyPairError
 import ch.admin.foitt.openid4vc.utils.JsonError
 import ch.admin.foitt.openid4vc.utils.JsonParsingError
@@ -11,6 +12,7 @@ interface PresentationRequestError {
     data object ValidationError : SubmitAnyCredentialPresentationError
     data object VerificationError : SubmitAnyCredentialPresentationError
     data object InvalidCredentialError : SubmitAnyCredentialPresentationError
+    data object InvalidKeyPairError : CreateVcSdJwtVerifiablePresentationError
     data class Unexpected(val throwable: Throwable?) :
         FetchPresentationRequestError,
         SubmitAnyCredentialPresentationError,
@@ -31,12 +33,17 @@ sealed interface SubmitPresentationErrorError : PresentationRequestError
 
 internal fun CreateVcSdJwtVerifiablePresentationError.toCreateAnyVerifiablePresentationError(): CreateAnyVerifiablePresentationError =
     when (this) {
+        is PresentationRequestError.InvalidKeyPairError -> PresentationRequestError.Unexpected(null)
         is PresentationRequestError.Unexpected -> this
     }
 
 internal fun GetKeyPairError.toCreateVcSdJwtVerifiablePresentationError(): CreateVcSdJwtVerifiablePresentationError = when (this) {
     is KeyPairError.Unexpected -> PresentationRequestError.Unexpected(throwable)
     KeyPairError.NotFound -> PresentationRequestError.Unexpected(null)
+}
+
+internal fun GetSoftwareKeyPairError.toCreateVcSdJwtVerifiablePresentationError(): CreateVcSdJwtVerifiablePresentationError = when (this) {
+    is KeyPairError.Unexpected -> PresentationRequestError.Unexpected(throwable)
 }
 
 internal fun CreateAnyVerifiablePresentationError.toSubmitAnyCredentialPresentationError(): SubmitAnyCredentialPresentationError =

@@ -6,6 +6,9 @@ plugins {
 
 android {
     namespace = "ch.admin.foitt.openid4vc"
+    defaultConfig {
+        testInstrumentationRunner = "ch.admin.foitt.wallet.CustomTestRunner"
+    }
 }
 
 dependencies {
@@ -27,13 +30,8 @@ dependencies {
     // JWT
     implementation(libs.nimbus.jose.jwt)
 
-    // Did
+    // DID resolver
     implementation(libs.didresolver)
-    implementation(libs.jna) {
-        artifact {
-            type = "aar"
-        }
-    }
 
     // Error handling
     implementation(libs.kotlin.result)

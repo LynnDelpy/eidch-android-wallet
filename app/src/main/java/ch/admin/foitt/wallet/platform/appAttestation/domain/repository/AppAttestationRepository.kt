@@ -3,7 +3,6 @@ package ch.admin.foitt.wallet.platform.appAttestation.domain.repository
 import ch.admin.foitt.openid4vc.domain.model.keyBinding.Jwk
 import ch.admin.foitt.wallet.platform.appAttestation.domain.model.AppAttestationRepositoryError
 import ch.admin.foitt.wallet.platform.appAttestation.domain.model.AttestationChallengeResponse
-import ch.admin.foitt.wallet.platform.appAttestation.domain.model.ClientAttestation
 import ch.admin.foitt.wallet.platform.appAttestation.domain.model.ClientAttestationResponse
 import ch.admin.foitt.wallet.platform.appAttestation.domain.model.IntegrityToken
 import ch.admin.foitt.wallet.platform.appAttestation.domain.model.KeyAttestationResponse
@@ -15,10 +14,6 @@ interface AppAttestationRepository {
         integrityToken: IntegrityToken,
         publicKey: Jwk,
     ): Result<ClientAttestationResponse, AppAttestationRepositoryError>
-
-    suspend fun saveClientAttestation(
-        clientAttestation: ClientAttestation,
-    ): Result<Long, AppAttestationRepositoryError>
 
     suspend fun fetchKeyAttestation(
         publicKey: Jwk,

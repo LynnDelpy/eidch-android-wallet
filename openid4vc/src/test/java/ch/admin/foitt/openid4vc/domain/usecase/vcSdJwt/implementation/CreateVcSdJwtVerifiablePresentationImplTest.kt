@@ -1,12 +1,15 @@
 package ch.admin.foitt.openid4vc.domain.usecase.vcSdJwt.implementation
 
 import ch.admin.foitt.openid4vc.domain.model.KeyPairError
-import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.SigningAlgorithm
+import ch.admin.foitt.openid4vc.domain.model.SigningAlgorithm
+import ch.admin.foitt.openid4vc.domain.model.keyBinding.KeyBinding
+import ch.admin.foitt.openid4vc.domain.model.keyBinding.KeyBindingType
 import ch.admin.foitt.openid4vc.domain.model.presentationRequest.PresentationRequest
 import ch.admin.foitt.openid4vc.domain.model.presentationRequest.PresentationRequestError
 import ch.admin.foitt.openid4vc.domain.model.vcSdJwt.VcSdJwtCredential
-import ch.admin.foitt.openid4vc.domain.usecase.GetKeyPair
-import ch.admin.foitt.openid4vc.domain.usecase.implementation.mock.MockKeyPairs.VALID_KEY_PAIR
+import ch.admin.foitt.openid4vc.domain.usecase.GetHardwareKeyPair
+import ch.admin.foitt.openid4vc.domain.usecase.GetSoftwareKeyPair
+import ch.admin.foitt.openid4vc.domain.usecase.implementation.mock.MockKeyPairs.VALID_KEY_PAIR_HARDWARE
 import ch.admin.foitt.openid4vc.domain.usecase.vcSdJwt.CreateVcSdJwtVerifiablePresentation
 import ch.admin.foitt.openid4vc.domain.usecase.vcSdJwt.implementation.CreateVcSdJwtVerifiablePresentationImpl.Companion.HASH_ALGORITHM
 import ch.admin.foitt.openid4vc.util.SafeJsonTestInstance
@@ -38,13 +41,19 @@ class CreateVcSdJwtVerifiablePresentationImplTest {
     private val testDispatcher = StandardTestDispatcher()
 
     @MockK
-    private lateinit var mockGetKeyPair: GetKeyPair
+    private lateinit var mockGetHardwareKeyPair: GetHardwareKeyPair
+
+    @MockK
+    private lateinit var mockGetSoftwareKeyPair: GetSoftwareKeyPair
 
     @MockK
     private lateinit var mockCredential: VcSdJwtCredential
 
     @MockK
     private lateinit var mockPresentationRequest: PresentationRequest
+
+    @MockK
+    private lateinit var mockKeyBinding: KeyBinding
 
     private lateinit var useCase: CreateVcSdJwtVerifiablePresentation
 
@@ -54,11 +63,12 @@ class CreateVcSdJwtVerifiablePresentationImplTest {
 
         useCase = CreateVcSdJwtVerifiablePresentationImpl(
             safeJson = safeJson,
-            getKeyPair = mockGetKeyPair,
+            getHardwareKeyPair = mockGetHardwareKeyPair,
+            getSoftwareKeyPair = mockGetSoftwareKeyPair,
             defaultDispatcher = testDispatcher
         )
 
-        success()
+        setupDefaultMocks()
     }
 
     @AfterEach
@@ -70,10 +80,10 @@ class CreateVcSdJwtVerifiablePresentationImplTest {
     fun `Creating VcSdJwtVerifiablePresentation without holder binding returns the presentation Jwt without key binding`() =
         runTest(testDispatcher) {
             every { mockCredential.createVerifiableCredential(mockRequestedFields) } returns SD_JWT_WITH_DISCLOSURES
-            every { mockCredential.keyBindingIdentifier } returns null
 
             val result = useCase(
                 credential = mockCredential,
+                keyBinding = null,
                 requestedFields = mockRequestedFields,
                 presentationRequest = mockPresentationRequest,
             ).assertOk()
@@ -83,10 +93,11 @@ class CreateVcSdJwtVerifiablePresentationImplTest {
 
     @Test
     fun `Creating VcSdJwtVerifiablePresentation with holder binding returns the presentation Jwt with proof`() = runTest(testDispatcher) {
-        every { mockCredential.cnf } returns SafeJsonTestInstance.json.parseToJsonElement(CREDENTIAL_CNF_CLAIM_JSON)
+        every { mockCredential.cnfJwk } returns SafeJsonTestInstance.json.parseToJsonElement(CREDENTIAL_CNF_JWK)
 
         val result = useCase(
             credential = mockCredential,
+            keyBinding = mockKeyBinding,
             requestedFields = mockRequestedFields,
             presentationRequest = mockPresentationRequest,
         ).assertOk()
@@ -103,7 +114,7 @@ class CreateVcSdJwtVerifiablePresentationImplTest {
         assertEquals(CreateVcSdJwtVerifiablePresentationImpl.HEADER_TYPE, jwtHeader.type.type)
         val jwtBody = jwt.jwtClaimsSet
         assertEquals(BASE64_URL_ENCODED_HASH, jwtBody.claims[CreateVcSdJwtVerifiablePresentationImpl.CLAIM_KEY_SD_HASH])
-        assertEquals(RESPONSE_URI, jwtBody.audience.first())
+        assertEquals(CLIENT_ID, jwtBody.audience.first())
         assertEquals(NONCE, jwtBody.claims[CreateVcSdJwtVerifiablePresentationImpl.CLAIM_KEY_NONCE])
         assertEquals(ISSUED_AT * 1000, jwtBody.issueTime.time)
     }
@@ -115,6 +126,7 @@ class CreateVcSdJwtVerifiablePresentationImplTest {
 
         useCase(
             credential = mockCredential,
+            keyBinding = mockKeyBinding,
             requestedFields = mockRequestedFields,
             presentationRequest = mockPresentationRequest,
         ).assertErrorType(PresentationRequestError.Unexpected::class)
@@ -127,28 +139,49 @@ class CreateVcSdJwtVerifiablePresentationImplTest {
 
         useCase(
             credential = mockCredential,
+            keyBinding = mockKeyBinding,
             requestedFields = mockRequestedFields,
             presentationRequest = mockPresentationRequest,
         ).assertErrorType(PresentationRequestError.Unexpected::class)
     }
 
     @Test
-    fun `Creating VcSdJwtVerifiablePresentation maps errors from getting key pair`() = runTest(testDispatcher) {
+    fun `Creating VcSdJwtVerifiablePresentation maps errors from getting hardware key pair`() = runTest(testDispatcher) {
         val exception = Exception()
-        coEvery { mockGetKeyPair(any(), any()) } returns Err(KeyPairError.Unexpected(exception))
+        coEvery { mockGetHardwareKeyPair(any(), any()) } returns Err(KeyPairError.Unexpected(exception))
+        every { mockKeyBinding.bindingType } returns KeyBindingType.HARDWARE
 
         useCase(
             credential = mockCredential,
+            keyBinding = mockKeyBinding,
             requestedFields = mockRequestedFields,
             presentationRequest = mockPresentationRequest,
         ).assertErrorType(PresentationRequestError.Unexpected::class)
     }
 
-    private fun success() {
-        every { mockCredential.keyBindingIdentifier } returns SIGNING_KEY_ID
-        every { mockCredential.keyBindingAlgorithm } returns SIGNING_ALGORITHM
+    @Test
+    fun `Creating VcSdJwtVerifiablePresentation maps errors from getting software key pair`() = runTest(testDispatcher) {
+        val exception = Exception()
+        coEvery { mockGetSoftwareKeyPair(any(), any()) } returns Err(KeyPairError.Unexpected(exception))
+
+        useCase(
+            credential = mockCredential,
+            keyBinding = mockKeyBinding,
+            requestedFields = mockRequestedFields,
+            presentationRequest = mockPresentationRequest,
+        ).assertErrorType(PresentationRequestError.Unexpected::class)
+    }
+
+    private fun setupDefaultMocks() {
         every { mockCredential.createVerifiableCredential(mockRequestedFields) } returns HOLDER_BINDING_SD_JWT_WITH_DISCLOSURES
-        every { mockPresentationRequest.responseUri } returns RESPONSE_URI
+
+        every { mockKeyBinding.identifier } returns SIGNING_KEY_ID
+        every { mockKeyBinding.algorithm } returns SIGNING_ALGORITHM
+        every { mockKeyBinding.bindingType } returns KeyBindingType.SOFTWARE
+        every { mockKeyBinding.publicKey } returns byteArrayOf()
+        every { mockKeyBinding.privateKey } returns byteArrayOf()
+
+        every { mockPresentationRequest.clientId } returns CLIENT_ID
 
         mockkStatic(String::createDigest)
         every { any<String>().createDigest(HASH_ALGORITHM) } returns BASE64_URL_ENCODED_HASH
@@ -156,7 +189,8 @@ class CreateVcSdJwtVerifiablePresentationImplTest {
         mockkStatic(Instant::class)
         every { Instant.now().epochSecond } returns ISSUED_AT
 
-        coEvery { mockGetKeyPair(SIGNING_KEY_ID, ANDROID_KEY_STORE) } returns Ok(VALID_KEY_PAIR.keyPair)
+        coEvery { mockGetHardwareKeyPair(SIGNING_KEY_ID, ANDROID_KEY_STORE) } returns Ok(VALID_KEY_PAIR_HARDWARE.keyPair)
+        coEvery { mockGetSoftwareKeyPair(any(), any()) } returns Ok(VALID_KEY_PAIR_HARDWARE.keyPair)
 
         every { mockPresentationRequest.nonce } returns NONCE
     }
@@ -167,15 +201,26 @@ class CreateVcSdJwtVerifiablePresentationImplTest {
         val SIGNING_ALGORITHM = SigningAlgorithm.ES256
         val mockRequestedFields = mockk<List<String>>()
         const val NONCE = "nonce"
-        const val RESPONSE_URI = "responseUri"
+        const val CLIENT_ID = "clientId"
 
-        const val CREDENTIAL_CNF_CLAIM_JSON = """{"kty":"EC","crv":"P-256","x":"x","y":"y"}"""
+        const val CREDENTIAL_CNF_JWK = """{"kty":"EC","crv":"P-256","x":"x","y":"y"}"""
+
+/*
+-----BEGIN PUBLIC KEY-----
+MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAERqVXn+o+6zEOpWEsGw5CsB+wd8zO
+jxu0uASGpiGP+wYfcc1unyMxcStbDzUjRuObY8DalaCJ9/J6UrkQkZBtZw==
+-----END PUBLIC KEY-----
+-----BEGIN PRIVATE KEY-----
+MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQglBnO+qn+RecAQ31T
+jBklNu+AwiFN5eVHBFbnjecmMryhRANCAARGpVef6j7rMQ6lYSwbDkKwH7B3zM6P
+G7S4BIamIY/7Bh9xzW6fIzFxK1sPNSNG45tjwNqVoIn38npSuRCRkG1n
+-----END PRIVATE KEY-----
+ */
 
         const val CREDENTIAL_PAYLOAD_WITHOUT_HOLDER_BINDING =
-            "ewogICJ0eXAiOiJ2YytzZC1qd3QiLAogICJhbGciOiJFUzI1NiIKfQ.ewogICAgICAgICAgIl9zZCI6IFsKICAgICAgICAgICAgIi1VMzJ6SEtkUTZYWTJ1TUNLNF9nOEJEZjJMSUs1VnZFYjVtR0RhZkFhRFUiLAogICAgICAgICAgICAiNXl4eWZRVHhiYlpxQlZSZ3BSNlZQdHd2Vl8tRU5mb2hEU3FfV25TMWxJbyIKICAgICAgICAgIF0sCiAgICAgICAgICAibmJmIjogMTcyMjQ5OTIwMCwKICAgICAgICAgICJfc2RfYWxnIjogInNoYS0yNTYiLAogICAgICAgICAgImV4cCI6IDE3NjcxNjgwMDAsCiAgICAgICAgICAiaWF0IjogMTcyOTI1ODQyMAogICAgICAgIH0.ZXdvZ0lDSjBlWEFpT2lKMll5dHpaQzFxZDNRaUxBb2dJQ0poYkdjaU9pSkZVekkxTmlJS2ZRLi5vcEc2TjJ6eFdRYzdwQjZKbjYwNU96bC16N0Y5VFhGeE1MUVRWOWdwUnplcnBvekNGZm1SazctaFZNbjFtUEo2aDhTbElwUlNTMGE1UXNYTElRdGU2Zw"
+            "eyJ0eXAiOiJ2YytzZC1qd3QiLCJhbGciOiJFUzI1NiJ9.eyJfc2QiOlsiLVUzMnpIS2RRNlhZMnVNQ0s0X2c4QkRmMkxJSzVWdkViNW1HRGFmQWFEVSIsIjV5eHlmUVR4YmJacUJWUmdwUjZWUHR3dlZfLUVOZm9oRFNxX1duUzFsSW8iXSwibmJmIjoxNzIyNDk5MjAwLCJfc2RfYWxnIjoic2hhLTI1NiIsImV4cCI6MTc2NzE2ODAwMCwiaWF0IjoxNzI5MjU4NDIwfQ.CZ_YtSqto-e6w1mJ8bUnS3zIeJNtxdPCErnejgTGjUVwb7nAO-JAdqAGd5nO_jejVVnJrZZh8joohGqiLC39wQ"
         const val CREDENTIAL_PAYLOAD_WITH_HOLDER_BINDING =
-            "ewogICJ0eXAiOiJ2YytzZC1qd3QiLAogICJhbGciOiJFUzI1NiIKfQ.ewogICJfc2QiOiBbCiAgICAiLVUzMnpIS2RRNlhZMnVNQ0s0X2c4QkRmMkxJSzVWdkViNW1HRGFmQWFEVSIsCiAgICAiNXl4eWZRVHhiYlpxQlZSZ3BSNlZQdHd2Vl8tRU5mb2hEU3FfV25TMWxJbyIKICBdLAogICJuYmYiOiAxNzIyNDk5MjAwLAogICJfc2RfYWxnIjogInNoYS0yNTYiLAogICJleHAiOiAxNzY3MTY4MDAwLAogICJpYXQiOiAxNzI5MjU4NDIwLAogICJjbmYiOiB7CiAgICAia3R5IjogIkVDIiwKICAgICJjcnYiOiAiUC0yNTYiLAogICAgIngiOiAiLWdMMHd1dlZfOTFCQ0RfdzZra2ZjSXNyaTFtaEdBa2UwcjdNRkZ5SVM1ayIsCiAgICAieSI6ICJOcmIzMDBJV1NJOWFsX2Z2VWtQWUNqU2otUEFxMFc4UGd5TTkzMWFBeWpBIgogIH0KfQ.ZXdvZ0lDSjBlWEFpT2lKMll5dHpaQzFxZDNRaUxBb2dJQ0poYkdjaU9pSkZVekkxTmlJS2ZRLi5nVVBNTTJZTHpSSE5NU191OTFraW1qTTJuMVhMVFVueGNtdW5tVFQzRl9kT2JGWVN2WnV3YVlzLUNEWUJ5UDdZT1ktZUVBNmZwZTdpWEdMVThTeVhkdw"
-
+            "eyJ0eXAiOiJ2YytzZC1qd3QiLCJhbGciOiJFUzI1NiJ9.eyJfc2QiOlsiLVUzMnpIS2RRNlhZMnVNQ0s0X2c4QkRmMkxJSzVWdkViNW1HRGFmQWFEVSIsIjV5eHlmUVR4YmJacUJWUmdwUjZWUHR3dlZfLUVOZm9oRFNxX1duUzFsSW8iXSwibmJmIjoxNzIyNDk5MjAwLCJfc2RfYWxnIjoic2hhLTI1NiIsImV4cCI6MTc2NzE2ODAwMCwiaWF0IjoxNzI5MjU4NDIwLCJjbmYiOnsiandrIjp7Imt0eSI6IkVDIiwiY3J2IjoiUC0yNTYiLCJ4IjoiLWdMMHd1dlZfOTFCQ0RfdzZra2ZjSXNyaTFtaEdBa2UwcjdNRkZ5SVM1ayIsInkiOiJOcmIzMDBJV1NJOWFsX2Z2VWtQWUNqU2otUEFxMFc4UGd5TTkzMWFBeWpBIn19fQ.7JtyTNS_tHwtuBYCFz6UNSKJ8Jky2XbHVxdAgkuu6my_wdLLH7KX-wnev3zUX9-BpoPdM_go_63Lg3IUtiqLwQ"
         const val DISCLOSURE1 = "-U32zHKdQ6XY2uMCK4_g8BDf2LIK5VvEb5mGDafAaDU"
         const val DISCLOSURE2 = "5yxyfQTxbbZqBVRgpR6VPtwvV_-ENfohDSq_WnS1lIo"
 

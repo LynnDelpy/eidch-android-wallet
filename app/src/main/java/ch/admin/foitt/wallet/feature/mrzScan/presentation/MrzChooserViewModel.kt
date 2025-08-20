@@ -1,48 +1,25 @@
 package ch.admin.foitt.wallet.feature.mrzScan.presentation
 
 import androidx.lifecycle.viewModelScope
-import ch.admin.foitt.wallet.feature.mrzScan.domain.usecase.FetchSIdCase
-import ch.admin.foitt.wallet.feature.mrzScan.domain.usecase.SaveEIdRequestCase
-import ch.admin.foitt.wallet.feature.mrzScan.domain.usecase.SaveEIdRequestState
-import ch.admin.foitt.wallet.feature.mrzScan.presentation.model.MrzData
-import ch.admin.foitt.wallet.platform.database.domain.model.EIdRequestCase
-import ch.admin.foitt.wallet.platform.database.domain.model.EIdRequestState
-import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.CaseResponse
-import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.LegalRepresentant
-import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.StateResponse
-import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.toLegalRepresentativeConsent
-import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.usecase.FetchSIdStatus
+import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.MrzData
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.usecase.GetHasLegalGuardian
-import ch.admin.foitt.wallet.platform.navArgs.domain.model.EIdQueueNavArg
+import ch.admin.foitt.wallet.platform.navArgs.domain.model.EIdMrzResultNavArg
 import ch.admin.foitt.wallet.platform.navigation.NavigationManager
 import ch.admin.foitt.wallet.platform.scaffold.domain.model.TopBarState
 import ch.admin.foitt.wallet.platform.scaffold.domain.usecase.SetTopBarState
 import ch.admin.foitt.wallet.platform.scaffold.extension.navigateUpOrToRoot
 import ch.admin.foitt.wallet.platform.scaffold.presentation.ScreenViewModel
 import ch.admin.foitt.wallet.platform.utils.SafeJson
-import ch.admin.foitt.walletcomposedestinations.destinations.EIdGuardianSelectionScreenDestination
-import ch.admin.foitt.walletcomposedestinations.destinations.EIdIntroScreenDestination
-import ch.admin.foitt.walletcomposedestinations.destinations.EIdQueueScreenDestination
-import com.github.michaelbull.result.coroutines.runSuspendCatching
-import com.github.michaelbull.result.get
+import ch.admin.foitt.walletcomposedestinations.destinations.MrzSubmissionScreenDestination
 import com.github.michaelbull.result.getOr
-import com.github.michaelbull.result.onFailure
-import com.github.michaelbull.result.onSuccess
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import java.time.Instant
 import javax.inject.Inject
 
 @HiltViewModel
 class MrzChooserViewModel @Inject constructor(
     safeJson: SafeJson,
-    private val saveEIdRequestCase: SaveEIdRequestCase,
-    private val saveEIdRequestState: SaveEIdRequestState,
     private val navManager: NavigationManager,
-    private val fetchSIdCase: FetchSIdCase,
-    private val fetchSIdStatus: FetchSIdStatus,
     private val getHasLegalGuardian: GetHasLegalGuardian,
     setTopBarState: SetTopBarState,
 ) : ScreenViewModel(setTopBarState) {
@@ -54,92 +31,23 @@ class MrzChooserViewModel @Inject constructor(
 
     val mrzData = mockUnderAge.getOr(emptyList()) + mockAdult.getOr(emptyList()) + mockOther.getOr(emptyList())
 
-    private val _errorMessage = MutableStateFlow("")
-    val errorMessage = _errorMessage.asStateFlow()
-
-    private val _showErrorDialog = MutableStateFlow(false)
-    val showErrorDialog = _showErrorDialog.asStateFlow()
-
     fun onBack() = navManager.navigateUpOrToRoot()
 
     fun onMrzItemClick(index: Int) {
         viewModelScope.launch {
             val request = mrzData[index].payload.copy(legalRepresentant = getHasLegalGuardian().value)
-            fetchSIdCase(request)
-                .onSuccess { caseResponse ->
-                    checkStatus(caseResponse, mrzData[index])
-                }
-                .onFailure { applyRequestError ->
-                    _errorMessage.value = applyRequestError.toString()
-                    _showErrorDialog.value = true
-                }
+
+            navManager.navigateToAndClearCurrent(
+                MrzSubmissionScreenDestination(
+                    navArgs = EIdMrzResultNavArg(
+                        mrzData = MrzData(
+                            displayName = "",
+                            payload = request
+                        )
+                    )
+                )
+            )
         }
-    }
-
-    private suspend fun checkStatus(caseResponse: CaseResponse, mrzData: MrzData) {
-        fetchSIdStatus.invoke(caseResponse.caseId)
-            .onSuccess { stateResponse ->
-                val rawMrz = mrzData.payload.mrz.joinToString(";")
-                saveData(rawMrz, caseResponse, stateResponse)
-
-                if (isLegalCaseNeeded(stateResponse.legalRepresentant)) {
-                    navManager.navigateTo(
-                        EIdGuardianSelectionScreenDestination(
-                            sIdCaseId = caseResponse.caseId
-                        )
-                    )
-                } else {
-                    navManager.navigateTo(
-                        EIdQueueScreenDestination(
-                            navArgs = EIdQueueNavArg(
-                                rawDeadline = stateResponse.queueInformation?.expectedOnlineSessionStart
-                            )
-                        )
-                    )
-                }
-            }
-            .onFailure {
-                navManager.navigateBackToHome(EIdIntroScreenDestination)
-            }
-    }
-
-    fun onCloseErrorDialog() {
-        _showErrorDialog.value = false
-    }
-
-    private suspend fun saveData(rawMrz: String, applyResponseBody: CaseResponse, stateResponseBody: StateResponse) {
-        val eIdRequestCase = EIdRequestCase(
-            id = applyResponseBody.caseId,
-            rawMrz = rawMrz,
-            documentNumber = applyResponseBody.identityNumber,
-            firstName = applyResponseBody.givenNames,
-            lastName = applyResponseBody.surname,
-        )
-
-        val onlineSessionStartOpenAt: Long? = runSuspendCatching {
-            Instant.parse(stateResponseBody.queueInformation?.expectedOnlineSessionStart).epochSecond
-        }.get()
-
-        val onlineSessionStartTimeoutAt: Long? = runSuspendCatching {
-            Instant.parse(stateResponseBody.onlineSessionStartTimeout).epochSecond
-        }.get()
-
-        val eIdRequestState = EIdRequestState(
-            eIdRequestCaseId = applyResponseBody.caseId,
-            state = stateResponseBody.state,
-            lastPolled = Instant.now().epochSecond,
-            onlineSessionStartOpenAt = onlineSessionStartOpenAt,
-            onlineSessionStartTimeoutAt = onlineSessionStartTimeoutAt,
-            legalRepresentativeConsent = stateResponseBody.toLegalRepresentativeConsent(),
-        )
-
-        saveEIdRequestCase(eIdRequestCase)
-        saveEIdRequestState(eIdRequestState)
-    }
-
-    private fun isLegalCaseNeeded(legalRepresentant: LegalRepresentant?): Boolean = when {
-        legalRepresentant != null && legalRepresentant.verified.not() -> true
-        else -> false
     }
 
     private object MockMRZData {

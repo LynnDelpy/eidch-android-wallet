@@ -1,5 +1,6 @@
 package ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata
 
+import ch.admin.foitt.openid4vc.domain.model.SigningAlgorithm
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -17,8 +18,8 @@ data class UnknownCredentialConfiguration(
     override val credentialSigningAlgValuesSupported: List<SigningAlgorithm> = emptyList(),
     @Serializable
     @SerialName("proof_types_supported")
-    override val proofTypesSupported: Map<ProofType, ProofTypeSigningAlgorithms> =
-        mapOf(ProofType.UNKNOWN to ProofTypeSigningAlgorithms(signingAlgorithms = emptyList())),
+    override val proofTypesSupported: Map<ProofType, ProofTypeConfig> =
+        mapOf(ProofType.UNKNOWN to ProofTypeConfig(proofSigningAlgValuesSupported = emptyList())),
     @SerialName("display")
     override val display: List<OidCredentialDisplay>? = null,
     @SerialName("order")

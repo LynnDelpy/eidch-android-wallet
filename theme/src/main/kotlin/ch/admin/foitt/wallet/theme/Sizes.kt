@@ -12,6 +12,7 @@ object Sizes {
     val s06 = 24.dp
     val s07 = 28.dp
     val s08 = 32.dp
+    val s09 = 36.dp
     val s10 = 40.dp
     val s12 = 48.dp
     val s14 = 56.dp

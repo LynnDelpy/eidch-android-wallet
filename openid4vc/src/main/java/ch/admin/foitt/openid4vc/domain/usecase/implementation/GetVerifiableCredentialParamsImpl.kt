@@ -1,0 +1,71 @@
+package ch.admin.foitt.openid4vc.domain.usecase.implementation
+
+import ch.admin.foitt.openid4vc.domain.model.VerifiableCredentialParams
+import ch.admin.foitt.openid4vc.domain.model.credentialoffer.CredentialOffer
+import ch.admin.foitt.openid4vc.domain.model.credentialoffer.CredentialOfferError
+import ch.admin.foitt.openid4vc.domain.model.credentialoffer.FetchIssuerConfigurationError
+import ch.admin.foitt.openid4vc.domain.model.credentialoffer.FetchIssuerCredentialInfoError
+import ch.admin.foitt.openid4vc.domain.model.credentialoffer.PrepareFetchVerifiableCredentialError
+import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.AnyCredentialConfiguration
+import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.ProofType
+import ch.admin.foitt.openid4vc.domain.model.credentialoffer.toPrepareFetchVerifiableCredentialError
+import ch.admin.foitt.openid4vc.domain.repository.CredentialOfferRepository
+import ch.admin.foitt.openid4vc.domain.usecase.GetVerifiableCredentialParams
+import com.github.michaelbull.result.Err
+import com.github.michaelbull.result.Result
+import com.github.michaelbull.result.coroutines.coroutineBinding
+import com.github.michaelbull.result.mapError
+import javax.inject.Inject
+
+class GetVerifiableCredentialParamsImpl @Inject constructor(
+    private val credentialOfferRepository: CredentialOfferRepository,
+) : GetVerifiableCredentialParams {
+    override suspend fun invoke(
+        credentialConfiguration: AnyCredentialConfiguration,
+        credentialOffer: CredentialOffer,
+    ): Result<VerifiableCredentialParams, PrepareFetchVerifiableCredentialError> = coroutineBinding {
+        val issuerEndpoint = credentialOffer.credentialIssuer
+        if (credentialConfiguration.identifier !in credentialOffer.credentialConfigurationIds) {
+            return@coroutineBinding Err(CredentialOfferError.InvalidCredentialOffer).bind<VerifiableCredentialParams>()
+        }
+
+        credentialConfiguration.proofTypesSupported.let { proofTypes ->
+            if (proofTypes.isNotEmpty() && proofTypes.keys.none { it == ProofType.JWT }) {
+                return@coroutineBinding Err(CredentialOfferError.UnsupportedProofType).bind<VerifiableCredentialParams>()
+            }
+
+            credentialConfiguration.cryptographicBindingMethodsSupported?.let { bindingMethods ->
+                if (bindingMethods.intersect(supportedBindingMethods).isEmpty()) {
+                    return@coroutineBinding Err(
+                        CredentialOfferError.UnsupportedCryptographicSuite
+                    ).bind<VerifiableCredentialParams>()
+                }
+            }
+        }
+
+        val issuerConfig = credentialOfferRepository.fetchIssuerConfiguration(issuerEndpoint = issuerEndpoint)
+            .mapError(FetchIssuerConfigurationError::toPrepareFetchVerifiableCredentialError)
+            .bind()
+
+        val issuerInfo = credentialOfferRepository.getIssuerCredentialInfo(issuerEndpoint = issuerEndpoint)
+            .mapError(FetchIssuerCredentialInfoError::toPrepareFetchVerifiableCredentialError)
+            .bind()
+
+        val proofTypeConfig = credentialConfiguration.proofTypesSupported.entries.firstOrNull {
+            it.key == ProofType.JWT
+        }?.value
+
+        VerifiableCredentialParams(
+            proofTypeConfig = proofTypeConfig,
+            tokenEndpoint = issuerConfig.tokenEndpoint,
+            grants = credentialOffer.grants,
+            issuerEndpoint = issuerEndpoint,
+            credentialEndpoint = issuerInfo.credentialEndpoint,
+            credentialConfiguration = credentialConfiguration,
+        )
+    }
+
+    companion object {
+        private val supportedBindingMethods = listOf("did:jwk")
+    }
+}

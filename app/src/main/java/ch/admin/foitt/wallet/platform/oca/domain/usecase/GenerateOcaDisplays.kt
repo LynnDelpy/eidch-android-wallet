@@ -7,7 +7,7 @@ import com.github.michaelbull.result.Result
 
 interface GenerateOcaDisplays {
     suspend operator fun invoke(
-        credentialClaims: Map<String, String>,
+        credentialClaims: Map<String, String?>,
         ocaBundle: OcaBundle,
     ): Result<OcaDisplays, GenerateOcaDisplaysError>
 }

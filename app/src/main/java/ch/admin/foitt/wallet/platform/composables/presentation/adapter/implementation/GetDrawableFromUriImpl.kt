@@ -15,7 +15,7 @@ import javax.inject.Inject
 
 internal class GetDrawableFromUriImpl @Inject constructor(
     private val imageLoader: ImageLoader,
-    @ApplicationContext private val appContext: Context,
+    @param:ApplicationContext private val appContext: Context,
 ) : GetDrawableFromUri {
     override suspend fun invoke(uriString: String?): Drawable? = runSuspendCatching {
         val imageUri = Uri.parse(uriString)

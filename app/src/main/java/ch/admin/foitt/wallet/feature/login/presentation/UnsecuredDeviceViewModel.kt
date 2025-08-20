@@ -17,7 +17,7 @@ import javax.inject.Inject
 @HiltViewModel
 class UnsecuredDeviceViewModel @Inject constructor(
     private val navigationManager: NavigationManager,
-    @ApplicationContext private val appContext: Context,
+    @param:ApplicationContext private val appContext: Context,
     private val isDeviceSecureLockScreenConfigured: IsDeviceSecureLockScreenConfigured,
     setTopBarState: SetTopBarState,
 ) : ScreenViewModel(setTopBarState) {

@@ -1,13 +1,17 @@
 package ch.admin.foitt.wallet.platform.credential.domain.usecase.implementation
 
+import ch.admin.foitt.openid4vc.domain.model.SigningAlgorithm
 import ch.admin.foitt.openid4vc.domain.model.anycredential.AnyCredential
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.CredentialFormat
-import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.SigningAlgorithm
+import ch.admin.foitt.openid4vc.domain.model.keyBinding.KeyBindingType
 import ch.admin.foitt.openid4vc.domain.model.vcSdJwt.VcSdJwtCredential
 import ch.admin.foitt.wallet.platform.credential.domain.model.CredentialError
+import ch.admin.foitt.wallet.platform.credential.domain.usecase.GetAnyCredentials
 import ch.admin.foitt.wallet.platform.database.domain.model.Credential
+import ch.admin.foitt.wallet.platform.database.domain.model.CredentialKeyBindingEntity
+import ch.admin.foitt.wallet.platform.database.domain.model.CredentialWithKeyBinding
 import ch.admin.foitt.wallet.platform.ssi.domain.model.SsiError
-import ch.admin.foitt.wallet.platform.ssi.domain.repository.CredentialRepo
+import ch.admin.foitt.wallet.platform.ssi.domain.repository.CredentialWithKeyBindingRepository
 import ch.admin.foitt.wallet.util.assertErrorType
 import ch.admin.foitt.wallet.util.assertOk
 import com.github.michaelbull.result.Err
@@ -19,6 +23,7 @@ import io.mockk.unmockkAll
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -26,15 +31,15 @@ import org.junit.jupiter.api.Test
 class GetAnyCredentialsImplTest {
 
     @MockK
-    private lateinit var mockCredentialRepository: CredentialRepo
+    private lateinit var mockCredentialWithKeyBindingRepository: CredentialWithKeyBindingRepository
 
-    private lateinit var useCase: GetAnyCredentialsImpl
+    private lateinit var useCase: GetAnyCredentials
 
     @BeforeEach
     fun setUp() {
         MockKAnnotations.init(this)
 
-        useCase = GetAnyCredentialsImpl(mockCredentialRepository)
+        useCase = GetAnyCredentialsImpl(mockCredentialWithKeyBindingRepository)
     }
 
     @AfterEach
@@ -44,7 +49,7 @@ class GetAnyCredentialsImplTest {
 
     @Test
     fun `Getting any credentials with none available returns empty list`() = runTest {
-        coEvery { mockCredentialRepository.getAll() } returns Ok(emptyList())
+        coEvery { mockCredentialWithKeyBindingRepository.getAll() } returns Ok(emptyList())
 
         val result = useCase().assertOk()
 
@@ -53,51 +58,56 @@ class GetAnyCredentialsImplTest {
 
     @Test
     fun `Getting any credentials with one vc+sd_jwt available returns it`() = runTest {
-        val mockCredential = createMockCredential()
-        coEvery { mockCredentialRepository.getAll() } returns Ok(listOf(mockCredential))
+        val mockCredential = createMockCredentialWithKeyBinding()
+        coEvery { mockCredentialWithKeyBindingRepository.getAll() } returns Ok(listOf(mockCredential))
 
         val result = useCase().assertOk()
 
         assertEquals(1, result.size)
         val credential = result.first()
-        assertEquals(CREDENTIAL_ID, credential.id)
-        assertEquals(KEY_BINDING_IDENTIFIER, credential.keyBindingIdentifier)
-        assertEquals(PAYLOAD, credential.payload)
-        assertEquals(KEY_BINDING_ALGORITHM, credential.keyBindingAlgorithm)
         assertTrue(credential is VcSdJwtCredential)
+        assertEquals(CREDENTIAL_ID, credential.id)
+        assertEquals(PAYLOAD, credential.payload)
+
+        assertNotNull(credential.keyBinding)
+        assertEquals(KEY_BINDING_IDENTIFIER, credential.keyBinding?.identifier)
+        assertEquals(KEY_BINDING_ALGORITHM, credential.keyBinding?.algorithm)
     }
 
     @Test
     fun `Getting any credentials with two vc+sd_jwt available returns both`() = runTest {
-        val mockCredential = createMockCredential()
-        val mockCredential2 = createMockCredential(
+        val mockCredential = createMockCredentialWithKeyBinding()
+        val mockCredential2 = createMockCredentialWithKeyBinding(
             id = CREDENTIAL_ID_2,
             keyBindingIdentifier = KEY_BINDING_IDENTIFIER_2,
             keyBindingAlgorithm = KEY_BINDING_ALGORITHM_2.stdName,
         )
-        coEvery { mockCredentialRepository.getAll() } returns Ok(listOf(mockCredential, mockCredential2))
+        coEvery { mockCredentialWithKeyBindingRepository.getAll() } returns Ok(listOf(mockCredential, mockCredential2))
 
         val result = useCase().assertOk()
 
         assertEquals(2, result.size)
 
-        assertEquals(CREDENTIAL_ID, result[0].id)
-        assertEquals(KEY_BINDING_IDENTIFIER, result[0].keyBindingIdentifier)
-        assertEquals(PAYLOAD, result[0].payload)
-        assertEquals(KEY_BINDING_ALGORITHM, result[0].keyBindingAlgorithm)
-        assertTrue(result[0] is VcSdJwtCredential)
+        val credential1 = result[0]
+        assertTrue(credential1 is VcSdJwtCredential)
+        assertEquals(CREDENTIAL_ID, credential1.id)
+        assertEquals(PAYLOAD, credential1.payload)
+        assertNotNull(credential1.keyBinding)
+        assertEquals(KEY_BINDING_IDENTIFIER, credential1.keyBinding?.identifier)
+        assertEquals(KEY_BINDING_ALGORITHM, credential1.keyBinding?.algorithm)
 
-        assertEquals(CREDENTIAL_ID_2, result[1].id)
-        assertEquals(KEY_BINDING_IDENTIFIER_2, result[1].keyBindingIdentifier)
-        assertEquals(PAYLOAD_2, result[1].payload)
-        assertEquals(KEY_BINDING_ALGORITHM_2, result[0].keyBindingAlgorithm)
-        assertTrue(result[1] is VcSdJwtCredential)
+        val credential2 = result[1]
+        assertTrue(credential2 is VcSdJwtCredential)
+        assertEquals(CREDENTIAL_ID_2, credential2.id)
+        assertEquals(PAYLOAD_2, credential2.payload)
+        assertEquals(KEY_BINDING_IDENTIFIER_2, credential2.keyBinding?.identifier)
+        assertEquals(KEY_BINDING_ALGORITHM_2, credential2.keyBinding?.algorithm)
     }
 
     @Test
     fun `Getting any credentials with other format available returns an empty list`() = runTest {
-        val mockCredential = createMockCredential(format = CredentialFormat.UNKNOWN)
-        coEvery { mockCredentialRepository.getAll() } returns Ok(listOf(mockCredential))
+        val mockCredential = createMockCredentialWithKeyBinding(format = CredentialFormat.UNKNOWN)
+        coEvery { mockCredentialWithKeyBindingRepository.getAll() } returns Ok(listOf(mockCredential))
 
         val result = useCase().assertOk()
         assertEquals(emptyList<AnyCredential>(), result)
@@ -105,9 +115,9 @@ class GetAnyCredentialsImplTest {
 
     @Test
     fun `Getting any credentials with unknown signing algorithm returns an empty list`() = runTest {
-        val mockCredential = createMockCredential(keyBindingAlgorithm = "other")
+        val mockCredential = createMockCredentialWithKeyBinding(keyBindingAlgorithm = "other")
 
-        coEvery { mockCredentialRepository.getAll() } returns Ok(listOf(mockCredential))
+        coEvery { mockCredentialWithKeyBindingRepository.getAll() } returns Ok(listOf(mockCredential))
 
         val result = useCase().assertOk()
         assertEquals(emptyList<AnyCredential>(), result)
@@ -116,7 +126,7 @@ class GetAnyCredentialsImplTest {
     @Test
     fun `Getting any credentials maps errors from credential repository`() = runTest {
         val exception = IllegalStateException()
-        coEvery { mockCredentialRepository.getAll() } returns Err(SsiError.Unexpected(exception))
+        coEvery { mockCredentialWithKeyBindingRepository.getAll() } returns Err(SsiError.Unexpected(exception))
 
         val result = useCase()
 
@@ -124,20 +134,36 @@ class GetAnyCredentialsImplTest {
         assertEquals(exception, error.cause)
     }
 
-    private fun createMockCredential(
+    private fun createMockCredentialWithKeyBinding(
         id: Long = CREDENTIAL_ID,
         keyBindingIdentifier: String = KEY_BINDING_IDENTIFIER,
         format: CredentialFormat = CredentialFormat.VC_SD_JWT,
         keyBindingAlgorithm: String = KEY_BINDING_ALGORITHM.stdName,
+    ) = CredentialWithKeyBinding(
+        credential = createMockCredential(id, format),
+        keyBinding = createMockKeyBinding(keyBindingIdentifier, keyBindingAlgorithm),
+    )
+
+    private fun createMockCredential(
+        id: Long = CREDENTIAL_ID,
+        format: CredentialFormat = CredentialFormat.VC_SD_JWT,
     ) = Credential(
         id = id,
-        keyBindingIdentifier = keyBindingIdentifier,
         payload = PAYLOAD,
         format = format,
-        keyBindingAlgorithm = keyBindingAlgorithm,
         issuer = "issuer",
         validFrom = 0,
         validUntil = 17768026519L,
+    )
+
+    private fun createMockKeyBinding(
+        keyBindingIdentifier: String = KEY_BINDING_IDENTIFIER,
+        keyBindingAlgorithm: String = KEY_BINDING_ALGORITHM.stdName,
+    ) = CredentialKeyBindingEntity(
+        id = keyBindingIdentifier,
+        credentialId = CREDENTIAL_ID,
+        algorithm = keyBindingAlgorithm,
+        bindingType = KeyBindingType.HARDWARE,
     )
 
     private companion object {

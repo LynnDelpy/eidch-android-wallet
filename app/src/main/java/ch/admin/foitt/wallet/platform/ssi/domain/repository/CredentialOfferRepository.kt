@@ -3,7 +3,7 @@
 package ch.admin.foitt.wallet.platform.ssi.domain.repository
 
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.CredentialFormat
-import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.SigningAlgorithm
+import ch.admin.foitt.openid4vc.domain.model.keyBinding.KeyBinding
 import ch.admin.foitt.wallet.platform.credential.domain.model.AnyCredentialDisplay
 import ch.admin.foitt.wallet.platform.credential.domain.model.AnyIssuerDisplay
 import ch.admin.foitt.wallet.platform.database.domain.model.Cluster
@@ -13,8 +13,7 @@ import com.github.michaelbull.result.Result
 
 interface CredentialOfferRepository {
     suspend fun saveCredentialOffer(
-        keyBindingIdentifier: String?,
-        keyBindingAlgorithm: SigningAlgorithm?,
+        keyBinding: KeyBinding?,
         payload: String,
         format: CredentialFormat,
         validFrom: Long?,

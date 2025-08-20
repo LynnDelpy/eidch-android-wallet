@@ -22,7 +22,7 @@ import timber.log.Timber
 import javax.inject.Inject
 
 class GetRequestedFieldsImpl @Inject constructor(
-    @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
+    @param:DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
 ) : GetRequestedFields {
     override suspend fun invoke(
         credentialJson: String,

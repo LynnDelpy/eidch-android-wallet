@@ -45,7 +45,7 @@ internal class EIdGuardianConsentViewModel @Inject constructor(
     private val updateSIdStatusByCaseId: UpdateSIdStatusByCaseId,
     private val navManager: NavigationManager,
     getCurrentSIdCaseId: GetCurrentSIdCaseId,
-    @ApplicationContext private val appContext: Context,
+    @param:ApplicationContext private val appContext: Context,
     setTopBarState: SetTopBarState
 ) : ScreenViewModel(setTopBarState) {
     override val topBarState: TopBarState = TopBarState.DetailsWithCloseButton(

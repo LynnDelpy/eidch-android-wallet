@@ -14,7 +14,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AppVersionBlockedViewModel @Inject constructor(
-    @ApplicationContext private val appContext: Context,
+    @param:ApplicationContext private val appContext: Context,
     setTopBarState: SetTopBarState,
     savedStateHandle: SavedStateHandle,
 ) : ScreenViewModel(setTopBarState) {

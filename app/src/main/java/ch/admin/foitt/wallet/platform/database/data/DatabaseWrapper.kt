@@ -9,7 +9,9 @@ import ch.admin.foitt.wallet.platform.database.data.dao.CredentialClaimDisplayDa
 import ch.admin.foitt.wallet.platform.database.data.dao.CredentialDao
 import ch.admin.foitt.wallet.platform.database.data.dao.CredentialDisplayDao
 import ch.admin.foitt.wallet.platform.database.data.dao.CredentialIssuerDisplayDao
+import ch.admin.foitt.wallet.platform.database.data.dao.CredentialKeyBindingEntityDao
 import ch.admin.foitt.wallet.platform.database.data.dao.CredentialWithDisplaysAndClustersDao
+import ch.admin.foitt.wallet.platform.database.data.dao.CredentialWithKeyBindingDao
 import ch.admin.foitt.wallet.platform.database.data.dao.DaoProvider
 import ch.admin.foitt.wallet.platform.database.data.dao.EIdRequestCaseDao
 import ch.admin.foitt.wallet.platform.database.data.dao.EIdRequestCaseWithStateDao
@@ -47,8 +49,8 @@ import javax.inject.Singleton
 
 @Singleton
 internal class DatabaseWrapper @Inject constructor(
-    @IoDispatcherScope private val coroutineScope: CoroutineScope,
-    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    @param:IoDispatcherScope private val coroutineScope: CoroutineScope,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val databaseInitializer: DatabaseInitializer,
 ) : DatabaseRepository, DaoProvider {
 
@@ -164,6 +166,12 @@ internal class DatabaseWrapper @Inject constructor(
     }
     override val credentialClaimClusterDisplayEntityDao: StateFlow<CredentialClaimClusterDisplayEntityDao?> =
         getDaoFlow { it?.credentialClaimClusterDisplayEntityDao() }
+    override val credentialKeyBindingEntityDaoFlow: StateFlow<CredentialKeyBindingEntityDao?> = getDaoFlow {
+        it?.credentialKeyBindingEntityDao()
+    }
+    override val credentialWithKeyBindingDaoFlow: StateFlow<CredentialWithKeyBindingDao?> = getDaoFlow {
+        it?.credentialWithKeyBindingDao()
+    }
 
     override val eIdRequestCaseDaoFlow: StateFlow<EIdRequestCaseDao?> =
         getDaoFlow { it?.eIdRequestCaseDao() }

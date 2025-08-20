@@ -10,6 +10,8 @@ import ch.admin.foitt.wallet.platform.invitation.domain.model.ProcessInvitationE
 import ch.admin.foitt.wallet.platform.invitation.domain.model.ProcessInvitationResult
 import ch.admin.foitt.wallet.platform.invitation.domain.usecase.ProcessInvitation
 import ch.admin.foitt.wallet.platform.navArgs.domain.model.CredentialOfferNavArg
+import ch.admin.foitt.wallet.platform.navArgs.domain.model.PresentationCredentialListNavArg
+import ch.admin.foitt.wallet.platform.navArgs.domain.model.PresentationRequestNavArg
 import ch.admin.foitt.wallet.platform.navigation.NavigationManager
 import ch.admin.foitt.wallet.platform.navigation.domain.model.NavigationAction
 import ch.admin.foitt.wallet.platform.scaffold.extension.navigateUpOrToRoot
@@ -18,6 +20,8 @@ import ch.admin.foitt.walletcomposedestinations.destinations.EIdIntroScreenDesti
 import ch.admin.foitt.walletcomposedestinations.destinations.HomeScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.InvitationFailureScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.OnboardingSuccessScreenDestination
+import ch.admin.foitt.walletcomposedestinations.destinations.PresentationCredentialListScreenDestination
+import ch.admin.foitt.walletcomposedestinations.destinations.PresentationRequestScreenDestination
 import com.github.michaelbull.result.mapBoth
 import com.ramcosta.composedestinations.spec.Direction
 import timber.log.Timber
@@ -89,15 +93,11 @@ class HandleDeeplinkImpl @Inject constructor(
 
     private fun handleSuccess(invitation: ProcessInvitationResult): Direction = when (invitation) {
         is ProcessInvitationResult.CredentialOffer -> credentialOfferDirection(invitation)
-        is ProcessInvitationResult.PresentationRequest,
-        is ProcessInvitationResult.PresentationRequestCredentialList -> {
-            // We do no support presentation deeplinks. So it is redirected to an error.
-            Timber.w("Presentation request on processing deeplink")
-            InvitationFailureScreenDestination(InvitationErrorScreenState.UNEXPECTED)
-        }
+        is ProcessInvitationResult.PresentationRequest -> presentationRequestDirection(invitation)
+        is ProcessInvitationResult.PresentationRequestCredentialList -> presentationRequestCredentialListDirection(invitation)
     }
 
-    private suspend fun handleFailure(invitationError: ProcessInvitationError): Direction =
+    private fun handleFailure(invitationError: ProcessInvitationError): Direction =
         InvitationFailureScreenDestination(invitationError.toErrorDisplay())
 
     private fun ProcessInvitationError.toErrorDisplay(): InvitationErrorScreenState = when (this) {
@@ -105,16 +105,18 @@ class HandleDeeplinkImpl @Inject constructor(
         InvitationError.InvalidCredentialOffer,
         InvitationError.InvalidInput,
         InvitationError.CredentialOfferExpired -> InvitationErrorScreenState.INVALID_CREDENTIAL
-        InvitationError.UnknownVerifier,
-        InvitationError.EmptyWallet,
-        InvitationError.NoCompatibleCredential,
         InvitationError.InvalidPresentationRequest,
-        is InvitationError.InvalidPresentation,
+        is InvitationError.InvalidPresentation -> InvitationErrorScreenState.INVALID_PRESENTATION
+        InvitationError.EmptyWallet -> InvitationErrorScreenState.EMPTY_WALLET
+        InvitationError.NoCompatibleCredential -> InvitationErrorScreenState.NO_COMPATIBLE_CREDENTIAL
+        InvitationError.UnknownVerifier,
         InvitationError.Unexpected -> {
             Timber.w("Unexpected state on processing deeplink")
             InvitationErrorScreenState.UNEXPECTED
         }
         InvitationError.UnknownIssuer -> InvitationErrorScreenState.UNKNOWN_ISSUER
+        InvitationError.UnsupportedKeyStorageSecurityLevel -> InvitationErrorScreenState.UNSUPPORTED_KEY_STORAGE
+        InvitationError.IncompatibleDeviceKeyStorage -> InvitationErrorScreenState.UNSUPPORTED_KEY_STORAGE_CAPABILITIES
     }
 
     private fun credentialOfferDirection(
@@ -122,6 +124,26 @@ class HandleDeeplinkImpl @Inject constructor(
     ) = CredentialOfferScreenDestination(
         CredentialOfferNavArg(
             credentialOffer.credentialId
+        )
+    )
+
+    private fun presentationRequestDirection(
+        presentationRequest: ProcessInvitationResult.PresentationRequest
+    ) = PresentationRequestScreenDestination(
+        PresentationRequestNavArg(
+            compatibleCredential = presentationRequest.credential,
+            presentationRequest = presentationRequest.request,
+            shouldFetchTrustStatement = presentationRequest.shouldCheckTrustStatement,
+        )
+    )
+
+    private fun presentationRequestCredentialListDirection(
+        presentationRequest: ProcessInvitationResult.PresentationRequestCredentialList
+    ) = PresentationCredentialListScreenDestination(
+        PresentationCredentialListNavArg(
+            compatibleCredentials = presentationRequest.credentials.toTypedArray(),
+            presentationRequest = presentationRequest.request,
+            shouldFetchTrustStatement = presentationRequest.shouldCheckTrustStatement
         )
     )
 

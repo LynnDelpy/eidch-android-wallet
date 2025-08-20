@@ -33,7 +33,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class QrScannerViewModel @Inject constructor(
-    @ApplicationContext private val appContext: Context,
+    @param:ApplicationContext private val appContext: Context,
     private val processInvitation: ProcessInvitation,
     private val handleInvitationProcessingSuccess: HandleInvitationProcessingSuccess,
     private val declinePresentation: DeclinePresentation,
@@ -144,6 +144,8 @@ class QrScannerViewModel @Inject constructor(
         InvitationError.Unexpected -> QrInfoState.UnexpectedError
         InvitationError.UnknownIssuer -> QrInfoState.UnknownIssuer
         InvitationError.UnknownVerifier -> QrInfoState.UnknownVerifier
+        InvitationError.UnsupportedKeyStorageSecurityLevel -> QrInfoState.UnsupportedKeyStorageSecurityLevel
+        InvitationError.IncompatibleDeviceKeyStorage -> QrInfoState.IncompatibleDeviceKeyStorage
     }
 
     private fun declinePresentationRequest(uri: String) = viewModelScope.launch {

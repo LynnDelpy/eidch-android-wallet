@@ -10,7 +10,7 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class ChangeDatabasePassphraseImpl @Inject constructor(
-    @IoDispatcher private val coroutineDispatcher: CoroutineDispatcher,
+    @param:IoDispatcher private val coroutineDispatcher: CoroutineDispatcher,
     private val databaseRepository: DatabaseRepository,
 ) : ChangeDatabasePassphrase {
     override suspend fun invoke(newPassphrase: ByteArray): Result<Unit, ChangeDatabasePassphraseError> = withContext(coroutineDispatcher) {

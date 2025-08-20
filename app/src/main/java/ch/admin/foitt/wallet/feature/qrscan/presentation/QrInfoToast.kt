@@ -1,3 +1,5 @@
+@file:Suppress("TooManyFunctions")
+
 package ch.admin.foitt.wallet.feature.qrscan.presentation
 
 import androidx.annotation.DrawableRes
@@ -124,6 +126,30 @@ fun QrToastInvalidPresentation(
     headline = R.string.tk_error_invalidrequest_title,
     text = R.string.tk_error_invalidrequest_body,
     iconStart = R.drawable.wallet_ic_questionmark,
+    onClose = onClose,
+)
+
+@Composable
+fun QrToastUnsupportedKeyStorageSecurityLevel(
+    modifier: Modifier = Modifier,
+    onClose: () -> Unit,
+) = QrInfoToast(
+    modifier = modifier,
+    headline = R.string.tk_error_keyStorageUnsupported_title,
+    text = R.string.tk_error_keyStorageUnsupported_body,
+    iconStart = R.drawable.wallet_ic_toast_error,
+    onClose = onClose,
+)
+
+@Composable
+fun QrToastIncompatibleDeviceKeyStorage(
+    modifier: Modifier = Modifier,
+    onClose: () -> Unit,
+) = QrInfoToast(
+    modifier = modifier,
+    headline = R.string.tk_error_strongboxUnavailable_title,
+    text = R.string.tk_error_strongboxUnavailable_body,
+    iconStart = R.drawable.wallet_ic_toast_error,
     onClose = onClose,
 )
 

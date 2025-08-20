@@ -24,8 +24,8 @@ data class CredentialClaimClusterDisplayEntity(
     val id: Long = 0,
     val clusterId: Long, // Foreign key
     val name: String, // label of the cluster (get from label overlay)
-    val locale: String,
-)
+    override val locale: String,
+) : LocalizedDisplay
 
 fun ClusterDisplay.toCredentialClaimClusterDisplayEntity(clusterId: Long) = CredentialClaimClusterDisplayEntity(
     clusterId = clusterId,

@@ -1,6 +1,8 @@
 package ch.admin.foitt.wallet.platform.credential.domain.usecase.implementation
 
-import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.SigningAlgorithm
+import ch.admin.foitt.openid4vc.domain.model.SigningAlgorithm
+import ch.admin.foitt.openid4vc.domain.model.keyBinding.KeyBinding
+import ch.admin.foitt.openid4vc.domain.model.keyBinding.KeyBindingType
 import ch.admin.foitt.openid4vc.domain.model.vcSdJwt.VcSdJwtCredential
 import ch.admin.foitt.wallet.platform.credential.domain.model.AnyDisplays
 import ch.admin.foitt.wallet.platform.credential.domain.model.CredentialError
@@ -47,8 +49,7 @@ class SaveCredentialImplTest {
     fun `should call CredentialOfferRepository#saveCredentialOffer exactly one time`() = runTest {
         coEvery {
             mockCredentialOfferRepository.saveCredentialOffer(
-                keyBindingIdentifier = any(),
-                keyBindingAlgorithm = any(),
+                keyBinding = any(),
                 payload = any(),
                 format = any(),
                 issuer = any(),
@@ -71,8 +72,7 @@ class SaveCredentialImplTest {
 
         coVerify(exactly = 1) {
             mockCredentialOfferRepository.saveCredentialOffer(
-                keyBindingIdentifier = any(),
-                keyBindingAlgorithm = any(),
+                keyBinding = any(),
                 payload = any(),
                 format = any(),
                 issuer = any(),
@@ -90,7 +90,7 @@ class SaveCredentialImplTest {
     fun `Saving credential maps errors from repository`() = runTest {
         val exception = IllegalStateException()
         coEvery {
-            mockCredentialOfferRepository.saveCredentialOffer(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
+            mockCredentialOfferRepository.saveCredentialOffer(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
         } returns Err(SsiError.Unexpected(exception))
 
         saveCredentialUseCase(
@@ -102,8 +102,11 @@ class SaveCredentialImplTest {
 
     private companion object {
         val anyCredential = VcSdJwtCredential(
-            keyBindingIdentifier = "",
-            keyBindingAlgorithm = SigningAlgorithm.ES512,
+            keyBinding = KeyBinding(
+                identifier = "",
+                algorithm = SigningAlgorithm.ES512,
+                bindingType = KeyBindingType.HARDWARE
+            ),
             payload = "ewogICJhbGciOiJFUzUxMiIsCiAgInR5cCI6IkpXVCIsCiAgImtpZCI6ImtleUlkIgp9.ewogICJfc2QiOlsKICAgICJZUkxmNjA2Y2x3dDQtaGp5R3plNDl5U0ZpNlZDbXdiOW41aHdiNFZVSlNZIiwKICAgICJRaHV2SU1RZDVMeVg4Z09SM3dlVnpTWTB5R1pHR0hkVlhZMEUtTmhoVWZ3IgogIF0sCiAgIl9zZF9hbGciOiJzaGEtMjU2IiwKICAiaWF0IjoxNjk3ODA2NjcxLAogICJpc3MiOiJpc3N1ZXIiLAogICJ2Y3QiOiJ2Y3QiCn0.ZXdvZ0lDSmhiR2NpT2lKRlV6VXhNaUlzQ2lBZ0luUjVjQ0k2SWtwWFZDSXNDaUFnSW10cFpDSTZJbXRsZVVsa0lncDkuLkFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUdOd0wySDZua2ZjdFNPT0NSU21HY080d3NGczNVZDJWR3phYkFySnpMSGJBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFDOFY2cGlRbDc3RnYwUVlUbTU4TmxJczMwZnNRdjc4aXRFUzNCSzR6ZnZI",
         )
 

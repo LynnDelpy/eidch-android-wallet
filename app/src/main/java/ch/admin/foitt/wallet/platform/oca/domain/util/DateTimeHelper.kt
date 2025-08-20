@@ -1,8 +1,6 @@
 package ch.admin.foitt.wallet.platform.oca.domain.util
 
-import ch.admin.foitt.wallet.platform.oca.domain.model.ClaimValueData
 import ch.admin.foitt.wallet.platform.oca.domain.model.DateTimePattern
-import ch.admin.foitt.wallet.platform.ssi.domain.model.ValueType
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.coroutines.runSuspendCatching
 import com.github.michaelbull.result.get
@@ -21,32 +19,17 @@ import java.time.temporal.ChronoField.SECOND_OF_MINUTE
 import java.time.temporal.ChronoField.YEAR
 
 /**
- * Parses the given unixtune string into a DateTimeData object using multiple parsing strategies.
+ * Parses the given unixTime string to a standardized ISO 8601 string in UTC.
  */
-internal fun parseUnixtimeToClaimValueData(input: String): ClaimValueData {
-    val value = runSuspendCatching {
+internal fun parseUnixTime(input: String): String? =
+    runSuspendCatching {
         ZonedDateTime.ofInstant(Instant.ofEpochSecond(input.toLong()), ZoneOffset.UTC).toString()
     }.get()
 
-    return if (value == null) {
-        ClaimValueData(
-            value = input,
-            valueType = ValueType.DATETIME.value,
-            valueDisplayInfo = null
-        )
-    } else {
-        ClaimValueData(
-            value = value,
-            valueType = ValueType.DATETIME.value,
-            valueDisplayInfo = DateTimePattern.DATE_TIME_TIMEZONE.name
-        )
-    }
-}
-
 /**
- * Parses the given ISO 8601 string into a DateTimeData object using multiple parsing strategies.
+ * Parses the given ISO 8601 string to a standardized ISO 8601 string in UTC using multiple parsing strategies.
  */
-internal fun parseIso8601ToClaimValueData(input: String): ClaimValueData {
+internal fun parseIso8601(input: String): Pair<String, String?> {
     val inputParserToOutputPattern = mapOf(
         ::parseYear to DateTimePattern.YEAR,
         ::parseYearMonth to DateTimePattern.YEAR_MONTH,
@@ -69,22 +52,13 @@ internal fun parseIso8601ToClaimValueData(input: String): ClaimValueData {
 
         ::parseDateWithTimezone to DateTimePattern.DATE_TIMEZONE,
         ::parseDate to DateTimePattern.DATE,
-
     )
 
     return inputParserToOutputPattern.firstNotNullOfOrNull { (parser, pattern) ->
         parser(input).get()?.let { zonedDateTime ->
-            ClaimValueData(
-                value = zonedDateTime.toString(),
-                valueType = ValueType.DATETIME.value,
-                valueDisplayInfo = pattern.name
-            )
+            zonedDateTime.toString() to pattern.name
         }
-    } ?: ClaimValueData(
-        value = input,
-        valueType = ValueType.DATETIME.value,
-        valueDisplayInfo = null
-    )
+    } ?: (input to null)
 }
 
 private fun parseDateTimeWithTimezoneSecondsFraction(input: String): Result<ZonedDateTime, Throwable> = runSuspendCatching {

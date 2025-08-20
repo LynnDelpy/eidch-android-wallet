@@ -20,6 +20,10 @@ import ch.admin.foitt.wallet.platform.navigation.domain.model.ComponentScope
 import ch.admin.foitt.wallet.platform.scaffold.domain.model.TopBarState
 import ch.admin.foitt.wallet.platform.scaffold.domain.usecase.SetTopBarState
 import ch.admin.foitt.wallet.platform.scaffold.presentation.ScreenViewModel
+import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialClaimCluster
+import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialClaimImage
+import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialClaimItem
+import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialClaimText
 import ch.admin.foitt.wallet.platform.utils.launchWithDelayedLoading
 import ch.admin.foitt.wallet.platform.utils.trackCompletion
 import ch.admin.foitt.walletcomposedestinations.destinations.ErrorScreenDestination
@@ -30,6 +34,7 @@ import ch.admin.foitt.walletcomposedestinations.destinations.PresentationRequest
 import ch.admin.foitt.walletcomposedestinations.destinations.PresentationSuccessScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.PresentationValidationErrorScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.PresentationVerificationErrorScreenDestination
+import ch.admin.foitt.walletcomposedestinations.destinations.ReportWrongDataScreenDestination
 import com.github.michaelbull.result.mapBoth
 import com.github.michaelbull.result.onFailure
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -50,7 +55,7 @@ class PresentationRequestViewModel @Inject constructor(
     private val fetchAndCacheVerifierDisplayData: FetchAndCacheVerifierDisplayData,
     private val submitPresentation: SubmitPresentation,
     private val declinePresentation: DeclinePresentation,
-    @IoDispatcherScope private val ioDispatcherScope: CoroutineScope,
+    @param:IoDispatcherScope private val ioDispatcherScope: CoroutineScope,
     private val getCredentialCardState: GetCredentialCardState,
     private val getActorUiState: GetActorUiState,
     getActorForScope: GetActorForScope,
@@ -120,6 +125,7 @@ class PresentationRequestViewModel @Inject constructor(
                             PresentationRequestError.RawSdJwtParsingError,
                             PresentationRequestError.NetworkError,
                             is PresentationRequestError.Unexpected -> navigateToFailure()
+
                             PresentationRequestError.ValidationError -> navigateToValidationError()
                             PresentationRequestError.VerificationError -> navigateToVerificationError()
                             PresentationRequestError.InvalidCredentialError -> navigateToInvalidCredentialError()
@@ -179,10 +185,20 @@ class PresentationRequestViewModel @Inject constructor(
         )
     }
 
-    private fun getSentFields() =
-        presentationRequestUiState.value.requestedClaims.map { claimData ->
-            claimData.localizedKey
-        }.toTypedArray()
+    private fun getSentFields() = presentationRequestUiState.value.requestedClaims.flatMap { item ->
+        getClusterFields(item.items)
+    }.toTypedArray()
+
+    private fun getClusterFields(items: MutableList<CredentialClaimItem>): List<String> {
+        val fields = mutableListOf<String>()
+        items.forEach { item ->
+            when (item) {
+                is CredentialClaimText, is CredentialClaimImage -> fields.add(item.localizedLabel)
+                is CredentialClaimCluster -> fields.addAll(getClusterFields(item.items))
+            }
+        }
+        return fields
+    }
 
     private fun navigateToFailure() = navManager.navigateToAndClearCurrent(
         PresentationFailureScreenDestination(
@@ -200,7 +216,20 @@ class PresentationRequestViewModel @Inject constructor(
         return PresentationRequestUiState(
             credential = getCredentialCardState(credential),
             requestedClaims = requestedClaims,
+            numberOfClaims = getAmountOfClaims(requestedClaims)
         )
+    }
+
+    private fun getAmountOfClaims(claims: List<CredentialClaimCluster>): Int {
+        var amount = 0
+        claims.forEach {
+            amount += it.numberOfNonClusterChildren
+        }
+        return amount
+    }
+
+    fun onReportWrongData() {
+        navManager.navigateTo(ReportWrongDataScreenDestination)
     }
 
     companion object {

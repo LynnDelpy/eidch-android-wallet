@@ -1,6 +1,7 @@
 package ch.admin.foitt.wallet.platform.ssi.data.source.local.mock
 
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.CredentialFormat
+import ch.admin.foitt.openid4vc.domain.model.keyBinding.KeyBindingType
 import ch.admin.foitt.wallet.feature.credentialOffer.mock.CredentialOfferMocks.CREDENTIAL_PAYLOAD
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialClaimClusterDisplayEntity
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialClaimClusterEntity
@@ -9,6 +10,7 @@ import ch.admin.foitt.wallet.platform.database.domain.model.CredentialClaim
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialClaimDisplay
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialDisplay
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialIssuerDisplay
+import ch.admin.foitt.wallet.platform.database.domain.model.CredentialKeyBindingEntity
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialStatus
 import ch.admin.foitt.wallet.platform.database.domain.model.DisplayLanguage
 
@@ -22,6 +24,7 @@ object CredentialTestData {
     const val NAME1 = "NAME1"
     const val CORRECT = "CORRECT"
     const val FALLBACK = "FALLBACK"
+    const val DISPLAY_VALUE = "VALUE"
 
     private const val NAME2 = "NAME2"
     private const val NAME3 = "NAME3"
@@ -29,28 +32,46 @@ object CredentialTestData {
     private const val SIGNING_ALGORITHM = "SIGNING_ALGORITHM"
     private const val LOGO_DATA = "logo data"
 
+    val keyBinding1 = CredentialKeyBindingEntity(
+        id = IDENTIFIER,
+        credentialId = 1,
+        algorithm = SIGNING_ALGORITHM,
+        bindingType = KeyBindingType.HARDWARE,
+    )
+
+    val keyBinding2 = CredentialKeyBindingEntity(
+        id = IDENTIFIER,
+        credentialId = 2,
+        algorithm = SIGNING_ALGORITHM,
+        bindingType = KeyBindingType.HARDWARE,
+    )
+
+    val keyBinding3 = CredentialKeyBindingEntity(
+        id = "key1",
+        credentialId = 3,
+        algorithm = "ES256",
+        bindingType = KeyBindingType.HARDWARE,
+    )
+
     val credential1 = Credential(
         id = 1,
         status = CredentialStatus.VALID,
-        keyBindingIdentifier = IDENTIFIER,
         payload = PAYLOAD,
         format = FORMAT,
         createdAt = 1,
         updatedAt = 1,
-        keyBindingAlgorithm = SIGNING_ALGORITHM,
         issuer = "issuer",
         validFrom = 0,
         validUntil = 17768026519L,
     )
+
     val credential2 = Credential(
         id = 2,
         status = CredentialStatus.VALID,
-        keyBindingIdentifier = IDENTIFIER,
         payload = PAYLOAD,
         format = FORMAT,
         createdAt = 2,
         updatedAt = 2,
-        keyBindingAlgorithm = SIGNING_ALGORITHM,
         issuer = "issuer",
         validFrom = 0,
         validUntil = 17768026519L,
@@ -58,12 +79,10 @@ object CredentialTestData {
     val credentialWithPayload = Credential(
         id = 3,
         status = CredentialStatus.VALID,
-        keyBindingIdentifier = "key1",
         payload = CREDENTIAL_PAYLOAD,
         format = CredentialFormat.VC_SD_JWT,
         createdAt = 3,
         updatedAt = 3,
-        keyBindingAlgorithm = "ES256",
         issuer = "issuer",
         validFrom = 0,
         validUntil = 17768026519L,
@@ -79,11 +98,28 @@ object CredentialTestData {
     val credentialClaim1 = CredentialClaim(id = 1, clusterId = 1, key = KEY, value = VALUE, valueType = null)
     val credentialClaim2 = CredentialClaim(id = 2, clusterId = 2, key = KEY2, value = VALUE2, valueType = null)
 
-    val credentialClaimDisplay1 = CredentialClaimDisplay(id = 1, claimId = credentialClaim1.id, name = NAME1, locale = "xx")
-    val credentialClaimDisplay2 = CredentialClaimDisplay(id = 2, claimId = credentialClaim2.id, name = NAME2, locale = "xx_XX")
-    val credentialClaimDisplay3 = CredentialClaimDisplay(id = 3, claimId = credentialClaim1.id, name = NAME3, locale = "xx_XX")
+    val credentialClaimDisplay1 = CredentialClaimDisplay(
+        id = 1,
+        claimId = credentialClaim1.id,
+        name = NAME1,
+        locale = "xx",
+        value = DISPLAY_VALUE
+    )
+    val credentialClaimDisplay2 = CredentialClaimDisplay(
+        id = 2,
+        claimId = credentialClaim2.id,
+        name = NAME2,
+        locale = "xx_XX",
+        value = DISPLAY_VALUE
+    )
+    val credentialClaimDisplay3 = CredentialClaimDisplay(id = 3, claimId = credentialClaim1.id, name = NAME3, locale = "xx_XX", value = DISPLAY_VALUE)
 
-    val credentialDisplay1 = CredentialDisplay(id = 1, credentialId = credential1.id, locale = "xx_XX", name = CORRECT)
+    val credentialDisplay1 = CredentialDisplay(
+        id = 1,
+        credentialId = credential1.id,
+        locale = "xx_XX",
+        name = CORRECT
+    )
     val credentialDisplay2 = CredentialDisplay(
         id = 2,
         credentialId = credential2.id,

@@ -29,6 +29,8 @@ internal class ValidateInvitationImpl @Inject constructor(
     override suspend fun invoke(input: String): Result<Invitation, ValidateInvitationError> = coroutineBinding {
         val invitationUri = parseUri(input).bind()
         when (invitationUri.scheme) {
+            BuildConfig.SCHEME_PRESENTATION_REQUEST_OID,
+            BuildConfig.SCHEME_PRESENTATION_REQUEST_SWIYU,
             BuildConfig.SCHEME_PRESENTATION_REQUEST -> getPresentationRequestFromUri(invitationUri)
                 .mapError(GetPresentationRequestError::toValidateInvitationError)
                 .bind()

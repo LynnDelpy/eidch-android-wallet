@@ -7,19 +7,18 @@ import ch.admin.foitt.wallet.platform.credential.domain.model.CredentialDisplayD
 import ch.admin.foitt.wallet.platform.credential.domain.model.CredentialError
 import ch.admin.foitt.wallet.platform.credential.domain.model.toDisplayStatus
 import ch.admin.foitt.wallet.platform.credential.domain.usecase.MapToCredentialDisplayData
+import ch.admin.foitt.wallet.platform.credentialCluster.domain.usercase.MapToCredentialClaimCluster
 import ch.admin.foitt.wallet.platform.credentialPresentation.domain.model.PresentationRequestField
 import ch.admin.foitt.wallet.platform.database.domain.model.ClusterWithDisplaysAndClaims
 import ch.admin.foitt.wallet.platform.database.domain.model.Credential
-import ch.admin.foitt.wallet.platform.database.domain.model.CredentialClaim
-import ch.admin.foitt.wallet.platform.database.domain.model.CredentialClaimClusterEntity
-import ch.admin.foitt.wallet.platform.database.domain.model.CredentialClaimWithDisplays
+import ch.admin.foitt.wallet.platform.database.domain.model.CredentialClusterWithDisplays
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialDisplay
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialStatus
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialWithDisplaysAndClusters
-import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialClaimData
 import ch.admin.foitt.wallet.platform.ssi.domain.model.SsiError
 import ch.admin.foitt.wallet.platform.ssi.domain.repository.CredentialWithDisplaysAndClustersRepository
-import ch.admin.foitt.wallet.platform.ssi.domain.usecase.MapToCredentialClaimData
+import ch.admin.foitt.wallet.platform.ssi.domain.usecase.implementation.mock.MockCredentialDetail
+import ch.admin.foitt.wallet.platform.ssi.domain.usecase.implementation.mock.MockCredentialDetail.claims
 import ch.admin.foitt.wallet.util.assertErrorType
 import ch.admin.foitt.wallet.util.assertOk
 import com.github.michaelbull.result.Err
@@ -27,6 +26,7 @@ import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.getError
 import io.mockk.MockKAnnotations
 import io.mockk.coEvery
+import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.unmockkAll
 import kotlinx.coroutines.flow.firstOrNull
@@ -47,19 +47,10 @@ class GetPresentationRequestFlowImplTest {
     lateinit var mockMapToCredentialDisplayData: MapToCredentialDisplayData
 
     @MockK
-    lateinit var mockMapToCredentialClaimData: MapToCredentialClaimData
+    lateinit var mockMapToCredentialClaimCluster: MapToCredentialClaimCluster
 
     @MockK
     lateinit var mockCredentialWithDisplaysAndClusters: CredentialWithDisplaysAndClusters
-
-    @MockK
-    lateinit var mockCredentialClaimWithDisplays: CredentialClaimWithDisplays
-
-    @MockK
-    lateinit var mockCredentialClaim: CredentialClaim
-
-    @MockK
-    lateinit var mockClaimData: CredentialClaimData
 
     @MockK
     lateinit var mockRequestedField: PresentationRequestField
@@ -68,10 +59,10 @@ class GetPresentationRequestFlowImplTest {
     lateinit var mockPresentationRequest: PresentationRequest
 
     @MockK
-    lateinit var mockCredential: Credential
+    lateinit var mockClusterWithDisplays: CredentialClusterWithDisplays
 
     @MockK
-    private lateinit var mockCluster: CredentialClaimClusterEntity
+    lateinit var mockCredential: Credential
 
     private lateinit var getPresentationRequestFlow: GetPresentationRequestFlowImpl
 
@@ -82,7 +73,7 @@ class GetPresentationRequestFlowImplTest {
         getPresentationRequestFlow = GetPresentationRequestFlowImpl(
             mockCredentialWithDisplaysAndClustersRepository,
             mockMapToCredentialDisplayData,
-            mockMapToCredentialClaimData,
+            mockMapToCredentialClaimCluster,
         )
 
         setupDefaultMocks()
@@ -126,7 +117,7 @@ class GetPresentationRequestFlowImplTest {
     fun `Getting the presentation request flow maps errors from the MapToCredentialDisplayData use case`() = runTest {
         val exception = IllegalStateException("map to credential claim display data error")
         coEvery {
-            mockMapToCredentialDisplayData(mockCredential, credentialDisplays, listOf(mockCredentialClaimWithDisplays))
+            mockMapToCredentialDisplayData(any(), any(), any())
         } returns Err(CredentialError.Unexpected(exception))
 
         val result = getPresentationRequestFlow(
@@ -138,58 +129,39 @@ class GetPresentationRequestFlowImplTest {
         result?.assertErrorType(PresentationRequestError.Unexpected::class)
     }
 
-    @Test
-    fun `Getting the presentation request flow maps from the MapToCredentialClaimData use case`() = runTest {
-        val exception = IllegalStateException("no claim displays found")
-        coEvery {
-            mockMapToCredentialClaimData(any<CredentialClaimWithDisplays>())
-        } returns Err(SsiError.Unexpected(exception))
-
-        val result = getPresentationRequestFlow(
-            id = CREDENTIAL_ID1,
-            requestedFields = listOf(mockRequestedField),
-        ).firstOrNull()
-
-        assertNotNull(result)
-        result?.assertErrorType(PresentationRequestError.Unexpected::class)
-        val error = result?.getError() as PresentationRequestError.Unexpected
-        assertEquals(exception, error.throwable)
-    }
-
     private fun setupDefaultMocks() {
         coEvery {
             mockCredentialWithDisplaysAndClustersRepository.getCredentialWithDisplaysAndClustersFlowById(CREDENTIAL_ID1)
         } returns flowOf(Ok(mockCredentialWithDisplaysAndClusters))
-        coEvery { mockCredentialWithDisplaysAndClusters.credential } returns mockCredential
-        coEvery { mockCredentialWithDisplaysAndClusters.credentialDisplays } returns credentialDisplays
-        coEvery { mockCredentialWithDisplaysAndClusters.clusters } returns listOf(
+
+        every { mockCredentialWithDisplaysAndClusters.credential } returns mockCredential
+        every { mockCredentialWithDisplaysAndClusters.credentialDisplays } returns MockCredentialDetail.credentialDisplays
+        every { mockCredentialWithDisplaysAndClusters.clusters } returns listOf(
             ClusterWithDisplaysAndClaims(
-                cluster = mockCluster,
-                displays = emptyList(),
-                claims = listOf(mockCredentialClaimWithDisplays)
+                clusterWithDisplays = mockClusterWithDisplays,
+                claimsWithDisplays = claims,
             )
         )
 
-        coEvery { mockCredentialClaimWithDisplays.claim } returns mockCredentialClaim
-        coEvery { mockCredentialClaim.key } returns CLAIM_KEY
-        coEvery { mockCredentialClaim.order } returns CLAIM_ORDER
+        coEvery {
+            mockCredentialWithDisplaysAndClustersRepository.getNullableCredentialWithDisplaysAndClustersFlowById(CREDENTIAL_ID1)
+        } returns flowOf(Ok(mockCredentialWithDisplaysAndClusters))
 
         coEvery {
-            mockMapToCredentialDisplayData(mockCredential, credentialDisplays, listOf(mockCredentialClaimWithDisplays))
-        } returns Ok(credentialDisplayData)
-
-        coEvery {
-            mockMapToCredentialClaimData(mockCredentialClaimWithDisplays)
-        } returns Ok(mockClaimData)
+            mockMapToCredentialDisplayData(mockCredential, MockCredentialDetail.credentialDisplays, claims)
+        } returns Ok(MockCredentialDetail.credentialDisplayData)
 
         coEvery { mockRequestedField.key } returns CLAIM_KEY
         coEvery { mockPresentationRequest.clientIdScheme } returns CLIENT_ID_SCHEME
         coEvery { mockPresentationRequest.clientId } returns CLIENT_ID
+
+        coEvery {
+            mockMapToCredentialClaimCluster(any())
+        } returns MockCredentialDetail.listOfCredentialClaimCluster
     }
 
     private companion object {
         const val CLAIM_KEY = "claimKey"
-        const val CLAIM_ORDER = 1
         const val CLIENT_ID = "clientId"
         const val CLIENT_ID_SCHEME = "did"
 

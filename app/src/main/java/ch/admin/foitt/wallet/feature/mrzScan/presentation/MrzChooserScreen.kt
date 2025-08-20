@@ -6,17 +6,13 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ch.admin.foitt.wallet.R
-import ch.admin.foitt.wallet.feature.mrzScan.presentation.model.MrzData
 import ch.admin.foitt.wallet.platform.composables.presentation.layout.LazyColumn
 import ch.admin.foitt.wallet.platform.composables.presentation.layout.WalletLayouts
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.ApplyRequest
+import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.MrzData
 import ch.admin.foitt.wallet.platform.preview.WalletAllScreenPreview
 import ch.admin.foitt.wallet.platform.scaffold.presentation.LocalScaffoldPaddings
 import ch.admin.foitt.wallet.platform.utils.setIsTraversalGroup
@@ -30,24 +26,16 @@ import com.ramcosta.composedestinations.annotation.Destination
 fun MrzChooserScreen(
     viewModel: MrzChooserViewModel
 ) {
-    val errorMessage = viewModel.errorMessage.collectAsStateWithLifecycle().value
-    val showErrorMessage = viewModel.showErrorDialog.collectAsStateWithLifecycle().value
     MrzChooserScreenContent(
-        errorMessage = errorMessage,
-        showErrorMessage = showErrorMessage,
         screenData = viewModel.mrzData,
         onMrzItemClick = viewModel::onMrzItemClick,
-        onCloseDialog = viewModel::onCloseErrorDialog,
     )
 }
 
 @Composable
 private fun MrzChooserScreenContent(
-    errorMessage: String,
-    showErrorMessage: Boolean,
     screenData: List<MrzData>,
     onMrzItemClick: (Int) -> Unit,
-    onCloseDialog: () -> Unit,
 ) {
     Column {
         Spacer(
@@ -82,40 +70,6 @@ private fun MrzChooserScreenContent(
             }
         }
     }
-
-    if (showErrorMessage) {
-        ErrorDialog(
-            onConfirmation = onCloseDialog,
-            dialogText = errorMessage
-        )
-    }
-}
-
-@Composable
-fun ErrorDialog(
-    onConfirmation: () -> Unit,
-    dialogText: String,
-) {
-    AlertDialog(
-        title = {
-            Text(text = "Error")
-        },
-        text = {
-            Text(text = dialogText)
-        },
-        onDismissRequest = {
-            onConfirmation()
-        },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    onConfirmation()
-                }
-            ) {
-                Text("OK")
-            }
-        },
-    )
 }
 
 @WalletAllScreenPreview
@@ -144,9 +98,6 @@ private fun MrzScreenPreview() {
                 )
             ),
             onMrzItemClick = {},
-            errorMessage = "error message",
-            showErrorMessage = false,
-            onCloseDialog = {},
         )
     }
 }

@@ -33,7 +33,7 @@ class QrScanPermissionViewModel @Inject constructor(
     private val shouldAutoTriggerPermissionPrompt: ShouldAutoTriggerPermissionPrompt,
     private val getFirstCredentialWasAdded: GetFirstCredentialWasAdded,
     private val navManager: NavigationManager,
-    @ApplicationContext private val appContext: Context,
+    @param:ApplicationContext private val appContext: Context,
     setTopBarState: SetTopBarState,
 ) : ScreenViewModel(setTopBarState) {
 

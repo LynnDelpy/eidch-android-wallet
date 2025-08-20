@@ -14,4 +14,6 @@ sealed interface QrInfoState {
     data object NoCompatibleCredential : QrInfoState
     data object UnexpectedError : QrInfoState
     data object InvalidPresentation : QrInfoState
+    data object UnsupportedKeyStorageSecurityLevel : QrInfoState
+    data object IncompatibleDeviceKeyStorage : QrInfoState
 }

@@ -2,9 +2,11 @@ package ch.admin.foitt.wallet.platform.ssi.domain.usecase.implementation
 
 import ch.admin.foitt.openid4vc.utils.Constants.ANDROID_KEY_STORE
 import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialRepositoryError
+import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialWithKeyBindingRepositoryError
 import ch.admin.foitt.wallet.platform.ssi.domain.model.DeleteCredentialError
 import ch.admin.foitt.wallet.platform.ssi.domain.model.toDeleteCredentialError
 import ch.admin.foitt.wallet.platform.ssi.domain.repository.CredentialRepo
+import ch.admin.foitt.wallet.platform.ssi.domain.repository.CredentialWithKeyBindingRepository
 import ch.admin.foitt.wallet.platform.ssi.domain.usecase.DeleteCredential
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.coroutines.coroutineBinding
@@ -16,15 +18,16 @@ import java.security.KeyStore
 import javax.inject.Inject
 
 class DeleteCredentialImpl @Inject constructor(
-    private val credentialRepo: CredentialRepo
+    private val credentialRepo: CredentialRepo,
+    private val credentialWithKeyBindingRepository: CredentialWithKeyBindingRepository,
 ) : DeleteCredential {
     override suspend fun invoke(credentialId: Long): Result<Unit, DeleteCredentialError> = coroutineBinding {
-        val credential = credentialRepo.getById(credentialId)
-            .mapError(CredentialRepositoryError::toDeleteCredentialError)
+        val credentialWithKeyBinding = credentialWithKeyBindingRepository.getByCredentialId(credentialId)
+            .mapError(CredentialWithKeyBindingRepositoryError::toDeleteCredentialError)
             .bind()
 
-        if (credential.keyBindingIdentifier != null) {
-            deleteKeyStoreEntry(credential.keyBindingIdentifier)
+        credentialWithKeyBinding.keyBinding?.let {
+            deleteKeyStoreEntry(it.id)
         }
 
         credentialRepo.deleteById(credentialId)

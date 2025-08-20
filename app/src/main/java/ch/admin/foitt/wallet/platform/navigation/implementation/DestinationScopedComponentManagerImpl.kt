@@ -17,7 +17,7 @@ import javax.inject.Inject
 internal class DestinationScopedComponentManagerImpl @Inject constructor(
     private val componentBuilder: DestinationsComponentBuilder,
     private val navManager: NavigationManager,
-    @IoDispatcherScope private val ioDispatcherScope: CoroutineScope,
+    @param:IoDispatcherScope private val ioDispatcherScope: CoroutineScope,
 ) : DestinationScopedComponentManager {
     private val backStackFlow: StateFlow<List<Destination>> = navManager.currentBackStackFlow
 

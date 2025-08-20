@@ -8,7 +8,9 @@ import ch.admin.foitt.wallet.platform.database.data.dao.CredentialClaimDisplayDa
 import ch.admin.foitt.wallet.platform.database.data.dao.CredentialDao
 import ch.admin.foitt.wallet.platform.database.data.dao.CredentialDisplayDao
 import ch.admin.foitt.wallet.platform.database.data.dao.CredentialIssuerDisplayDao
+import ch.admin.foitt.wallet.platform.database.data.dao.CredentialKeyBindingEntityDao
 import ch.admin.foitt.wallet.platform.database.data.dao.CredentialWithDisplaysAndClustersDao
+import ch.admin.foitt.wallet.platform.database.data.dao.CredentialWithKeyBindingDao
 import ch.admin.foitt.wallet.platform.database.data.dao.DaoProvider
 import ch.admin.foitt.wallet.platform.database.data.dao.EIdRequestCaseDao
 import ch.admin.foitt.wallet.platform.database.data.dao.EIdRequestCaseWithStateDao
@@ -68,6 +70,10 @@ class FakeDaoProviderImpl : DaoProvider {
     override val credentialClaimClusterEntityDao: StateFlow<CredentialClaimClusterEntityDao?>
         get() = MutableStateFlow(null)
     override val credentialWithDisplaysAndClustersDaoFlow: StateFlow<CredentialWithDisplaysAndClustersDao?>
+        get() = MutableStateFlow(null)
+    override val credentialKeyBindingEntityDaoFlow: StateFlow<CredentialKeyBindingEntityDao?>
+        get() = MutableStateFlow(null)
+    override val credentialWithKeyBindingDaoFlow: StateFlow<CredentialWithKeyBindingDao?>
         get() = MutableStateFlow(null)
     override val eIdRequestCaseDaoFlow: StateFlow<EIdRequestCaseDao?>
         get() = MutableStateFlow(null)

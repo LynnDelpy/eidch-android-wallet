@@ -9,6 +9,7 @@ import ch.admin.foitt.wallet.platform.database.data.dao.CredentialClaimDao
 import ch.admin.foitt.wallet.platform.database.data.dao.CredentialClaimDisplayDao
 import ch.admin.foitt.wallet.platform.database.data.dao.CredentialDao
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialClaimDisplay
+import ch.admin.foitt.wallet.platform.ssi.data.source.local.mock.CredentialTestData.DISPLAY_VALUE
 import ch.admin.foitt.wallet.platform.ssi.data.source.local.mock.CredentialTestData.NAME1
 import ch.admin.foitt.wallet.platform.ssi.data.source.local.mock.CredentialTestData.cluster1
 import ch.admin.foitt.wallet.platform.ssi.data.source.local.mock.CredentialTestData.cluster2
@@ -73,7 +74,7 @@ class CredentialClaimDisplayDaoTest {
     fun insertWithoutMatchingForeignKeyShouldThrow() {
         credentialClaimDisplayDao.insertAll(
             listOf(
-                CredentialClaimDisplay(id = 1, claimId = -1, name = NAME1, locale = "xx_XX")
+                CredentialClaimDisplay(id = 1, claimId = -1, name = NAME1, locale = "xx_XX", value = DISPLAY_VALUE)
             )
         )
     }

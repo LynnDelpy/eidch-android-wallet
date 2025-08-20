@@ -2,11 +2,10 @@ package ch.admin.foitt.wallet.platform.appAttestation
 
 import android.annotation.SuppressLint
 import ch.admin.foitt.openid4vc.domain.model.JwkError
-import ch.admin.foitt.openid4vc.domain.model.KeyPairError
+import ch.admin.foitt.openid4vc.domain.model.SigningAlgorithm
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.JWSKeyPair
-import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.SigningAlgorithm
 import ch.admin.foitt.openid4vc.domain.model.jwt.Jwt
-import ch.admin.foitt.openid4vc.domain.usecase.CreateJWSKeyPair
+import ch.admin.foitt.openid4vc.domain.model.keyBinding.KeyBindingType
 import ch.admin.foitt.openid4vc.domain.usecase.CreateJwk
 import ch.admin.foitt.wallet.platform.appAttestation.domain.model.AttestationChallengeResponse
 import ch.admin.foitt.wallet.platform.appAttestation.domain.model.AttestationError
@@ -15,12 +14,15 @@ import ch.admin.foitt.wallet.platform.appAttestation.domain.model.ClientAttestat
 import ch.admin.foitt.wallet.platform.appAttestation.domain.model.IntegrityToken
 import ch.admin.foitt.wallet.platform.appAttestation.domain.repository.AppAttestationRepository
 import ch.admin.foitt.wallet.platform.appAttestation.domain.repository.AppIntegrityRepository
+import ch.admin.foitt.wallet.platform.appAttestation.domain.repository.CurrentClientAttestationRepository
 import ch.admin.foitt.wallet.platform.appAttestation.domain.usecase.RequestClientAttestation
 import ch.admin.foitt.wallet.platform.appAttestation.domain.usecase.ValidateClientAttestation
 import ch.admin.foitt.wallet.platform.appAttestation.domain.usecase.implementation.RequestClientAttestationImpl
 import ch.admin.foitt.wallet.platform.appAttestation.domain.util.getBase64CertificateChain
 import ch.admin.foitt.wallet.platform.appAttestation.mock.ClientAttestationMocks
 import ch.admin.foitt.wallet.platform.appAttestation.mock.KeyAttestationMocks
+import ch.admin.foitt.wallet.platform.holderBinding.domain.model.KeyPairError
+import ch.admin.foitt.wallet.platform.holderBinding.domain.usecase.CreateJWSKeyPairInHardware
 import ch.admin.foitt.wallet.util.assertErrorType
 import ch.admin.foitt.wallet.util.assertOk
 import com.github.michaelbull.result.Err
@@ -48,7 +50,7 @@ class RequestClientAttestationImplTest {
     private var keyPair: KeyPair = KeyPair(mockk(), mockk())
     private val keyStoreAlias = "keyAlias"
     private val signingAlgorithm = SigningAlgorithm.ES256
-    private val jwsKeyPair = JWSKeyPair(signingAlgorithm, keyPair, keyStoreAlias)
+    private val jwsKeyPair = JWSKeyPair(signingAlgorithm, keyPair, keyStoreAlias, KeyBindingType.SOFTWARE)
     private val jwk = KeyAttestationMocks.jwkEcP256_02
     private val clientAttestationRawJwt = ClientAttestationMocks.jwtAttestation01
     private val clientAttestationJwt = Jwt(clientAttestationRawJwt)
@@ -63,7 +65,10 @@ class RequestClientAttestationImplTest {
     private lateinit var mockAppIntegrityRepository: AppIntegrityRepository
 
     @MockK
-    private lateinit var mockCreateJWSKeyPair: CreateJWSKeyPair
+    private lateinit var mockClientAttestationRepository: CurrentClientAttestationRepository
+
+    @MockK
+    private lateinit var mockCreateJWSKeyPairInHardware: CreateJWSKeyPairInHardware
 
     @MockK
     private lateinit var mockCreateJwk: CreateJwk
@@ -83,14 +88,17 @@ class RequestClientAttestationImplTest {
         useCase = RequestClientAttestationImpl(
             appAttestationRepository = mockAppAttestationRepository,
             appIntegrityRepository = mockAppIntegrityRepository,
+            currentClientAttestationRepository = mockClientAttestationRepository,
             validateClientAttestation = mockValidateClientAttestation,
-            createJWSKeyPair = mockCreateJWSKeyPair,
+            createJWSKeyPairInHardware = mockCreateJWSKeyPairInHardware,
             createJwk = mockCreateJwk,
         )
 
+        coEvery { mockClientAttestationRepository.delete(any()) } returns Ok(Unit)
+
         coEvery { mockAppAttestationRepository.fetchChallenge() } returns Ok(challengeResponse)
 
-        coEvery { mockCreateJWSKeyPair(any(), any(), any()) } returns Ok(jwsKeyPair)
+        coEvery { mockCreateJWSKeyPairInHardware(any(), any(), any(), any(), any()) } returns Ok(jwsKeyPair)
 
         coEvery { mockCreateJwk(any(), any(), any()) } returns Ok(jwk)
 
@@ -105,7 +113,7 @@ class RequestClientAttestationImplTest {
 
         coEvery { mockAppIntegrityRepository.fetchIntegrityToken(any()) } returns Ok(integrityToken)
         coEvery { mockValidateClientAttestation(any(), any(), any()) } returns Ok(clientAttestation)
-        coEvery { mockAppAttestationRepository.saveClientAttestation(clientAttestation) } returns Ok(0L)
+        coEvery { mockClientAttestationRepository.save(clientAttestation) } returns Ok(0L)
         // Mock signature instance
         mockkStatic(Signature::class)
         coEvery { Signature.getInstance(any()) } returns mockSignature
@@ -122,17 +130,18 @@ class RequestClientAttestationImplTest {
     @SuppressLint("CheckResult")
     @Test
     fun `A success saves a valid ClientAttestation and follows specific steps`() = runTest {
-        val result = useCase(signingAlgorithm)
+        val result = useCase(signingAlgorithm = signingAlgorithm)
         result.assertOk()
 
         coVerifyOrder {
             mockAppAttestationRepository.fetchChallenge()
-            mockCreateJWSKeyPair.invoke(any(), any(), any())
+            mockCreateJWSKeyPairInHardware.invoke(any(), any(), any(), any(), any())
+            mockClientAttestationRepository.delete(any())
             mockCreateJwk.invoke(keyPair = keyPair, any(), any())
             mockAppIntegrityRepository.fetchIntegrityToken(any())
             mockAppAttestationRepository.fetchClientAttestation(integrityToken = integrityToken, any())
             mockValidateClientAttestation.invoke(any(), any(), any())
-            mockAppAttestationRepository.saveClientAttestation(clientAttestation)
+            mockClientAttestationRepository.save(clientAttestation)
         }
     }
 
@@ -147,14 +156,27 @@ class RequestClientAttestationImplTest {
         }
 
         coVerify(exactly = 0) {
-            mockCreateJWSKeyPair(any(), any(), any())
+            mockCreateJWSKeyPairInHardware(any(), any(), any(), any(), any())
         }
     }
 
     @Test
     fun `A JWSKeyPair creation failure is propagated`() = runTest {
         val exception = Exception("myException")
-        coEvery { mockCreateJWSKeyPair.invoke(any(), any(), any()) } returns Err(KeyPairError.Unexpected(exception))
+        coEvery {
+            mockCreateJWSKeyPairInHardware.invoke(any(), any(), any(), any(), any())
+        } returns Err(KeyPairError.Unexpected(exception))
+        val result = useCase()
+        val error = result.assertErrorType(AttestationError.Unexpected::class)
+        assertEquals(exception, error.throwable)
+    }
+
+    @Test
+    fun `A client attestation deletion failure is propagated`() = runTest {
+        val exception = Exception("myException")
+        coEvery {
+            mockClientAttestationRepository.delete(any())
+        } returns Err(AttestationError.Unexpected(exception))
         val result = useCase()
         val error = result.assertErrorType(AttestationError.Unexpected::class)
         assertEquals(exception, error.throwable)
@@ -213,7 +235,7 @@ class RequestClientAttestationImplTest {
     fun `A client attestation saving failure is propagated`() = runTest {
         val exception = Exception("myException")
         coEvery {
-            mockAppAttestationRepository.saveClientAttestation(any())
+            mockClientAttestationRepository.save(any())
         } returns Err(AttestationError.Unexpected(exception))
         val result = useCase()
         val error = result.assertErrorType(AttestationError.Unexpected::class)

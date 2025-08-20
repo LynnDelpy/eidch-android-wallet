@@ -35,7 +35,7 @@ class MainViewModel @Inject constructor(
     private val closeAppDatabase: CloseAppDatabase,
     private val setDeepLinkIntent: SetDeepLinkIntent,
     private val navManager: NavigationManager,
-    @IoDispatcherScope private val ioDispatcherScope: CoroutineScope,
+    @param:IoDispatcherScope private val ioDispatcherScope: CoroutineScope,
 ) : ViewModel() {
     private var lockTriggerJob: Job? = null
     private var sessionTimeoutJob: Job? = null
@@ -76,9 +76,11 @@ class MainViewModel @Inject constructor(
     }
 
     private val Intent.isDeeplinkIntent get() =
-        action == Intent.ACTION_VIEW &&
-            (scheme == BuildConfig.SCHEME_CREDENTIAL_OFFER || scheme == BuildConfig.SCHEME_CREDENTIAL_OFFER_SWIYU) &&
-            dataString != null
+        action == Intent.ACTION_VIEW && (scheme.isOfferScheme() || scheme.isPresentationScheme()) && dataString != null
+
+    private fun String?.isOfferScheme() = this == BuildConfig.SCHEME_CREDENTIAL_OFFER || this == BuildConfig.SCHEME_CREDENTIAL_OFFER_SWIYU
+    private fun String?.isPresentationScheme() = this == BuildConfig.SCHEME_PRESENTATION_REQUEST ||
+        this == BuildConfig.SCHEME_PRESENTATION_REQUEST_SWIYU || this == BuildConfig.SCHEME_PRESENTATION_REQUEST_OID
 
     init {
         Timber.d("MainViewModel initialized")

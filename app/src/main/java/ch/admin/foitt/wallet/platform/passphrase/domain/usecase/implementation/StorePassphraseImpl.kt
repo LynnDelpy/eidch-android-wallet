@@ -20,7 +20,7 @@ class StorePassphraseImpl @Inject constructor(
     private val hashPassphrase: HashPassphrase,
     private val encryptAndSavePassphrase: EncryptAndSavePassphrase,
     private val pepperPassphrase: PepperPassphrase,
-    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : StorePassphrase {
     override suspend fun invoke(
         pin: String,

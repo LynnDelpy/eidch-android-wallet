@@ -6,33 +6,26 @@ import ch.admin.foitt.wallet.feature.credentialOffer.domain.usecase.GetCredentia
 import ch.admin.foitt.wallet.feature.credentialOffer.domain.usecase.implementation.GetCredentialOfferFlowImpl
 import ch.admin.foitt.wallet.feature.credentialOffer.mock.MockCredentialOffer.CREDENTIAL_ID
 import ch.admin.foitt.wallet.feature.credentialOffer.mock.MockCredentialOffer.ISSUER
-import ch.admin.foitt.wallet.feature.credentialOffer.mock.MockCredentialOffer.claimData1
-import ch.admin.foitt.wallet.feature.credentialOffer.mock.MockCredentialOffer.claimData2
-import ch.admin.foitt.wallet.feature.credentialOffer.mock.MockCredentialOffer.claimWithDisplays1
-import ch.admin.foitt.wallet.feature.credentialOffer.mock.MockCredentialOffer.claimWithDisplays2
-import ch.admin.foitt.wallet.feature.credentialOffer.mock.MockCredentialOffer.claims
-import ch.admin.foitt.wallet.feature.credentialOffer.mock.MockCredentialOffer.credentialDisplayData
-import ch.admin.foitt.wallet.feature.credentialOffer.mock.MockCredentialOffer.credentialDisplays
 import ch.admin.foitt.wallet.feature.credentialOffer.mock.MockCredentialOffer.credentialOffer
 import ch.admin.foitt.wallet.feature.credentialOffer.mock.MockCredentialOffer.credentialOffer2
 import ch.admin.foitt.wallet.platform.actorMetadata.domain.usecase.FetchAndCacheIssuerDisplayData
 import ch.admin.foitt.wallet.platform.credential.domain.model.CredentialError
 import ch.admin.foitt.wallet.platform.credential.domain.usecase.MapToCredentialDisplayData
+import ch.admin.foitt.wallet.platform.credentialCluster.domain.usercase.MapToCredentialClaimCluster
 import ch.admin.foitt.wallet.platform.database.domain.model.ClusterWithDisplaysAndClaims
 import ch.admin.foitt.wallet.platform.database.domain.model.Credential
-import ch.admin.foitt.wallet.platform.database.domain.model.CredentialClaimClusterEntity
-import ch.admin.foitt.wallet.platform.database.domain.model.CredentialClaimWithDisplays
+import ch.admin.foitt.wallet.platform.database.domain.model.CredentialClusterWithDisplays
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialWithDisplaysAndClusters
 import ch.admin.foitt.wallet.platform.ssi.domain.model.SsiError
 import ch.admin.foitt.wallet.platform.ssi.domain.repository.CredentialWithDisplaysAndClustersRepository
-import ch.admin.foitt.wallet.platform.ssi.domain.usecase.MapToCredentialClaimData
+import ch.admin.foitt.wallet.platform.ssi.domain.usecase.implementation.mock.MockCredentialDetail
+import ch.admin.foitt.wallet.platform.ssi.domain.usecase.implementation.mock.MockCredentialDetail.claims
 import ch.admin.foitt.wallet.util.assertErrorType
 import ch.admin.foitt.wallet.util.assertOk
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
 import io.mockk.MockKAnnotations
 import io.mockk.coEvery
-import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.just
 import io.mockk.runs
@@ -57,7 +50,7 @@ class GetCredentialOfferFlowImplTest {
     lateinit var mockMapToCredentialDisplayData: MapToCredentialDisplayData
 
     @MockK
-    lateinit var mockMapToCredentialClaimData: MapToCredentialClaimData
+    lateinit var mockMapToCredentialClaimCluster: MapToCredentialClaimCluster
 
     @MockK
     lateinit var mockFetchAndCacheIssuerDisplayData: FetchAndCacheIssuerDisplayData
@@ -66,21 +59,21 @@ class GetCredentialOfferFlowImplTest {
     lateinit var mockCredential: Credential
 
     @MockK
-    private lateinit var mockCluster: CredentialClaimClusterEntity
+    private lateinit var mockClusterWithDisplays: CredentialClusterWithDisplays
 
     @MockK
     lateinit var mockCredentialWithDisplaysAndClusters: CredentialWithDisplaysAndClusters
 
-    private lateinit var getCredentialOfferFlow: GetCredentialOfferFlow
+    private lateinit var useCase: GetCredentialOfferFlow
 
     @BeforeEach
     fun setUp() {
         MockKAnnotations.init(this)
 
-        getCredentialOfferFlow = GetCredentialOfferFlowImpl(
+        useCase = GetCredentialOfferFlowImpl(
             mockCredentialWithDisplaysAndClustersRepository,
             mockMapToCredentialDisplayData,
-            mockMapToCredentialClaimData,
+            mockMapToCredentialClaimCluster,
             mockFetchAndCacheIssuerDisplayData,
         )
 
@@ -94,7 +87,7 @@ class GetCredentialOfferFlowImplTest {
 
     @Test
     fun `Getting the credential offer returns a result with one credential offer`() = runTest {
-        val result = getCredentialOfferFlow(CREDENTIAL_ID).firstOrNull()
+        val result = useCase(CREDENTIAL_ID).firstOrNull()
 
         assertNotNull(result)
         result?.assertOk()
@@ -116,12 +109,12 @@ class GetCredentialOfferFlowImplTest {
             emit(Ok(mockCredentialWithDisplaysAndClusters))
         }
 
-        val result = getCredentialOfferFlow(CREDENTIAL_ID).toList()
+        val result = useCase(CREDENTIAL_ID).toList()
         assertEquals(2, result.size)
         result[0].assertOk()
         result[1].assertOk()
-        assertEquals(credentialOffer, result[0].value)
-        assertEquals(credentialOffer2, result[1].value)
+        assertEquals(credentialOffer, result[0].value, "result[0] is not as expected")
+        assertEquals(credentialOffer2, result[1].value, "result[1] is not as expected")
     }
 
     @Test
@@ -131,7 +124,7 @@ class GetCredentialOfferFlowImplTest {
             mockCredentialWithDisplaysAndClustersRepository.getNullableCredentialWithDisplaysAndClustersFlowById(CREDENTIAL_ID)
         } returns flowOf(Err(SsiError.Unexpected(exception)))
 
-        val result = getCredentialOfferFlow(CREDENTIAL_ID).firstOrNull()
+        val result = useCase(CREDENTIAL_ID).firstOrNull()
 
         assertNotNull(result)
         val error = result?.assertErrorType(CredentialOfferError.Unexpected::class)
@@ -142,24 +135,10 @@ class GetCredentialOfferFlowImplTest {
     fun `Getting the credential offer flow maps error from MapToCredentialDisplayData use case`() = runTest {
         val exception = IllegalStateException("map to credential claim display data error")
         coEvery {
-            mockMapToCredentialDisplayData(mockCredential, credentialDisplays, claims)
+            mockMapToCredentialDisplayData(any(), any(), any())
         } returns Err(CredentialError.Unexpected(exception))
 
-        val result = getCredentialOfferFlow(CREDENTIAL_ID).firstOrNull()
-
-        assertNotNull(result)
-        val error = result?.assertErrorType(CredentialOfferError.Unexpected::class)
-        assertEquals(exception, error?.throwable)
-    }
-
-    @Test
-    fun `Getting the credential offer flow maps errors from the MapToCredentialClaimData use case`() = runTest {
-        val exception = IllegalStateException("no claim displays found")
-        coEvery {
-            mockMapToCredentialClaimData(any<CredentialClaimWithDisplays>())
-        } returns Err(SsiError.Unexpected(exception))
-
-        val result = getCredentialOfferFlow(CREDENTIAL_ID).firstOrNull()
+        val result = useCase(CREDENTIAL_ID).firstOrNull()
 
         assertNotNull(result)
         val error = result?.assertErrorType(CredentialOfferError.Unexpected::class)
@@ -167,30 +146,24 @@ class GetCredentialOfferFlowImplTest {
     }
 
     private fun setupDefaultMocks() {
-        every { mockCredential.issuer } returns ISSUER
-
-        every { mockCredentialWithDisplaysAndClusters.credential } returns mockCredential
-        every { mockCredentialWithDisplaysAndClusters.credentialDisplays } returns credentialDisplays
-        every { mockCredentialWithDisplaysAndClusters.clusters } returns listOf(
+        coEvery { mockCredential.issuer } returns ISSUER
+        coEvery { mockFetchAndCacheIssuerDisplayData(CREDENTIAL_ID, ISSUER) } just runs
+        coEvery { mockCredentialWithDisplaysAndClusters.credential } returns mockCredential
+        coEvery { mockCredentialWithDisplaysAndClusters.credentialDisplays } returns MockCredentialDetail.credentialDisplays
+        coEvery { mockCredentialWithDisplaysAndClusters.clusters } returns listOf(
             ClusterWithDisplaysAndClaims(
-                cluster = mockCluster,
-                displays = emptyList(),
-                claims = claims,
+                clusterWithDisplays = mockClusterWithDisplays,
+                claimsWithDisplays = claims,
             )
         )
-
         coEvery {
-            mockCredentialWithDisplaysAndClustersRepository.getNullableCredentialWithDisplaysAndClustersFlowById(CREDENTIAL_ID)
+            mockCredentialWithDisplaysAndClustersRepository.getNullableCredentialWithDisplaysAndClustersFlowById(MockCredentialDetail.CREDENTIAL_ID)
         } returns flowOf(Ok(mockCredentialWithDisplaysAndClusters))
         coEvery {
-            mockMapToCredentialDisplayData(mockCredential, credentialDisplays, claims)
-        } returns Ok(credentialDisplayData)
+            mockMapToCredentialDisplayData(mockCredential, MockCredentialDetail.credentialDisplays, claims)
+        } returns Ok(MockCredentialDetail.credentialDisplayData)
         coEvery {
-            mockMapToCredentialClaimData(claimWithDisplays1)
-        } returns Ok(claimData1)
-        coEvery {
-            mockMapToCredentialClaimData(claimWithDisplays2)
-        } returns Ok(claimData2)
-        coEvery { mockFetchAndCacheIssuerDisplayData(CREDENTIAL_ID, ISSUER) } just runs
+            mockMapToCredentialClaimCluster(any())
+        } returns MockCredentialDetail.listOfCredentialClaimCluster
     }
 }

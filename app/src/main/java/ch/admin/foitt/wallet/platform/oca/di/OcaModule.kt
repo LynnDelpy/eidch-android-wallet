@@ -5,6 +5,7 @@ import ch.admin.foitt.wallet.platform.oca.domain.repository.OcaRepository
 import ch.admin.foitt.wallet.platform.oca.domain.usecase.FetchOcaBundle
 import ch.admin.foitt.wallet.platform.oca.domain.usecase.FetchVcMetadataByFormat
 import ch.admin.foitt.wallet.platform.oca.domain.usecase.GenerateOcaClaimData
+import ch.admin.foitt.wallet.platform.oca.domain.usecase.GenerateOcaClaimDisplays
 import ch.admin.foitt.wallet.platform.oca.domain.usecase.GenerateOcaCredentialData
 import ch.admin.foitt.wallet.platform.oca.domain.usecase.GenerateOcaDisplays
 import ch.admin.foitt.wallet.platform.oca.domain.usecase.GetRootCaptureBase
@@ -16,6 +17,7 @@ import ch.admin.foitt.wallet.platform.oca.domain.usecase.TransformOcaOverlays
 import ch.admin.foitt.wallet.platform.oca.domain.usecase.implementation.FetchOcaBundleImpl
 import ch.admin.foitt.wallet.platform.oca.domain.usecase.implementation.FetchVcMetadataByFormatImpl
 import ch.admin.foitt.wallet.platform.oca.domain.usecase.implementation.GenerateOcaClaimDataImpl
+import ch.admin.foitt.wallet.platform.oca.domain.usecase.implementation.GenerateOcaClaimDisplaysImpl
 import ch.admin.foitt.wallet.platform.oca.domain.usecase.implementation.GenerateOcaCredentialDataImpl
 import ch.admin.foitt.wallet.platform.oca.domain.usecase.implementation.GenerateOcaDisplaysImpl
 import ch.admin.foitt.wallet.platform.oca.domain.usecase.implementation.GetRootCaptureBaseImpl
@@ -73,6 +75,11 @@ internal interface OcaModule {
     fun bindGenerateOcaDisplays(
         useCase: GenerateOcaDisplaysImpl
     ): GenerateOcaDisplays
+
+    @Binds
+    fun bindGenerateOcaClaimDisplays(
+        useCase: GenerateOcaClaimDisplaysImpl
+    ): GenerateOcaClaimDisplays
 
     @Binds
     fun bindTransformOcaOverlays(

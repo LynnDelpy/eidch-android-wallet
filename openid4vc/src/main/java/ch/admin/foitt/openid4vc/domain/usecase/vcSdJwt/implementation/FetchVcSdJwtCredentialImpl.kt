@@ -1,11 +1,12 @@
 package ch.admin.foitt.openid4vc.domain.usecase.vcSdJwt.implementation
 
-import ch.admin.foitt.openid4vc.domain.model.credentialoffer.CredentialOffer
+import ch.admin.foitt.openid4vc.domain.model.VerifiableCredentialParams
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.CredentialOfferError
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.FetchCredentialError
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.FetchVerifiableCredentialError
-import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.VcSdJwtCredentialConfiguration
+import ch.admin.foitt.openid4vc.domain.model.credentialoffer.JWSKeyPair
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.toFetchCredentialError
+import ch.admin.foitt.openid4vc.domain.model.jwt.Jwt
 import ch.admin.foitt.openid4vc.domain.model.vcSdJwt.VcSdJwtCredential
 import ch.admin.foitt.openid4vc.domain.model.vcSdJwt.VerifyJwtError
 import ch.admin.foitt.openid4vc.domain.usecase.FetchVerifiableCredential
@@ -23,20 +24,25 @@ internal class FetchVcSdJwtCredentialImpl @Inject constructor(
     private val verifyJwtSignature: VerifyJwtSignature,
 ) : FetchVcSdJwtCredential {
     override suspend fun invoke(
-        credentialConfig: VcSdJwtCredentialConfiguration,
-        credentialOffer: CredentialOffer,
+        verifiableCredentialParams: VerifiableCredentialParams,
+        keyPair: JWSKeyPair?,
+        attestationJwt: Jwt?,
     ): Result<VcSdJwtCredential, FetchCredentialError> = coroutineBinding {
         val verifiableCredential = fetchVerifiableCredential(
-            credentialConfiguration = credentialConfig,
-            credentialOffer = credentialOffer,
+            verifiableCredentialParams = verifiableCredentialParams,
+            keyPair = keyPair,
+            attestationJwt = attestationJwt,
         ).mapError(FetchVerifiableCredentialError::toFetchCredentialError)
             .bind()
 
-        val credential = VcSdJwtCredential(
-            keyBindingIdentifier = verifiableCredential.keyBindingIdentifier,
-            keyBindingAlgorithm = verifiableCredential.keyBindingAlgorithm,
-            payload = verifiableCredential.credential,
-        )
+        val credential = runSuspendCatching {
+            VcSdJwtCredential(
+                keyBinding = verifiableCredential.keyBinding,
+                payload = verifiableCredential.credential,
+            )
+        }.mapError { throwable ->
+            throwable.toFetchCredentialError("FetchVcSdJwtCredential credential creation error")
+        }.bind()
 
         if (credential.hasNonDisclosableClaims()) {
             Err(CredentialOfferError.InvalidCredentialOffer).bind<FetchCredentialError>()

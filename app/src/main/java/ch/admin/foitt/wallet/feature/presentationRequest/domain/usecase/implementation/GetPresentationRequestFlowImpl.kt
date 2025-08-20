@@ -6,16 +6,13 @@ import ch.admin.foitt.wallet.feature.presentationRequest.domain.model.toGetPrese
 import ch.admin.foitt.wallet.feature.presentationRequest.domain.usecase.GetPresentationRequestFlow
 import ch.admin.foitt.wallet.platform.credential.domain.model.MapToCredentialDisplayDataError
 import ch.admin.foitt.wallet.platform.credential.domain.usecase.MapToCredentialDisplayData
+import ch.admin.foitt.wallet.platform.credentialCluster.domain.usercase.MapToCredentialClaimCluster
 import ch.admin.foitt.wallet.platform.credentialPresentation.domain.model.PresentationRequestField
-import ch.admin.foitt.wallet.platform.database.domain.model.CredentialClaimWithDisplays
-import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialClaimData
+import ch.admin.foitt.wallet.platform.database.domain.model.ClusterWithDisplaysAndClaims
 import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialWithDisplaysAndClustersRepositoryError
-import ch.admin.foitt.wallet.platform.ssi.domain.model.MapToCredentialClaimDataError
 import ch.admin.foitt.wallet.platform.ssi.domain.repository.CredentialWithDisplaysAndClustersRepository
-import ch.admin.foitt.wallet.platform.ssi.domain.usecase.MapToCredentialClaimData
 import ch.admin.foitt.wallet.platform.utils.andThen
 import ch.admin.foitt.wallet.platform.utils.mapError
-import ch.admin.foitt.wallet.platform.utils.sortByOrder
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.coroutines.coroutineBinding
 import com.github.michaelbull.result.mapError
@@ -25,7 +22,7 @@ import javax.inject.Inject
 class GetPresentationRequestFlowImpl @Inject constructor(
     private val credentialWithDisplaysAndClustersRepository: CredentialWithDisplaysAndClustersRepository,
     private val mapToCredentialDisplayData: MapToCredentialDisplayData,
-    private val mapToCredentialClaimData: MapToCredentialClaimData,
+    private val mapToCredentialClaimCluster: MapToCredentialClaimCluster
 ) : GetPresentationRequestFlow {
     override fun invoke(
         id: Long,
@@ -35,43 +32,33 @@ class GetPresentationRequestFlowImpl @Inject constructor(
             .mapError(CredentialWithDisplaysAndClustersRepositoryError::toGetPresentationRequestFlowError)
             .andThen { credentialWithDisplaysAndClusters ->
                 coroutineBinding {
-                    val cluster = credentialWithDisplaysAndClusters.clusters.first()
-
                     val credentialDisplayData = mapToCredentialDisplayData(
                         credential = credentialWithDisplaysAndClusters.credential,
                         credentialDisplays = credentialWithDisplaysAndClusters.credentialDisplays,
-                        claims = cluster.claims,
+                        claims = credentialWithDisplaysAndClusters.clusters.flatMap { it.claimsWithDisplays }
                     ).mapError(MapToCredentialDisplayDataError::toGetPresentationRequestFlowError)
                         .bind()
 
-                    val requestedClaims = getCredentialClaimData(
-                        claims = cluster.claims,
-                        requestedFields = requestedFields,
-                    ).bind()
-
                     PresentationRequestDisplayData(
                         credential = credentialDisplayData,
-                        requestedClaims = requestedClaims,
+                        requestedClaims = mapToCredentialClaimCluster(
+                            credentialWithDisplaysAndClusters.clusters.filterFor(requestedFields)
+                        )
                     )
                 }
             }
 
-    private suspend fun getCredentialClaimData(
-        claims: List<CredentialClaimWithDisplays>,
-        requestedFields: List<PresentationRequestField>,
-    ): Result<List<CredentialClaimData>, GetPresentationRequestFlowError> = coroutineBinding {
-        val requiredClaims = filterClaims(
-            claims = claims,
-            fieldList = requestedFields,
-        ).sortByOrder()
-
-        requiredClaims.map { claimWithDisplays ->
-            mapToCredentialClaimData(
-                claimWithDisplays
-            ).mapError(MapToCredentialClaimDataError::toGetPresentationRequestFlowError).bind()
+    private fun List<ClusterWithDisplaysAndClaims>.filterFor(
+        requestedFields: List<PresentationRequestField>
+    ): List<ClusterWithDisplaysAndClaims> = this.map { cluster ->
+        val filteredClaimsWithDisplays = cluster.claimsWithDisplays.filter { (claim, _) ->
+            requestedFields.any { field ->
+                field.key == claim.key
+            }
         }
-    }
 
-    private fun filterClaims(claims: List<CredentialClaimWithDisplays>, fieldList: List<PresentationRequestField>) =
-        claims.filter { claim -> fieldList.any { field -> field.key == claim.claim.key } }
+        cluster.copy(
+            claimsWithDisplays = filteredClaimsWithDisplays
+        )
+    }
 }

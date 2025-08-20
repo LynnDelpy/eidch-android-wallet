@@ -72,7 +72,7 @@ private fun PresentationCredentialListScreenContent(
     verifierUiState: ActorUiState,
     credentialCardStates: List<CredentialCardState>,
     isLoading: Boolean,
-    onCredentialSelected: (Int) -> Unit,
+    onCredentialSelected: (Long) -> Unit,
     onBack: () -> Unit,
 ) {
     val bottomHeightDp = remember { mutableStateOf(0.dp) }
@@ -140,7 +140,7 @@ private fun CompactCredentialList(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp),
     credentialStates: List<CredentialCardState>,
-    onCredentialSelected: (Int) -> Unit,
+    onCredentialSelected: (Long) -> Unit,
     headerContent: @Composable () -> Unit,
 ) {
     WalletLayouts.LazyColumn(
@@ -153,7 +153,7 @@ private fun CompactCredentialList(
         }
         itemsIndexed(credentialStates) { index, state ->
             CredentialListRow(
-                onClick = { onCredentialSelected(index) },
+                onClick = { onCredentialSelected(state.credentialId) },
                 credentialState = state,
                 showDivider = index != credentialStates.lastIndex,
             )

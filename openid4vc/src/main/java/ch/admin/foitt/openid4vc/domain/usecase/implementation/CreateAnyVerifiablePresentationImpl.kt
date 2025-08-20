@@ -26,6 +26,7 @@ internal class CreateAnyVerifiablePresentationImpl @Inject constructor(
         when (anyCredential) {
             is VcSdJwtCredential -> createVcSdJwtVerifiablePresentation(
                 credential = anyCredential,
+                keyBinding = anyCredential.keyBinding,
                 requestedFields = requestedFields,
                 presentationRequest = presentationRequest,
             ).mapError(CreateVcSdJwtVerifiablePresentationError::toCreateAnyVerifiablePresentationError)

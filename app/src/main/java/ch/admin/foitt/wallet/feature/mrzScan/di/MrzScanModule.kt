@@ -1,5 +1,7 @@
 package ch.admin.foitt.wallet.feature.mrzScan.di
 
+import ch.admin.foitt.avwrapper.AVBeam
+import ch.admin.foitt.avwrapper.AVBeamImpl
 import ch.admin.foitt.wallet.feature.mrzScan.domain.usecase.FetchSIdCase
 import ch.admin.foitt.wallet.feature.mrzScan.domain.usecase.SaveEIdRequestCase
 import ch.admin.foitt.wallet.feature.mrzScan.domain.usecase.SaveEIdRequestState
@@ -8,8 +10,10 @@ import ch.admin.foitt.wallet.feature.mrzScan.domain.usecase.implementation.SaveE
 import ch.admin.foitt.wallet.feature.mrzScan.domain.usecase.implementation.SaveEIdRequestStateImpl
 import dagger.Binds
 import dagger.Module
+import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ActivityRetainedComponent
+import dagger.hilt.android.scopes.ActivityRetainedScoped
 
 @Module
 @InstallIn(ActivityRetainedComponent::class)
@@ -28,4 +32,15 @@ interface MrzScanModule {
     fun bindFetchSIdCase(
         useCase: FetchSIdCaseImpl
     ): FetchSIdCase
+}
+
+@Module
+@InstallIn(ActivityRetainedComponent::class)
+object AVBeamModule {
+
+    @Provides
+    @ActivityRetainedScoped
+    fun provideAVBeam(): AVBeam {
+        return AVBeamImpl()
+    }
 }

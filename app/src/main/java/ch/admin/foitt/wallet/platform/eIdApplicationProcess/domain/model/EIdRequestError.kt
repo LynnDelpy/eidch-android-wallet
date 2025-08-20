@@ -1,9 +1,16 @@
+@file:Suppress("TooManyFunctions")
+
 package ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model
 
+import ch.admin.foitt.wallet.platform.appAttestation.domain.model.AttestationError
+import ch.admin.foitt.wallet.platform.appAttestation.domain.model.GenerateProofOfPossessionError
+import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.EIdRequestError.InsufficientKeyStorageResistance
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.EIdRequestError.InvalidClientAttestation
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.EIdRequestError.InvalidKeyAttestation
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.EIdRequestError.NetworkError
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.EIdRequestError.Unexpected
+import ch.admin.foitt.wallet.platform.utils.JsonError
+import ch.admin.foitt.wallet.platform.utils.JsonParsingError
 import com.github.michaelbull.result.coroutines.runSuspendCatching
 import com.github.michaelbull.result.getOrElse
 import io.ktor.client.call.body
@@ -22,6 +29,7 @@ interface EIdRequestError {
 
     data object InvalidClientAttestation : ValidateAttestationsError
     data object InvalidKeyAttestation : ValidateAttestationsError
+    data object InsufficientKeyStorageResistance : ValidateAttestationsError
 
     data class Unexpected(val cause: Throwable?) :
         EIdRequestCaseRepositoryError,
@@ -43,14 +51,13 @@ sealed interface GuardianVerificationError
 sealed interface SIdRepositoryError
 sealed interface ValidateAttestationsError
 
-internal fun SIdRepositoryError.toAttestationsValidationError(): ValidateAttestationsError = when (this) {
+internal fun SIdRepositoryError.toApplyRequestError(): ApplyRequestError = when (this) {
     is Unexpected -> this
     is NetworkError -> this
 }
 
-internal fun SIdRepositoryError.toApplyRequestError(): ApplyRequestError = when (this) {
-    is Unexpected -> this
-    is NetworkError -> this
+internal fun GenerateProofOfPossessionError.toApplyRequestError(): ApplyRequestError = when (this) {
+    is AttestationError.Unexpected -> Unexpected(this.throwable)
 }
 
 internal fun SIdRepositoryError.toStateRequestError(): StateRequestError = when (this) {
@@ -65,6 +72,10 @@ internal fun SIdRepositoryError.toGuardianVerificationError(): GuardianVerificat
 
 internal fun EIdRequestStateRepositoryError.toUpdateEIdRequestStateError() = when (this) {
     is Unexpected -> this
+}
+
+internal fun JsonParsingError.toApplyRequestError(): ApplyRequestError = when (this) {
+    is JsonError.Unexpected -> Unexpected(this.throwable)
 }
 
 internal fun Throwable.toEIdRequestCaseRepositoryError(message: String): EIdRequestCaseRepositoryError {
@@ -99,19 +110,20 @@ internal suspend fun Throwable.toValidateAttestationsError(message: String): Val
     }
 }
 
-private suspend fun ClientRequestException.toValidateAttestationsErrors(): ValidateAttestationsError = when (this.response.status) {
-    HttpStatusCode.UnprocessableEntity -> {
+private suspend fun ClientRequestException.toValidateAttestationsErrors(): ValidateAttestationsError = when (this.response.status.value) {
+    HttpStatusCode.UnprocessableEntity.value -> {
         val errors = runSuspendCatching { this.response.body<SIdErrorResponse>() }
             .getOrElse {
                 return Unexpected(this)
             }
-        if (errors.errors.any { error -> error.code == SIdError.INVALID_KEY_ATTESTATION }) {
-            InvalidKeyAttestation
-        } else if (errors.errors.any { error -> error.code == SIdError.INVALID_CLIENT_ATTESTATION }) {
-            InvalidClientAttestation
-        } else {
-            Unexpected(this)
+        when {
+            errors.contains(SIdError.INSUFFICIENT_KEY_STORAGE_RESISTANCE) -> InsufficientKeyStorageResistance
+            errors.contains(SIdError.INVALID_KEY_ATTESTATION) -> InvalidKeyAttestation
+            errors.contains(SIdError.INVALID_CLIENT_ATTESTATION) -> InvalidClientAttestation
+            else -> Unexpected(this)
         }
     }
     else -> Unexpected(this)
 }
+
+private fun SIdErrorResponse.contains(errorCode: String) = errors.any { error -> error.code == errorCode }

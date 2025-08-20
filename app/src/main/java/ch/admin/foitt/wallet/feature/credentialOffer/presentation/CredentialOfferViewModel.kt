@@ -20,9 +20,9 @@ import ch.admin.foitt.wallet.platform.scaffold.domain.usecase.SetTopBarState
 import ch.admin.foitt.wallet.platform.scaffold.extension.navigateUpOrToRoot
 import ch.admin.foitt.wallet.platform.scaffold.presentation.ScreenViewModel
 import ch.admin.foitt.walletcomposedestinations.destinations.CredentialOfferScreenDestination
-import ch.admin.foitt.walletcomposedestinations.destinations.CredentialOfferWrongDataScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.DeclineCredentialOfferScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.ErrorScreenDestination
+import ch.admin.foitt.walletcomposedestinations.destinations.ReportWrongDataScreenDestination
 import com.github.michaelbull.result.mapBoth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -118,7 +118,7 @@ class CredentialOfferViewModel @Inject constructor(
         navManager.navigateToAndClearCurrent(ErrorScreenDestination)
     }
 
-    fun onWrongDataClicked() {
-        navManager.navigateTo(CredentialOfferWrongDataScreenDestination)
+    fun onReportWrongDataClicked() {
+        navManager.navigateTo(ReportWrongDataScreenDestination)
     }
 }

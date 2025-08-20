@@ -27,7 +27,7 @@ internal class LockTriggerImpl @Inject constructor(
     private val getAppLifecycleState: GetAppLifecycleState,
     private val isAppDatabaseOpen: IsAppDatabaseOpen,
     private val isDeviceSecureLockScreenConfigured: IsDeviceSecureLockScreenConfigured,
-    @IoDispatcherScope private val ioDispatcherScope: CoroutineScope,
+    @param:IoDispatcherScope private val ioDispatcherScope: CoroutineScope,
 ) : LockTrigger {
     @CheckResult
     override suspend fun invoke(): StateFlow<NavigationAction> = combine(

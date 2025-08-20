@@ -27,7 +27,7 @@ import timber.log.Timber
 import javax.inject.Inject
 
 class UpdateCredentialStatusImpl @Inject constructor(
-    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val credentialRepository: CredentialRepo,
     private val getAnyCredential: GetAnyCredential,
     private val fetchCredentialStatus: FetchCredentialStatus,

@@ -5,6 +5,7 @@ package ch.admin.foitt.wallet.feature.presentationRequest.domain.model
 import ch.admin.foitt.openid4vc.domain.model.presentationRequest.SubmitAnyCredentialPresentationError
 import ch.admin.foitt.wallet.platform.credential.domain.model.AnyCredentialError
 import ch.admin.foitt.wallet.platform.credential.domain.model.CredentialError
+import ch.admin.foitt.wallet.platform.credential.domain.model.CredentialError.Unexpected
 import ch.admin.foitt.wallet.platform.credential.domain.model.GetAnyCredentialError
 import ch.admin.foitt.wallet.platform.credential.domain.model.MapToCredentialDisplayDataError
 import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialWithDisplaysAndClustersRepositoryError
@@ -31,7 +32,7 @@ sealed interface GetPresentationRequestFlowError
 sealed interface GetPresentationRequestCredentialListFlowError
 
 fun GetAnyCredentialError.toSubmitPresentationError(): SubmitPresentationError = when (this) {
-    is CredentialError.Unexpected -> PresentationRequestError.Unexpected(cause)
+    is Unexpected -> PresentationRequestError.Unexpected(cause)
 }
 
 fun SubmitAnyCredentialPresentationError.toSubmitPresentationError(): SubmitPresentationError = when (this) {

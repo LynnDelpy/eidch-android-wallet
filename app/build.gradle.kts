@@ -13,6 +13,8 @@ android {
     val schemeCredentialOffer = "openid-credential-offer"
     val schemeCredentialOfferSwiyu = "swiyu"
     val schemePresentationRequest = "https"
+    val schemePresentationRequestOID = "openid4vp"
+    val schemePresentationRequestSwiyu = "swiyu-verify"
 
     defaultConfig {
         applicationId = "ch.admin.foitt.swiyu"
@@ -23,6 +25,8 @@ android {
         manifestPlaceholders["deepLinkCredentialOfferScheme"] = schemeCredentialOffer
         manifestPlaceholders["deepLinkCredentialOfferSchemeSwiyu"] = schemeCredentialOfferSwiyu
         manifestPlaceholders["deepLinkPresentationRequestScheme"] = schemePresentationRequest
+        manifestPlaceholders["deepLinkPresentationRequestSchemeOID"] = schemePresentationRequestOID
+        manifestPlaceholders["deepLinkPresentationRequestSchemeSwiyu"] = schemePresentationRequestSwiyu
 
         // keeps only resources in these languages
         // if libs f. e. include resources in spanish they are not shipped with the app
@@ -42,6 +46,16 @@ android {
             type = "String",
             name = "SCHEME_PRESENTATION_REQUEST",
             value = "\"$schemePresentationRequest\""
+        )
+        buildConfigField(
+            type = "String",
+            name = "SCHEME_PRESENTATION_REQUEST_OID",
+            value = "\"$schemePresentationRequestOID\""
+        )
+        buildConfigField(
+            type = "String",
+            name = "SCHEME_PRESENTATION_REQUEST_SWIYU",
+            value = "\"$schemePresentationRequestSwiyu\""
         )
 
         testInstrumentationRunner = "ch.admin.foitt.wallet.CustomTestRunner"

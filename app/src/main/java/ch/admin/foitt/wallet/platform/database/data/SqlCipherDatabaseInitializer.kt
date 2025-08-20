@@ -13,14 +13,14 @@ import javax.inject.Singleton
 
 @Singleton
 class SqlCipherDatabaseInitializer @Inject constructor(
-    @ApplicationContext private val appContext: Context
+    @param:ApplicationContext private val appContext: Context
 ) : DatabaseInitializer {
 
     override fun create(password: ByteArray): Result<AppDatabase, DatabaseError.SetupFailed> =
         runSuspendCatching {
             Room.databaseBuilder(appContext, AppDatabase::class.java, DATABASE_NAME)
                 .openHelperFactory(SupportOpenHelperFactory(password))
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_5_6) // see also auto migrations in AppDatabase
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_5_6, MIGRATION_6_7) // see also auto migrations in AppDatabase
                 .build()
         }.mapError { throwable ->
             DatabaseError.SetupFailed(throwable)

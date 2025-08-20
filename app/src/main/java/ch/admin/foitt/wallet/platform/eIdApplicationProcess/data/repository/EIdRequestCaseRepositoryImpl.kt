@@ -16,7 +16,7 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class EIdRequestCaseRepositoryImpl @Inject constructor(
-    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     daoProvider: DaoProvider,
 ) : EIdRequestCaseRepository {
     override suspend fun saveEIdRequestCase(

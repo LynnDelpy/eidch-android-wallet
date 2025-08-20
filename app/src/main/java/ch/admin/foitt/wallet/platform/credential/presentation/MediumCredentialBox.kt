@@ -14,11 +14,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.window.core.layout.WindowWidthSizeClass
-import ch.admin.foitt.wallet.R
+import ch.admin.foitt.wallet.platform.composables.presentation.verticalSafeDrawing
 import ch.admin.foitt.wallet.platform.credential.presentation.mock.CredentialMocks
 import ch.admin.foitt.wallet.platform.credential.presentation.model.CredentialCardState
 import ch.admin.foitt.wallet.platform.preview.ComposableWrapper
@@ -29,29 +28,22 @@ import ch.admin.foitt.wallet.theme.WalletTheme
 
 @Composable
 fun MediumCredentialBox(
-    credentialCardState: CredentialCardState,
     modifier: Modifier = Modifier,
-) = Column {
-    WalletTexts.BodyLarge(
-        text = stringResource(id = R.string.tk_present_review_credential_section_primary),
-        modifier = modifier.padding(start = Sizes.s04, end = Sizes.s04, bottom = Sizes.s04)
-    )
-    Box(
-        modifier = Modifier
-            .clip(WalletTheme.shapes.large)
-            .align(Alignment.CenterHorizontally)
-            .background(WalletTheme.colorScheme.surfaceContainerLow),
-    ) {
-        val windowSizeClass = currentWindowAdaptiveInfo().windowSizeClass
-        if (windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.COMPACT) {
-            CredentialIssuerPortrait(
-                credentialState = credentialCardState,
-            )
-        } else {
-            CredentialIssuerLandscape(
-                credentialState = credentialCardState,
-            )
-        }
+    credentialCardState: CredentialCardState,
+) = Box(
+    modifier = modifier
+        .clip(WalletTheme.shapes.large)
+        .background(WalletTheme.colorScheme.surfaceContainerLow),
+) {
+    val windowSizeClass = currentWindowAdaptiveInfo().windowSizeClass
+    if (windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.COMPACT) {
+        CredentialIssuerPortrait(
+            credentialState = credentialCardState,
+        )
+    } else {
+        CredentialIssuerLandscape(
+            credentialState = credentialCardState,
+        )
     }
 }
 
@@ -79,7 +71,8 @@ private fun CredentialIssuerLandscape(
     Row(
         modifier = modifier
             .padding(start = Sizes.s04, top = Sizes.s12, end = Sizes.s06, bottom = Sizes.s12)
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .verticalSafeDrawing(),
         horizontalArrangement = Arrangement.Center
     ) {
         Column(

@@ -2,19 +2,29 @@ package ch.admin.foitt.wallet.feature.mrzScan
 
 import ch.admin.foitt.wallet.feature.mrzScan.domain.usecase.FetchSIdCase
 import ch.admin.foitt.wallet.feature.mrzScan.domain.usecase.implementation.FetchSIdCaseImpl
+import ch.admin.foitt.wallet.platform.appAttestation.domain.model.AttestationError
+import ch.admin.foitt.wallet.platform.appAttestation.domain.model.ClientAttestation
+import ch.admin.foitt.wallet.platform.appAttestation.domain.model.ClientAttestationPoP
+import ch.admin.foitt.wallet.platform.appAttestation.domain.usecase.GenerateProofOfPossession
+import ch.admin.foitt.wallet.platform.appAttestation.domain.usecase.GetCurrentClientAttestation
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.ApplyRequest
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.CaseResponse
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.EIdRequestError
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.IdentityType
+import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.SIdChallengeResponse
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.repository.SIdRepository
+import ch.admin.foitt.wallet.platform.environmentSetup.domain.repository.EnvironmentSetupRepository
+import ch.admin.foitt.wallet.util.SafeJsonTestInstance
 import ch.admin.foitt.wallet.util.assertErrorType
 import ch.admin.foitt.wallet.util.assertOk
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
 import io.mockk.MockKAnnotations
 import io.mockk.coEvery
+import io.mockk.coVerifyOrder
 import io.mockk.impl.annotations.MockK
 import io.mockk.unmockkAll
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -24,21 +34,63 @@ import org.junit.jupiter.api.Test
 class FetchSIdCaseImplTest {
 
     @MockK
-    private lateinit var mockEIdRepository: SIdRepository
+    private lateinit var mockSIdRepository: SIdRepository
+
+    @MockK
+    private lateinit var mockGetCurrentClientAttestation: GetCurrentClientAttestation
+
+    @MockK
+    private lateinit var mockGenerateProofOfPossession: GenerateProofOfPossession
+
+    @MockK
+    private lateinit var mockEnvironmentSetupRepository: EnvironmentSetupRepository
+
+    private val mockSIdUrl = "https://example.com"
+    private val mockSIdChallenge = SIdChallengeResponse("someChallenge")
+
+    private val testSafeJson = SafeJsonTestInstance.safeJson
 
     lateinit var fetchSIdCase: FetchSIdCase
-    private lateinit var applyRequest: ApplyRequest
+    private val testApplyRequest = ApplyRequest(
+        mrz = listOf("ID<<<I7A<<<<<<7<<<<<<<<<<<<<<<", "1001015X3012316<<<<<<<<<<<<<<2", "MINDERJAEHRIGE<<ANNETTE<<<<<<<"),
+        legalRepresentant = false,
+        email = null
+    )
+
+    private val testCaseResponse = CaseResponse(
+        caseId = "1234-5678-abcd-1234567890ABCDE",
+        surname = "Muster",
+        givenNames = "Max Felix",
+        dateOfBirth = "1989-08-24T00:00:00Z",
+        identityType = IdentityType.SWISS_PASS,
+        identityNumber = "A123456789",
+        validUntil = "2028-12-23T00:00:00Z",
+        legalRepresentant = false,
+        email = "user@examle.com"
+    )
+
+    @MockK
+    private lateinit var mockClientAttestation: ClientAttestation
+
+    @MockK
+    private lateinit var mockClientAttestationPoP: ClientAttestationPoP
 
     @BeforeEach
     fun setup() {
         MockKAnnotations.init(this)
-        fetchSIdCase = FetchSIdCaseImpl(mockEIdRepository)
-
-        applyRequest = ApplyRequest(
-            mrz = listOf("ID<<<I7A<<<<<<7<<<<<<<<<<<<<<<", "1001015X3012316<<<<<<<<<<<<<<2", "MINDERJAEHRIGE<<ANNETTE<<<<<<<"),
-            legalRepresentant = false,
-            email = null
+        fetchSIdCase = FetchSIdCaseImpl(
+            sIdRepository = mockSIdRepository,
+            getCurrentClientAttestation = mockGetCurrentClientAttestation,
+            generateProofOfPossession = mockGenerateProofOfPossession,
+            environmentSetupRepository = mockEnvironmentSetupRepository,
+            safeJson = testSafeJson,
         )
+
+        coEvery { mockSIdRepository.requestSIdCase(any(), any(), any()) } returns Ok(testCaseResponse)
+        coEvery { mockGetCurrentClientAttestation() } returns flowOf(mockClientAttestation)
+        coEvery { mockSIdRepository.fetchChallenge() } returns Ok(mockSIdChallenge)
+        coEvery { mockGenerateProofOfPossession(any(), any(), any(), any()) } returns Ok(mockClientAttestationPoP)
+        coEvery { mockEnvironmentSetupRepository.sidBackendUrl } returns mockSIdUrl
     }
 
     @AfterEach
@@ -47,34 +99,70 @@ class FetchSIdCaseImplTest {
     }
 
     @Test
-    fun `Successfully fetch an eID case`() = runTest {
-        val caseResponse = CaseResponse(
-            caseId = "1234-5678-abcd-1234567890ABCDE",
-            surname = "Muster",
-            givenNames = "Max Felix",
-            dateOfBirth = "1989-08-24T00:00:00Z",
-            identityType = IdentityType.SWISS_PASS,
-            identityNumber = "A123456789",
-            validUntil = "2028-12-23T00:00:00Z",
-            legalRepresentant = false,
-            email = "user@examle.com"
-        )
+    fun `A success follow specific step`() = runTest {
+        val response = fetchSIdCase(testApplyRequest).assertOk()
 
-        coEvery { mockEIdRepository.fetchSIdCase(applyRequest) } returns Ok(caseResponse)
+        assertEquals(testCaseResponse.caseId, response.caseId)
+        assertEquals(testCaseResponse.surname, response.surname)
+        assertEquals(testCaseResponse.legalRepresentant, response.legalRepresentant)
 
-        val response = fetchSIdCase(applyRequest).assertOk()
+        coVerifyOrder {
+            mockGetCurrentClientAttestation()
+            mockSIdRepository.fetchChallenge()
+            mockGenerateProofOfPossession(
+                clientAttestation = mockClientAttestation,
+                challenge = mockSIdChallenge.challenge,
+                audience = mockSIdUrl,
+                requestBody = any(),
+            )
 
-        assertEquals("1234-5678-abcd-1234567890ABCDE", response.caseId)
-        assertEquals("Muster", response.surname)
-        assertEquals(false, response.legalRepresentant)
+            mockSIdRepository.requestSIdCase(
+                clientAttestation = mockClientAttestation,
+                clientAttestationPoP = mockClientAttestationPoP,
+                applyRequest = testApplyRequest,
+            )
+        }
     }
 
     @Test
-    fun `Unsuccessfully fetch an eID case`() = runTest {
+    fun `A missing client attestation cause a failure`() = runTest {
         coEvery {
-            mockEIdRepository.fetchSIdCase(applyRequest)
-        } returns Err(EIdRequestError.Unexpected(IllegalStateException()))
+            mockGetCurrentClientAttestation.invoke()
+        } returns flowOf()
 
-        fetchSIdCase(applyRequest).assertErrorType(EIdRequestError.Unexpected::class)
+        fetchSIdCase(testApplyRequest).assertErrorType(EIdRequestError.Unexpected::class)
+    }
+
+    @Test
+    fun `A challenge fetching failure is propagated`() = runTest {
+        coEvery {
+            mockSIdRepository.fetchChallenge()
+        } returns Err(EIdRequestError.NetworkError)
+
+        fetchSIdCase(testApplyRequest).assertErrorType(EIdRequestError.NetworkError::class)
+    }
+
+    @Test
+    fun `A client attestation PoP generation failure is propagated`() = runTest {
+        val exception = Exception("my exception")
+        coEvery {
+            mockGenerateProofOfPossession(any(), any(), any(), any())
+        } returns Err(AttestationError.Unexpected(exception))
+
+        val error = fetchSIdCase(testApplyRequest).assertErrorType(EIdRequestError.Unexpected::class)
+        assertEquals(exception, error.cause)
+    }
+
+    @Test
+    fun `A sId request failure is propagated`() = runTest {
+        coEvery {
+            mockSIdRepository.requestSIdCase(
+                clientAttestation = any(),
+                clientAttestationPoP = any(),
+                applyRequest = any(),
+            )
+        } returns Err(EIdRequestError.NetworkError)
+
+        fetchSIdCase(testApplyRequest).assertErrorType(EIdRequestError.NetworkError::class)
     }
 }

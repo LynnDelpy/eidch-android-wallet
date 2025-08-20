@@ -68,7 +68,10 @@ class CredentialDetailViewModel @Inject constructor(
         when {
             detailsResult.isOk -> {
                 _isLoading.value = false
-                mapToUiState(detailsResult.value, issuerDisplayResult.get())
+                mapToUiState(
+                    credentialDetail = detailsResult.value,
+                    issuerDisplay = issuerDisplayResult.get()
+                )
             }
             else -> {
                 navigateToErrorScreen()
@@ -85,7 +88,7 @@ class CredentialDetailViewModel @Inject constructor(
         null -> CredentialDetailUiState.EMPTY
         else -> CredentialDetailUiState(
             credential = getCredentialCardState(credentialDetail.credential),
-            claims = credentialDetail.claims,
+            clusterItems = credentialDetail.clusterItems,
             issuer = issuerDisplay.toActorUiState(),
         )
     }

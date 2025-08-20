@@ -9,5 +9,6 @@ interface EnvironmentSetupRepository {
     val baseTrustDomainRegex: Regex
     val betaIdRequestEnabled: Boolean
     val eIdRequestEnabled: Boolean
+    val eIdMockMrzEnabled: Boolean
     val sidBackendUrl: String
 }

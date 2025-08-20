@@ -10,5 +10,6 @@ data class ApplyRequest(
     val mrz: List<String>,
     @EncodeDefault(EncodeDefault.Mode.ALWAYS)
     val legalRepresentant: Boolean = false,
+    @EncodeDefault(EncodeDefault.Mode.NEVER)
     val email: String? = null,
 )

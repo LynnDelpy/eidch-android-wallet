@@ -3,11 +3,11 @@ package ch.admin.foitt.wallet.platform.locale.di
 import ch.admin.foitt.wallet.platform.locale.domain.usecase.GetCurrentAppLocale
 import ch.admin.foitt.wallet.platform.locale.domain.usecase.GetLocalizedAndThemedDisplay
 import ch.admin.foitt.wallet.platform.locale.domain.usecase.GetLocalizedDisplay
-import ch.admin.foitt.wallet.platform.locale.domain.usecase.GetSupportedAppLanguages
+import ch.admin.foitt.wallet.platform.locale.domain.usecase.GetSupportedAppLocales
 import ch.admin.foitt.wallet.platform.locale.domain.usecase.implementation.GetCurrentAppLocaleImpl
 import ch.admin.foitt.wallet.platform.locale.domain.usecase.implementation.GetLocalizedAndThemedDisplayImpl
 import ch.admin.foitt.wallet.platform.locale.domain.usecase.implementation.GetLocalizedDisplayImpl
-import ch.admin.foitt.wallet.platform.locale.domain.usecase.implementation.GetSupportedAppLanguagesImpl
+import ch.admin.foitt.wallet.platform.locale.domain.usecase.implementation.GetSupportedAppLocalesImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -22,9 +22,9 @@ internal interface LocaleModule {
     ): GetCurrentAppLocale
 
     @Binds
-    fun bindGetSupportedLanguages(
-        useCase: GetSupportedAppLanguagesImpl
-    ): GetSupportedAppLanguages
+    fun bindGetSupportedLocales(
+        useCase: GetSupportedAppLocalesImpl
+    ): GetSupportedAppLocales
 
     @Binds
     fun bindGetLocalizedDisplay(

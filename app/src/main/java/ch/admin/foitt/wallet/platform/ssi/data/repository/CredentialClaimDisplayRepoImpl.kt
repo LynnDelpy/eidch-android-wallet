@@ -18,7 +18,7 @@ import javax.inject.Inject
 
 class CredentialClaimDisplayRepoImpl @Inject constructor(
     daoProvider: DaoProvider,
-    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : CredentialClaimDisplayRepo {
     override suspend fun insertAll(
         credentialClaimDisplays: Collection<CredentialClaimDisplay>

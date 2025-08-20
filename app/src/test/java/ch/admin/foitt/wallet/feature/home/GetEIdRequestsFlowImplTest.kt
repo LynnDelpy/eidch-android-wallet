@@ -5,7 +5,7 @@ import ch.admin.foitt.wallet.feature.home.domain.usecase.GetEIdRequestsFlow
 import ch.admin.foitt.wallet.feature.home.domain.usecase.implementation.GetEIdRequestsFlowImpl
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.EIdRequestError
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.repository.EIdRequestCaseWithStateRepository
-import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.usecase.implementation.mock.EIdRequestMocks.eIdRequestCaseWithState
+import ch.admin.foitt.wallet.platform.eIdApplicationProcess.mocks.EIdRequestMocks.eIdRequestCaseWithState
 import ch.admin.foitt.wallet.platform.locale.domain.usecase.GetCurrentAppLocale
 import ch.admin.foitt.wallet.util.assertErrorType
 import ch.admin.foitt.wallet.util.assertOk

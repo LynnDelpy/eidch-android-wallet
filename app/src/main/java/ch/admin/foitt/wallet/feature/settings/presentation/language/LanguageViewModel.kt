@@ -5,7 +5,7 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 import ch.admin.foitt.wallet.platform.database.domain.model.DisplayLanguage
 import ch.admin.foitt.wallet.platform.locale.domain.usecase.GetCurrentAppLocale
-import ch.admin.foitt.wallet.platform.locale.domain.usecase.GetSupportedAppLanguages
+import ch.admin.foitt.wallet.platform.locale.domain.usecase.GetSupportedAppLocales
 import ch.admin.foitt.wallet.platform.navigation.NavigationManager
 import ch.admin.foitt.wallet.platform.scaffold.domain.model.TopBarState
 import ch.admin.foitt.wallet.platform.scaffold.domain.usecase.SetTopBarState
@@ -20,7 +20,7 @@ import javax.inject.Inject
 @HiltViewModel
 class LanguageViewModel @Inject constructor(
     private val navManager: NavigationManager,
-    private val getSupportedAppLanguages: GetSupportedAppLanguages,
+    private val getSupportedAppLocales: GetSupportedAppLocales,
     private val getCurrentAppLocale: GetCurrentAppLocale,
     setTopBarState: SetTopBarState,
 ) : ScreenViewModel(setTopBarState) {
@@ -39,7 +39,7 @@ class LanguageViewModel @Inject constructor(
     val isSystemLanguage = _isSystemLanguage.asStateFlow()
 
     init {
-        _supportedLanguages.value = getSupportedAppLanguages()
+        _supportedLanguages.value = getSupportedAppLocales()
         _selectedLanguage.value = getSelectedLanguage()
     }
 
@@ -55,7 +55,7 @@ class LanguageViewModel @Inject constructor(
 
     private fun useDeviceLanguageOrDefault(): Locale {
         _isSystemLanguage.value = true
-        val supportedLanguages = getSupportedAppLanguages().map { it.language }.toSet()
+        val supportedLanguages = getSupportedAppLocales().map { it.language }.toSet()
         val systemLocales = Resources.getSystem().configuration.locales.toListOfLocales()
         val systemLanguages = systemLocales.map { it.language }
         val preferredLanguage = systemLanguages.intersect(supportedLanguages).firstOrNull() ?: defaultLanguage.language

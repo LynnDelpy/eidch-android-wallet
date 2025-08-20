@@ -8,7 +8,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
 internal class IsDeviceSecureLockScreenConfiguredImpl @Inject constructor(
-    @ApplicationContext private val appContext: Context,
+    @param:ApplicationContext private val appContext: Context,
 ) : IsDeviceSecureLockScreenConfigured {
     private val keyguardManager = appContext.getSystemService(KeyguardManager::class.java)
 

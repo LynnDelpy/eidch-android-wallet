@@ -17,10 +17,9 @@ data class OcaClaimData(
     // overlays
     val characterEncoding: CharacterEncoding? = null,
     val dataSources: Map<DataSourceFormat, JsonPath> = emptyMap(),
-    val entries: Map<String, Map<String, String>> = emptyMap(), // <language, <entry-code, entry>>
-    val entryCodes: List<String> = emptyList(),
+    val entryMappings: Map<Locale, Map<EntryCode, String>> = emptyMap(),
     val format: String? = null,
-    val labels: Map<String, String> = emptyMap(), // <language, label>
+    val labels: Map<Locale, String> = emptyMap(),
     val standard: Standard? = null,
     val order: Int? = null,
 )

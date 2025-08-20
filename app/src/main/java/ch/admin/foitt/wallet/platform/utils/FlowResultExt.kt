@@ -5,7 +5,6 @@ import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 
 fun <V, E, F> Flow<Result<V, E>>.mapError(transform: suspend (E) -> F): Flow<Result<V, F>> =
@@ -33,10 +32,8 @@ fun <V, E, U> Flow<Result<V, E>>.andThen(transform: suspend (V) -> Result<U, E>)
     }
 
 fun <V, F> Flow<V>.catchAndMap(transform: suspend (Throwable) -> F): Flow<Result<V, F>> =
-    flow {
-        catch { throwable ->
-            emit(Err(transform(throwable)))
-        }.collect {
-            emit(Ok(it))
-        }
+    map<V, Result<V, F>> { value ->
+        Ok(value)
+    }.catch { throwable ->
+        emit(Err(transform(throwable)))
     }

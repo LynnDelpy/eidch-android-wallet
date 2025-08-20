@@ -7,6 +7,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.decodeFromJsonElement
+import kotlinx.serialization.json.encodeToJsonElement
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -33,6 +34,14 @@ class SafeJson @Inject constructor(
         json.decodeFromJsonElement<T>(jsonElement)
     }.mapError { throwable ->
         throwable.toJsonError("safeDecodeElementTo error")
+    }
+
+    inline fun <reified T> safeEncodeObjectToJsonElement(
+        objectToEncode: T,
+    ): Result<JsonElement, JsonParsingError> = runSuspendCatching {
+        json.encodeToJsonElement(objectToEncode)
+    }.mapError { throwable ->
+        throwable.toJsonError("safeEncodeObjectToJsonElement error")
     }
 }
 

@@ -19,7 +19,7 @@ class ResetBiometricsImpl @Inject constructor(
     private val passphraseRepository: PassphraseRepository,
     private val useBiometricLoginRepository: UseBiometricLoginRepository,
     private val deleteSecretKey: DeleteSecretKey,
-    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ResetBiometrics {
     override suspend fun invoke(): Result<Unit, ResetBiometricsError> = withContext(ioDispatcher) {
         passphraseRepository.deletePassphrase()

@@ -151,6 +151,7 @@ private fun Camera(
     }
 }
 
+@Suppress("CyclomaticComplexMethod")
 @Composable
 private fun InfoBox(
     infoState: QrInfoState,
@@ -176,6 +177,8 @@ private fun InfoBox(
             QrInfoState.UnknownVerifier -> QrToastUnknownVerifier(onClose = onClose)
             QrInfoState.UnexpectedError,
             QrInfoState.InvalidQr -> QrToastInvalidQr(onClose = onClose)
+            QrInfoState.UnsupportedKeyStorageSecurityLevel -> QrToastUnsupportedKeyStorageSecurityLevel(onClose = onClose)
+            QrInfoState.IncompatibleDeviceKeyStorage -> QrToastIncompatibleDeviceKeyStorage(onClose = onClose)
         }
     }
 }

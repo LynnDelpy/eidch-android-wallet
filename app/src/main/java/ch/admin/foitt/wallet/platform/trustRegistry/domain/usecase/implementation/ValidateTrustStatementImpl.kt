@@ -1,7 +1,7 @@
 package ch.admin.foitt.wallet.platform.trustRegistry.domain.usecase.implementation
 
+import ch.admin.foitt.openid4vc.domain.model.SigningAlgorithm
 import ch.admin.foitt.openid4vc.domain.model.anycredential.CredentialValidity
-import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.SigningAlgorithm
 import ch.admin.foitt.openid4vc.domain.model.sdjwt.SdJwt
 import ch.admin.foitt.openid4vc.domain.model.vcSdJwt.VcSdJwt
 import ch.admin.foitt.openid4vc.domain.model.vcSdJwt.VerifyJwtError

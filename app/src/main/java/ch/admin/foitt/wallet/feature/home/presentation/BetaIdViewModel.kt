@@ -14,7 +14,7 @@ import javax.inject.Inject
 @HiltViewModel
 class BetaIdViewModel @Inject constructor(
     private val navManager: NavigationManager,
-    @ApplicationContext private val appContext: Context,
+    @param:ApplicationContext private val appContext: Context,
     setTopBarState: SetTopBarState,
 ) : ScreenViewModel(setTopBarState) {
     override val topBarState = TopBarState.Details(navManager::popBackStack, null)

@@ -11,7 +11,8 @@ object MockCredentialClaim {
     val credentialClaimDisplay = CredentialClaimDisplay(
         claimId = CLAIM_ID,
         name = "name",
-        locale = "xxx"
+        locale = "xxx",
+        value = "value"
     )
     val credentialClaimDisplays = listOf(credentialClaimDisplay)
 

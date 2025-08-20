@@ -1,6 +1,6 @@
 package ch.admin.foitt.wallet.platform.credentialPresentation.domain.usecase.implementation
 
-import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.SigningAlgorithm
+import ch.admin.foitt.openid4vc.domain.model.SigningAlgorithm
 import ch.admin.foitt.openid4vc.domain.model.presentationRequest.InputDescriptorFormat
 import ch.admin.foitt.openid4vc.domain.model.presentationRequest.PresentationRequest
 import ch.admin.foitt.openid4vc.domain.model.presentationRequest.PresentationRequestContainer
@@ -32,15 +32,21 @@ class ValidatePresentationRequestImpl @Inject constructor(
             is PresentationRequestContainer.Jwt -> validateJwtPresentationRequest(presentationRequestContainer).bind()
             is PresentationRequestContainer.Json -> presentationRequestContainer.toPresentationRequest().bind()
         }
-        validatePresentationRequest(presentationRequest).bind()
+        validatePresentationRequest(
+            presentationRequest = presentationRequest,
+            clientId = presentationRequestContainer.clientId
+        ).bind()
+
         presentationRequest
     }
 
     private fun validatePresentationRequest(
-        presentationRequest: PresentationRequest
+        presentationRequest: PresentationRequest,
+        clientId: String?,
     ): Result<Unit, ValidatePresentationRequestError> {
         val validationError = Err(CredentialPresentationError.InvalidPresentation(presentationRequest.responseUri))
         return when {
+            clientId != null && clientId != presentationRequest.clientId -> validationError
             presentationRequest.responseType != VP_TOKEN -> validationError
             presentationRequest.responseMode != DIRECT_POST -> validationError
             presentationRequest.clientIdScheme == null -> validationError
@@ -104,7 +110,7 @@ class ValidatePresentationRequestImpl @Inject constructor(
             throwable.toValidatePresentationRequestError(responseUri = responseUri, message = "validateJwtPresentationRequest error")
         }.bind()
 
-        safeJson.safeDecodeElementTo<PresentationRequest>(jwt.payloadJson).mapError { error ->
+        safeJson.safeDecodeElementTo<PresentationRequest>(jwt.payloadJson).mapError {
             CredentialPresentationError.Unexpected(null)
         }.bind()
     }

@@ -5,19 +5,27 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.windowInsetsTopHeight
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
@@ -38,17 +46,18 @@ import ch.admin.foitt.wallet.platform.actorMetadata.presentation.InvitationHeade
 import ch.admin.foitt.wallet.platform.actorMetadata.presentation.model.ActorUiState
 import ch.admin.foitt.wallet.platform.composables.Buttons
 import ch.admin.foitt.wallet.platform.composables.LoadingOverlay
-import ch.admin.foitt.wallet.platform.composables.presentation.layout.ScrollableColumnSimple
+import ch.admin.foitt.wallet.platform.composables.presentation.SurroundingClusterCard
+import ch.admin.foitt.wallet.platform.composables.presentation.horizontalSafeDrawing
+import ch.admin.foitt.wallet.platform.composables.presentation.layout.LazyColumn
 import ch.admin.foitt.wallet.platform.composables.presentation.layout.WalletLayouts
-import ch.admin.foitt.wallet.platform.composables.presentation.verticalSafeDrawing
 import ch.admin.foitt.wallet.platform.credential.presentation.CredentialCardSmall
-import ch.admin.foitt.wallet.platform.credential.presentation.CredentialClaimItemsColumn
 import ch.admin.foitt.wallet.platform.credential.presentation.MediumCredentialBox
+import ch.admin.foitt.wallet.platform.credential.presentation.credentialClaimItems
 import ch.admin.foitt.wallet.platform.credential.presentation.mock.CredentialMocks
 import ch.admin.foitt.wallet.platform.credential.presentation.model.CredentialCardState
 import ch.admin.foitt.wallet.platform.navArgs.domain.model.PresentationRequestNavArg
 import ch.admin.foitt.wallet.platform.preview.WalletAllScreenPreview
-import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialClaimData
+import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialClaimCluster
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.TrustStatus
 import ch.admin.foitt.wallet.platform.utils.TestTags
 import ch.admin.foitt.wallet.theme.Sizes
@@ -69,152 +78,90 @@ fun PresentationRequestScreen(viewModel: PresentationRequestViewModel) {
     PresentationRequestContent(
         verifierUiState = verifierUiState,
         requestedClaims = presentationRequestUiState.requestedClaims,
+        numberOfRequestClaims = presentationRequestUiState.numberOfClaims,
         credentialCardState = presentationRequestUiState.credential,
         isLoading = viewModel.isLoading.collectAsStateWithLifecycle().value,
         isSubmitting = viewModel.isSubmitting.collectAsStateWithLifecycle().value,
+        showDelayReason = viewModel.showDelayReason.collectAsStateWithLifecycle().value,
+        onWrongData = viewModel::onReportWrongData,
         onSubmit = viewModel::submit,
         onDecline = viewModel::onDecline,
-        showDelayReason = viewModel.showDelayReason.collectAsStateWithLifecycle().value,
     )
 }
 
 @Composable
 private fun PresentationRequestContent(
     verifierUiState: ActorUiState,
-    requestedClaims: List<CredentialClaimData>,
+    requestedClaims: List<CredentialClaimCluster>,
+    numberOfRequestClaims: Int,
     credentialCardState: CredentialCardState,
+    windowSizeClass: WindowWidthSizeClass = currentWindowAdaptiveInfo().windowSizeClass.windowWidthSizeClass,
     isLoading: Boolean,
     isSubmitting: Boolean,
+    showDelayReason: Boolean,
+    onWrongData: () -> Unit,
     onSubmit: () -> Unit,
     onDecline: () -> Unit,
-    showDelayReason: Boolean,
-) = Box(modifier = Modifier.fillMaxSize()) {
-    val windowSizeClass = currentWindowAdaptiveInfo().windowSizeClass
-    if (windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.COMPACT) {
-        CompactContent(
-            verifierUiState = verifierUiState,
-            requestedClaims = requestedClaims,
-            credentialCardState = credentialCardState,
-            onSubmit = onSubmit,
-            onDecline = onDecline,
-            isSubmitting = isSubmitting,
-            showDelayReason = showDelayReason
-        )
-    } else {
-        LargeContent(
-            verifierUiState = verifierUiState,
-            requestedClaims = requestedClaims,
-            credentialCardState = credentialCardState,
-            onSubmit = onSubmit,
-            onDecline = onDecline,
-            isSubmitting = isSubmitting,
-            showDelayReason = showDelayReason
-        )
+) {
+    BoxWithConstraints(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(color = WalletTheme.colorScheme.background)
+    ) {
+        when (windowSizeClass) {
+            WindowWidthSizeClass.COMPACT -> CompactContent(
+                verifierUiState = verifierUiState,
+                requestedClaims = requestedClaims,
+                numberOfRequestClaims = numberOfRequestClaims,
+                credentialCardState = credentialCardState,
+                isSubmitting = isSubmitting,
+                showDelayReason = showDelayReason,
+                onWrongData = onWrongData,
+                onSubmit = onSubmit,
+                onDecline = onDecline,
+            )
+
+            else -> LargeContent(
+                verifierUiState = verifierUiState,
+                requestedClaims = requestedClaims,
+                numberOfRequestClaims = numberOfRequestClaims,
+                credentialCardState = credentialCardState,
+                isSubmitting = isSubmitting,
+                showDelayReason = showDelayReason,
+                onWrongData = onWrongData,
+                onSubmit = onSubmit,
+                onDecline = onDecline,
+            )
+        }
+        LoadingOverlay(showOverlay = isLoading)
     }
-    LoadingOverlay(showOverlay = isLoading)
 }
 
 @Composable
 private fun CompactContent(
     verifierUiState: ActorUiState,
-    requestedClaims: List<CredentialClaimData>,
+    requestedClaims: List<CredentialClaimCluster>,
+    numberOfRequestClaims: Int,
     credentialCardState: CredentialCardState,
-    onSubmit: () -> Unit,
-    onDecline: () -> Unit,
     isSubmitting: Boolean,
     showDelayReason: Boolean,
+    onWrongData: () -> Unit,
+    onSubmit: () -> Unit,
+    onDecline: () -> Unit,
 ) {
     if (isSubmitting) {
         IsSubmittingCompact(verifierUiState, credentialCardState, showDelayReason)
     } else {
-        WalletLayouts.ScrollableColumnSimple(
-            modifier = Modifier.fillMaxWidth(),
-            useCompactScalable = false,
-            isStickyStartScrollable = true,
-            stickyStartContent = {
-                Spacer(modifier = Modifier.height(Sizes.s06))
-                InvitationHeader(verifierUiState = verifierUiState)
-            },
-            stickyBottomHorizontalArrangement = Arrangement.spacedBy(Sizes.s02, Alignment.CenterHorizontally),
-            stickyBottomContent = {
-                StickyButtons(
-                    onDecline,
-                    onSubmit,
-                )
-            },
-        ) {
-            MediumCredentialBox(
-                modifier = Modifier
-                    .testTag(TestTags.REQUEST_CREDENTIAL.name),
-                credentialCardState = credentialCardState,
-            )
-            Spacer(modifier = Modifier.height(Sizes.s04))
-            CredentialClaimItemsColumn(
-                R.string.tk_present_review_claims_section_primary,
-                requestedClaims,
-            )
-        }
+        CompactList(
+            verifierUiState = verifierUiState,
+            requestedClaims = requestedClaims,
+            numberOfRequestClaims = numberOfRequestClaims,
+            credentialCardState = credentialCardState,
+            onWrongData = onWrongData,
+            onSubmit = onSubmit,
+            onDecline = onDecline,
+        )
     }
-}
-
-@Composable
-private fun LargeContent(
-    verifierUiState: ActorUiState,
-    requestedClaims: List<CredentialClaimData>,
-    credentialCardState: CredentialCardState,
-    onSubmit: () -> Unit,
-    onDecline: () -> Unit,
-    isSubmitting: Boolean,
-    showDelayReason: Boolean,
-) {
-    WalletLayouts.ScrollableColumnSimple(
-        modifier = Modifier.fillMaxWidth(),
-        isStickyStartScrollable = true,
-        stickyStartContent = {
-            MediumCredentialBox(
-                modifier = Modifier
-                    .padding(top = Sizes.s06, start = Sizes.s04, end = Sizes.s04)
-                    .verticalSafeDrawing(),
-                credentialCardState = credentialCardState,
-            )
-        },
-        stickyBottomHorizontalArrangement = Arrangement.spacedBy(Sizes.s02, Alignment.CenterHorizontally),
-        stickyBottomContent = {
-            StickyButtons(
-                onDecline,
-                onSubmit,
-            )
-        },
-        centerContent = isSubmitting,
-    ) {
-        if (isSubmitting) {
-            LoadingIndicator(
-                modifier = Modifier.fillMaxSize(),
-                showDelayReason = showDelayReason,
-            )
-        } else {
-            Spacer(modifier = Modifier.height(Sizes.s06))
-            InvitationHeader(verifierUiState = verifierUiState)
-            CredentialClaimItemsColumn(
-                R.string.tk_present_review_claims_section_primary,
-                requestedClaims,
-            )
-        }
-    }
-}
-
-@Composable
-private fun InvitationHeader(modifier: Modifier = Modifier, verifierUiState: ActorUiState) {
-    InvitationHeader(
-        inviterName = verifierUiState.name,
-        inviterImage = verifierUiState.painter,
-        trustStatus = verifierUiState.trustStatus,
-        actorType = verifierUiState.actorType,
-        modifier = modifier
-            .statusBarsPadding()
-            .padding(horizontal = Sizes.s04)
-    )
-    Spacer(modifier = Modifier.height(Sizes.s06))
 }
 
 @Composable
@@ -227,12 +174,16 @@ private fun IsSubmittingCompact(
         Spacer(Modifier.windowInsetsTopHeight(WindowInsets.safeDrawing))
         InvitationHeader(
             verifierUiState = verifierUiState,
-            modifier = Modifier
-                .padding(bottom = Sizes.s06),
+            modifier = Modifier.padding(bottom = Sizes.s06),
         )
         Box(
             modifier = Modifier
-                .clip(RoundedCornerShape(topStart = Sizes.boxCornerSize, topEnd = Sizes.boxCornerSize))
+                .clip(
+                    RoundedCornerShape(
+                        topStart = Sizes.boxCornerSize,
+                        topEnd = Sizes.boxCornerSize
+                    )
+                )
                 .fillMaxSize()
                 .background(WalletTheme.colorScheme.surfaceContainerLow),
             contentAlignment = Alignment.Center
@@ -245,13 +196,12 @@ private fun IsSubmittingCompact(
 
                 CredentialCardSmall(
                     credentialState = credentialCardState,
-                    modifier = Modifier
-                        .constrainAs(credentialCard) {
-                            top.linkTo(parent.top)
-                            start.linkTo(parent.start)
-                            end.linkTo(parent.end)
-                            bottom.linkTo(parent.bottom)
-                        },
+                    modifier = Modifier.constrainAs(credentialCard) {
+                        top.linkTo(parent.top)
+                        start.linkTo(parent.start)
+                        end.linkTo(parent.end)
+                        bottom.linkTo(parent.bottom)
+                    },
                 )
 
                 LoadingIndicator(
@@ -268,6 +218,156 @@ private fun IsSubmittingCompact(
             }
         }
     }
+}
+
+@Composable
+private fun CompactList(
+    verifierUiState: ActorUiState,
+    requestedClaims: List<CredentialClaimCluster>,
+    numberOfRequestClaims: Int,
+    credentialCardState: CredentialCardState,
+    onWrongData: () -> Unit,
+    onSubmit: () -> Unit,
+    onDecline: () -> Unit,
+) = WalletLayouts.LazyColumn(
+    modifier = Modifier.fillMaxWidth(),
+    state = rememberLazyListState(),
+    useTopInsets = true,
+    useBottomInsets = false,
+    contentPadding = PaddingValues(
+        bottom = Sizes.s06
+    )
+) {
+    item {
+        InvitationHeader(verifierUiState = verifierUiState)
+    }
+    item {
+        WalletTexts.BodyLarge(
+            text = stringResource(id = R.string.tk_present_review_credential_section_primary),
+            modifier = Modifier.padding(start = Sizes.s06, end = Sizes.s03, bottom = Sizes.s03)
+        )
+    }
+    item {
+        SurroundingClusterCard {
+            MediumCredentialBox(
+                credentialCardState = credentialCardState,
+            )
+        }
+        Spacer(modifier = Modifier.height(Sizes.s04))
+    }
+    item {
+        WalletTexts.BodyLarge(
+            text = stringResource(id = R.string.tk_present_review_claims_section_primary, numberOfRequestClaims),
+            modifier = Modifier.padding(start = Sizes.s06, end = Sizes.s03, bottom = Sizes.s03)
+        )
+        Spacer(modifier = Modifier.height(Sizes.s02))
+    }
+    credentialClaimItems(
+        useSurroundingCard = true,
+        claimItems = requestedClaims,
+        onWrongData = onWrongData,
+    )
+    item {
+        StickyButtons(
+            onDecline = onDecline,
+            onAccept = onSubmit,
+        )
+    }
+}
+
+@Composable
+private fun BoxWithConstraintsScope.LargeContent(
+    verifierUiState: ActorUiState,
+    requestedClaims: List<CredentialClaimCluster>,
+    numberOfRequestClaims: Int,
+    credentialCardState: CredentialCardState,
+    isSubmitting: Boolean,
+    showDelayReason: Boolean,
+    onWrongData: () -> Unit,
+    onSubmit: () -> Unit,
+    onDecline: () -> Unit,
+) {
+    Row(modifier = Modifier.horizontalSafeDrawing()) {
+        Spacer(modifier = Modifier.width(Sizes.s04))
+        Column(
+            modifier = Modifier.width(this@LargeContent.maxWidth * 0.33f),
+        ) {
+            Spacer(
+                Modifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top))
+            )
+            WalletTexts.BodyLarge(
+                text = stringResource(id = R.string.tk_present_review_credential_section_primary),
+                modifier = Modifier.padding(horizontal = Sizes.s06, vertical = Sizes.s03)
+            )
+            MediumCredentialBox(
+                credentialCardState = credentialCardState,
+            )
+        }
+        Spacer(modifier = Modifier.width(Sizes.s04))
+        if (isSubmitting) {
+            LoadingIndicator(
+                modifier = Modifier.fillMaxSize(),
+                showDelayReason = showDelayReason,
+            )
+        } else {
+            LargeList(
+                verifierUiState = verifierUiState,
+                numberOfRequestClaims = numberOfRequestClaims,
+                requestedClaims = requestedClaims,
+                onWrongData = onWrongData,
+                onSubmit = onSubmit,
+                onDecline = onDecline,
+            )
+        }
+    }
+}
+
+@Composable
+private fun LargeList(
+    verifierUiState: ActorUiState,
+    numberOfRequestClaims: Int,
+    requestedClaims: List<CredentialClaimCluster>,
+    onWrongData: () -> Unit,
+    onSubmit: () -> Unit,
+    onDecline: () -> Unit,
+) = WalletLayouts.LazyColumn {
+    item {
+        InvitationHeader(
+            verifierUiState = verifierUiState,
+        )
+        Spacer(modifier = Modifier.width(Sizes.s02))
+    }
+    item {
+        WalletTexts.BodyLarge(
+            text = stringResource(id = R.string.tk_present_review_claims_section_primary, numberOfRequestClaims),
+            modifier = Modifier.padding(start = Sizes.s06, end = Sizes.s03, bottom = Sizes.s03)
+        )
+        Spacer(modifier = Modifier.height(Sizes.s02))
+    }
+    credentialClaimItems(
+        useSurroundingCard = true,
+        claimItems = requestedClaims,
+        onWrongData = onWrongData,
+    )
+    item {
+        StickyButtons(
+            onAccept = onSubmit,
+            onDecline = onDecline,
+        )
+    }
+}
+
+@Composable
+private fun InvitationHeader(modifier: Modifier = Modifier, verifierUiState: ActorUiState) {
+    InvitationHeader(
+        modifier = modifier
+            .padding(start = Sizes.s04, top = Sizes.s06, end = Sizes.s04, bottom = Sizes.s02),
+        inviterName = verifierUiState.name,
+        inviterImage = verifierUiState.painter,
+        trustStatus = verifierUiState.trustStatus,
+        actorType = verifierUiState.actorType,
+    )
+    Spacer(modifier = Modifier.height(Sizes.s02))
 }
 
 @Composable
@@ -302,6 +402,7 @@ private fun StickyButtons(
 ) {
     FlowRow(
         modifier = Modifier
+            .fillMaxWidth()
             .clip(RoundedCornerShape(corner = CornerSize(Sizes.s16)))
             .background(WalletTheme.colorScheme.background)
             .padding(vertical = Sizes.s03, horizontal = Sizes.s04)
@@ -311,15 +412,13 @@ private fun StickyButtons(
         maxItemsInEachRow = 2,
     ) {
         Buttons.FilledPrimary(
-            modifier = Modifier
-                .testTag(TestTags.DECLINE_BUTTON.name),
+            modifier = Modifier.testTag(TestTags.DECLINE_BUTTON.name),
             text = stringResource(id = R.string.tk_present_review_button_decline),
             startIcon = painterResource(id = R.drawable.wallet_ic_cross),
             onClick = onDecline,
         )
         Buttons.FilledTertiary(
-            modifier = Modifier
-                .testTag(TestTags.ACCEPT_BUTTON.name),
+            modifier = Modifier.testTag(TestTags.ACCEPT_BUTTON.name),
             text = stringResource(id = R.string.tk_present_review_button_accept),
             startIcon = painterResource(id = R.drawable.wallet_ic_checkmark),
             onClick = onAccept,
@@ -338,13 +437,15 @@ private fun PresentationRequestScreenPreview() {
                 trustStatus = TrustStatus.TRUSTED,
                 actorType = ActorType.VERIFIER,
             ),
-            requestedClaims = CredentialMocks.claimList,
+            requestedClaims = CredentialMocks.clusterList,
+            numberOfRequestClaims = 5,
             isLoading = false,
-            onSubmit = {},
-            onDecline = {},
             credentialCardState = CredentialMocks.cardState01,
             isSubmitting = false,
             showDelayReason = false,
+            onWrongData = {},
+            onSubmit = {},
+            onDecline = {},
         )
     }
 }

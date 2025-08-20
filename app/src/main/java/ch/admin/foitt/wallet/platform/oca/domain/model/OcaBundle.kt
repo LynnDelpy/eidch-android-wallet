@@ -9,6 +9,7 @@ typealias AttributeKey = String
 typealias Locale = String
 typealias DataSourceFormat = String
 typealias JsonPath = String
+typealias EntryCode = String
 
 @Serializable
 data class OcaBundle(

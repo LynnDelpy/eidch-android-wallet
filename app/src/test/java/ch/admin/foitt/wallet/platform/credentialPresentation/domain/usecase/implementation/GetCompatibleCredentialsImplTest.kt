@@ -1,8 +1,9 @@
 package ch.admin.foitt.wallet.platform.credentialPresentation.domain.usecase.implementation
 
+import ch.admin.foitt.openid4vc.domain.model.SigningAlgorithm
 import ch.admin.foitt.openid4vc.domain.model.anycredential.AnyCredential
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.CredentialFormat
-import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.SigningAlgorithm
+import ch.admin.foitt.openid4vc.domain.model.keyBinding.KeyBinding
 import ch.admin.foitt.openid4vc.domain.model.presentationRequest.InputDescriptor
 import ch.admin.foitt.openid4vc.domain.model.presentationRequest.InputDescriptorFormat
 import ch.admin.foitt.wallet.platform.credential.domain.model.CredentialError
@@ -39,7 +40,13 @@ class GetCompatibleCredentialsImplTest {
     private lateinit var mockCredential: AnyCredential
 
     @MockK
+    private lateinit var mockKeyBinding: KeyBinding
+
+    @MockK
     private lateinit var mockCredential2: AnyCredential
+
+    @MockK
+    private lateinit var mockKeyBinding2: KeyBinding
 
     private lateinit var useCase: GetCompatibleCredentialsImpl
 
@@ -173,8 +180,8 @@ class GetCompatibleCredentialsImplTest {
             requestedFields2 = requestedFields2,
         )
 
-        every { mockCredential.keyBindingAlgorithm } returns null
-        every { mockCredential2.keyBindingAlgorithm } returns null
+        every { mockCredential.keyBinding } returns null
+        every { mockCredential2.keyBinding } returns null
         every { inputDescriptor.formats } returns listOf(inputDescriptorFormatVcSdJwtEmpty)
 
         val result = useCase(inputDescriptors).assertOk()
@@ -195,7 +202,8 @@ class GetCompatibleCredentialsImplTest {
             requestedFields2 = requestedFields2,
         )
 
-        every { mockCredential2.keyBindingAlgorithm } returns SigningAlgorithm.ES512
+        every { mockCredential2.keyBinding } returns mockKeyBinding2
+        every { mockKeyBinding2.algorithm } returns SigningAlgorithm.ES512
 
         val result = useCase(inputDescriptors).assertOk()
 
@@ -213,7 +221,7 @@ class GetCompatibleCredentialsImplTest {
             requestedFields2 = requestedFields2,
         )
 
-        every { mockCredential.keyBindingAlgorithm } returns null
+        every { mockCredential.keyBinding } returns null
 
         val result = useCase(inputDescriptors).assertOk()
 
@@ -232,12 +240,16 @@ class GetCompatibleCredentialsImplTest {
         every { mockCredential.getClaimsForPresentation().toString() } returns CREDENTIAL_JSON
         every { mockCredential.format } returns CredentialFormat.VC_SD_JWT
         every { mockCredential.payload } returns CREDENTIAL_PAYLOAD
-        every { mockCredential.keyBindingAlgorithm } returns SigningAlgorithm.ES256
+        every { mockCredential.keyBinding } returns mockKeyBinding
+        every { mockKeyBinding.algorithm } returns SigningAlgorithm.ES256
+
         every { mockCredential2.id } returns CREDENTIAL_ID_2
         every { mockCredential2.getClaimsForPresentation().toString() } returns CREDENTIAL_JSON_2
         every { mockCredential2.format } returns CredentialFormat.VC_SD_JWT
         every { mockCredential2.payload } returns CREDENTIAL_PAYLOAD
-        every { mockCredential2.keyBindingAlgorithm } returns SigningAlgorithm.ES256
+        every { mockCredential2.keyBinding } returns mockKeyBinding2
+        every { mockKeyBinding2.algorithm } returns SigningAlgorithm.ES256
+
         every { inputDescriptor.formats } returns listOf(inputDescriptorFormatVcSdJwt)
         coEvery { mockGetAnyCredentials() } returns Ok(credentials)
         coEvery { mockGetRequestedFields(CREDENTIAL_JSON, inputDescriptors) } returns Ok(requestedFields)
@@ -249,7 +261,6 @@ class GetCompatibleCredentialsImplTest {
         const val CREDENTIAL_ID_2 = 2L
         const val CREDENTIAL_JSON = "credentialJson"
         const val CREDENTIAL_JSON_2 = "credentialJson2"
-        const val PRESENTABLE_CLAIMS = "presentableClaims"
 
         val inputDescriptor: InputDescriptor = mockk()
         val inputDescriptorFormatVcSdJwt = InputDescriptorFormat.VcSdJwt(

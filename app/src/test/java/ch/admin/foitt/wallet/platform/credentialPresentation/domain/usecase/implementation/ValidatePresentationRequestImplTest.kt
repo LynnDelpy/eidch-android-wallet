@@ -150,6 +150,20 @@ class ValidatePresentationRequestImplTest {
         }
 
     @Test
+    fun `Json Presentation request clientId that does not match the clientId of the deeplink returns an error`() = runTest {
+        coEvery { mockJsonPresentationContainer.clientId } returns "other clientId"
+
+        useCase(mockJsonPresentationContainer).assertErrorType(CredentialPresentationError.InvalidPresentation::class)
+    }
+
+    @Test
+    fun `Json Presentation request clientId that matches the clientId of the deeplink returns a success`() = runTest {
+        coEvery { mockJsonPresentationContainer.clientId } returns MockPresentationRequest.CLIENT_ID
+
+        useCase(mockJsonPresentationContainer).assertOk()
+    }
+
+    @Test
     fun `A valid jwt Presentation request returns Ok`() = runTest {
         useCase(mockJwtPresentationContainer).assertOk()
     }
@@ -260,10 +274,26 @@ class ValidatePresentationRequestImplTest {
         useCase(mockJwtPresentationContainer).assertErrorType(CredentialPresentationError.InvalidPresentation::class)
     }
 
+    @Test
+    fun `Jwt Presentation request clientId that does not match the clientId of the deeplink returns an error`() = runTest {
+        coEvery { mockJwtPresentationContainer.clientId } returns "other clientId"
+
+        useCase(mockJwtPresentationContainer).assertErrorType(CredentialPresentationError.InvalidPresentation::class)
+    }
+
+    @Test
+    fun `Jwt Presentation request clientId that matches the clientId of the deeplink returns a success`() = runTest {
+        coEvery { mockJwtPresentationContainer.clientId } returns MockPresentationRequest.CLIENT_ID
+
+        useCase(mockJwtPresentationContainer).assertOk()
+    }
+
     private fun setupDefaultMocks() {
         coEvery { mockVerifyJwtSignature(any(), any(), any()) } returns Ok(Unit)
         coEvery { mockJwtPresentationContainer.jwt } returns mockPresentationJwt
+        coEvery { mockJwtPresentationContainer.clientId } returns null
         coEvery { mockJsonPresentationContainer.json } returns mockPresentationJson
+        coEvery { mockJsonPresentationContainer.clientId } returns null
     }
 
     private fun PresentationRequest.toJsonObject(): JsonObject =

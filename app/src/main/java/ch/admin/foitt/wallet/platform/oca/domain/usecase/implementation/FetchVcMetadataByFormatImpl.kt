@@ -30,7 +30,7 @@ class FetchVcMetadataByFormatImpl @Inject constructor(
     private val fetchTypeMetadata: FetchTypeMetadata,
     private val fetchVcSchema: FetchVcSchema,
     private val fetchOcaBundle: FetchOcaBundle,
-    @Named("VcSdJwtJsonSchemaValidator")
+    @param:Named("VcSdJwtJsonSchemaValidator")
     private val vcSdJwtJsonSchemaValidator: JsonSchemaValidator,
 ) : FetchVcMetadataByFormat {
     override suspend fun invoke(

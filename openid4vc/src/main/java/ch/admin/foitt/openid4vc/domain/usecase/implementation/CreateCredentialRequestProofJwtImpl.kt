@@ -4,9 +4,10 @@ import ch.admin.foitt.openid4vc.domain.model.CreateJwkError
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.CredentialOfferError
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.CredentialRequestProofJwt
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.JWSKeyPair
-import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.toCurve
-import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.toJWSAlgorithm
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.toFetchVerifiableCredentialError
+import ch.admin.foitt.openid4vc.domain.model.jwt.Jwt
+import ch.admin.foitt.openid4vc.domain.model.toCurve
+import ch.admin.foitt.openid4vc.domain.model.toJWSAlgorithm
 import ch.admin.foitt.openid4vc.domain.usecase.CreateCredentialRequestProofJwt
 import ch.admin.foitt.openid4vc.domain.usecase.CreateJwk
 import ch.admin.foitt.openid4vc.utils.Constants
@@ -27,13 +28,14 @@ internal class CreateCredentialRequestProofJwtImpl @Inject constructor(
 ) : CreateCredentialRequestProofJwt {
     override suspend operator fun invoke(
         keyPair: JWSKeyPair,
+        attestationJwt: Jwt?,
         issuer: String,
         cNonce: String?,
     ) = coroutineBinding {
         val jwk = createJwk(keyPair = keyPair.keyPair, algorithm = keyPair.algorithm, asDid = false)
             .mapError(CreateJwkError::toFetchVerifiableCredentialError)
             .bind()
-        val header = createHeader(keyPair, jwk)
+        val header = createHeader(keyPair, jwk, attestationJwt)
         val payload = createPayload(issuer, cNonce)
         val jwt = createJwt(
             header = header,
@@ -45,13 +47,17 @@ internal class CreateCredentialRequestProofJwtImpl @Inject constructor(
 
     private fun createHeader(
         keyPair: JWSKeyPair,
-        jwk: String
+        jwk: String,
+        attestationJwt: Jwt?,
     ) = JWSHeader
         .Builder(
             keyPair.algorithm.toJWSAlgorithm()
         )
         .jwk(JWK.parse(jwk))
         .type(JOSEObjectType(Constants.OID4VCI_JWT_PROOF_HEADER_TYPE))
+        .apply {
+            attestationJwt?.let { customParam("key_attestation", attestationJwt.rawJwt) }
+        }
         .build()
 
     private fun createPayload(

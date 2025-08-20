@@ -2,11 +2,13 @@ package ch.admin.foitt.openid4vc.domain.usecase.implementation
 
 import ch.admin.foitt.openid4vc.domain.model.JwkError
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.CredentialOfferError
+import ch.admin.foitt.openid4vc.domain.model.jwt.Jwt
 import ch.admin.foitt.openid4vc.domain.usecase.CreateJwk
+import ch.admin.foitt.openid4vc.domain.usecase.implementation.mock.MockCredentialOffer
 import ch.admin.foitt.openid4vc.domain.usecase.implementation.mock.MockCredentialOffer.CREDENTIAL_ISSUER
 import ch.admin.foitt.openid4vc.domain.usecase.implementation.mock.MockCredentialOffer.C_NONCE
 import ch.admin.foitt.openid4vc.domain.usecase.implementation.mock.MockKeyPairs.INVALID_KEY_PAIR
-import ch.admin.foitt.openid4vc.domain.usecase.implementation.mock.MockKeyPairs.VALID_KEY_PAIR
+import ch.admin.foitt.openid4vc.domain.usecase.implementation.mock.MockKeyPairs.VALID_KEY_PAIR_HARDWARE
 import ch.admin.foitt.openid4vc.util.assertErrorType
 import ch.admin.foitt.openid4vc.util.assertOk
 import com.github.michaelbull.result.Err
@@ -16,11 +18,13 @@ import com.nimbusds.jose.crypto.ECDSAVerifier
 import com.nimbusds.jwt.SignedJWT
 import io.mockk.MockKAnnotations
 import io.mockk.coEvery
+import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.unmockkAll
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -33,6 +37,9 @@ class CreateCredentialRequestProofJwtImplTest {
     @MockK
     private lateinit var mockCreateJwk: CreateJwk
 
+    @MockK
+    private lateinit var mockKeyAttestationJwt: Jwt
+
     private lateinit var createCredentialRequestProofJwtUseCase: CreateCredentialRequestProofJwtImpl
 
     @BeforeEach
@@ -42,6 +49,8 @@ class CreateCredentialRequestProofJwtImplTest {
         coEvery {
             mockCreateJwk(any(), any(), false)
         } returns Ok(jwk)
+
+        every { mockKeyAttestationJwt.rawJwt } returns MockCredentialOffer.KEY_ATTESTATION_JWT
 
         createCredentialRequestProofJwtUseCase = CreateCredentialRequestProofJwtImpl(createJwk = mockCreateJwk)
     }
@@ -53,11 +62,12 @@ class CreateCredentialRequestProofJwtImplTest {
 
     @Test
     fun `a created proof jwt should have a valid signature`() = runTest(testDispatcher) {
-        val keyPair = VALID_KEY_PAIR
+        val keyPair = VALID_KEY_PAIR_HARDWARE
         val proofJwt = createCredentialRequestProofJwtUseCase(
             keyPair = keyPair,
             issuer = CREDENTIAL_ISSUER,
-            cNonce = C_NONCE
+            cNonce = C_NONCE,
+            attestationJwt = null,
         )
 
         proofJwt.assertOk()
@@ -69,11 +79,12 @@ class CreateCredentialRequestProofJwtImplTest {
 
     @Test
     fun `a created proof jwt without nonce should have a valid signature`() = runTest(testDispatcher) {
-        val keyPair = VALID_KEY_PAIR
+        val keyPair = VALID_KEY_PAIR_HARDWARE
         val proofJwt = createCredentialRequestProofJwtUseCase(
             keyPair = keyPair,
             issuer = CREDENTIAL_ISSUER,
-            cNonce = null
+            cNonce = null,
+            attestationJwt = null,
         )
 
         proofJwt.assertOk()
@@ -84,12 +95,35 @@ class CreateCredentialRequestProofJwtImplTest {
     }
 
     @Test
+    fun `a created proof jwt with a key attestation jwt should have a valid signature and contain the attestation jwt as header`() =
+        runTest(testDispatcher) {
+            val keyPair = VALID_KEY_PAIR_HARDWARE
+            val proofJwt = createCredentialRequestProofJwtUseCase(
+                keyPair = keyPair,
+                issuer = CREDENTIAL_ISSUER,
+                cNonce = null,
+                attestationJwt = mockKeyAttestationJwt,
+            ).assertOk()
+
+            val jwt = proofJwt.jwt
+            val publicKey = keyPair.keyPair.public as ECPublicKey
+            val verifier = ECDSAVerifier(publicKey)
+            val signedJwt = SignedJWT.parse(jwt)
+            assertTrue(signedJwt.verify(verifier))
+            assertEquals(
+                MockCredentialOffer.KEY_ATTESTATION_JWT,
+                signedJwt.header.getCustomParam("key_attestation")
+            )
+        }
+
+    @Test
     fun `creating a proof jwt with an invalid private key should return an unexpected error`() = runTest(testDispatcher) {
         val keyPair = INVALID_KEY_PAIR
         val proofJwt = createCredentialRequestProofJwtUseCase(
             keyPair = keyPair,
             issuer = CREDENTIAL_ISSUER,
-            cNonce = C_NONCE
+            cNonce = C_NONCE,
+            attestationJwt = null
         )
 
         proofJwt.assertErrorType(CredentialOfferError.Unexpected::class)
@@ -102,9 +136,10 @@ class CreateCredentialRequestProofJwtImplTest {
         } returns Err(JwkError.Unexpected(null))
 
         val proofJwt = createCredentialRequestProofJwtUseCase(
-            keyPair = VALID_KEY_PAIR,
+            keyPair = VALID_KEY_PAIR_HARDWARE,
             issuer = CREDENTIAL_ISSUER,
-            cNonce = C_NONCE
+            cNonce = C_NONCE,
+            attestationJwt = null
         )
 
         proofJwt.assertErrorType(CredentialOfferError.Unexpected::class)

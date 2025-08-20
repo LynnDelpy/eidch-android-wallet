@@ -56,7 +56,8 @@ class MapToCredentialDisplayDataImpl @Inject constructor(
 
         var resolvedField = description
         matches.reversed().forEach { (text, range) ->
-            val replacement = claims.find { text == "$.${it.claim.key}" }?.claim?.value ?: ""
+            val claim = claims.find { text == "$.${it.claim.key}" }?.claim
+            val replacement = claim?.let { it.value ?: "–" } ?: ""
             resolvedField = resolvedField.replaceRange(range, replacement)
         }
 

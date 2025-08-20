@@ -1,7 +1,7 @@
 package ch.admin.foitt.openid4vc.domain.model.presentationRequest
 
+import ch.admin.foitt.openid4vc.domain.model.SigningAlgorithm
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.CredentialFormat
-import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.SigningAlgorithm
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 

@@ -32,19 +32,25 @@ fun EIdDocumentSelectionScreen(
     viewModel: EIdDocumentSelectionViewModel,
 ) {
     EIdDocumentSelectionScreenContent(
+        showEIdMockMrzButton = viewModel.showEIdMockMrzButton,
         onDocumentSelected = viewModel::onDocumentSelected,
+        onClickMock = viewModel::onClickMock
     )
 }
 
 @Composable
 private fun EIdDocumentSelectionScreenContent(
+    showEIdMockMrzButton: Boolean,
     onDocumentSelected: (EIdDocumentType) -> Unit,
+    onClickMock: () -> Unit
 ) {
     CompactDocumentList(
         modifier = Modifier
             .fillMaxWidth(),
+        showEIdMockMrzButton = showEIdMockMrzButton,
         contentPadding = PaddingValues(bottom = Sizes.s06),
         onDocumentSelected = onDocumentSelected,
+        onClickMock = onClickMock
     )
 }
 
@@ -72,8 +78,10 @@ private fun ListHeader() {
 @Composable
 private fun CompactDocumentList(
     modifier: Modifier = Modifier,
+    showEIdMockMrzButton: Boolean,
     contentPadding: PaddingValues = PaddingValues(0.dp),
     onDocumentSelected: (EIdDocumentType) -> Unit,
+    onClickMock: () -> Unit,
 ) {
     WalletLayouts.LazyColumn(
         modifier = modifier
@@ -104,6 +112,15 @@ private fun CompactDocumentList(
                 stringResource = R.string.tk_eidRequest_documentSelection_residentPermit,
             )
         }
+        if (showEIdMockMrzButton) {
+            item {
+                EIdDocumentItem(
+                    onClick = onClickMock,
+                    imageResource = R.drawable.wallet_ic_eid,
+                    stringResource = R.string.tk_global_moreoptions_alt,
+                )
+            }
+        }
     }
 }
 
@@ -112,7 +129,9 @@ private fun CompactDocumentList(
 private fun EIdDocumentSelectionScreenPreview() {
     WalletTheme {
         EIdDocumentSelectionScreenContent(
+            showEIdMockMrzButton = false,
             onDocumentSelected = {},
+            onClickMock = {}
         )
     }
 }

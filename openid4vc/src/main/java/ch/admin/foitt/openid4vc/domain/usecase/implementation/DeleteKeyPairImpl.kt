@@ -15,7 +15,7 @@ import java.security.KeyStore
 import javax.inject.Inject
 
 class DeleteKeyPairImpl @Inject constructor(
-    @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
+    @param:DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
 ) : DeleteKeyPair {
     override suspend fun invoke(
         keyId: String,

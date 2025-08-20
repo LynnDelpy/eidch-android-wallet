@@ -5,24 +5,26 @@ import ch.admin.foitt.wallet.platform.database.domain.model.CredentialClaimDispl
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialClaimWithDisplays
 
 object MockCredentialClaim {
-    private const val CLAIM_ID = 1L
+    const val CLAIM_ID = 1L
 
     val credentialClaimDisplay = CredentialClaimDisplay(
         claimId = CLAIM_ID,
         name = "name",
-        locale = "xxx"
+        locale = "xxx",
+        value = null,
     )
     val credentialClaimDisplays = listOf(credentialClaimDisplay)
 
     fun buildClaimWithDisplays(
         valueType: String,
+        value: String? = "value",
         displays: List<CredentialClaimDisplay> = credentialClaimDisplays,
         valueDisplayInfo: String? = null
     ) = CredentialClaimWithDisplays(
         claim = CredentialClaim(
             clusterId = 1,
             key = "key",
-            value = "value",
+            value = value,
             valueType = valueType,
             valueDisplayInfo = valueDisplayInfo
         ),

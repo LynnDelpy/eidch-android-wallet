@@ -1,18 +1,19 @@
 package ch.admin.foitt.wallet.platform.appAttestation.domain.usecase.implementation
 
+import ch.admin.foitt.openid4vc.domain.model.KeyStorageSecurityLevel
 import ch.admin.foitt.openid4vc.domain.model.jwt.Jwt
 import ch.admin.foitt.openid4vc.domain.model.keyBinding.Jwk
 import ch.admin.foitt.openid4vc.domain.model.keyBinding.hasSameCurveAs
 import ch.admin.foitt.openid4vc.domain.usecase.VerifyJwtSignature
 import ch.admin.foitt.wallet.platform.appAttestation.domain.model.AttestationAlgorithm
 import ch.admin.foitt.wallet.platform.appAttestation.domain.model.AttestationError
-import ch.admin.foitt.wallet.platform.appAttestation.domain.model.KeyAttestation
 import ch.admin.foitt.wallet.platform.appAttestation.domain.model.KeyAttestationJwt
-import ch.admin.foitt.wallet.platform.appAttestation.domain.model.KeyAttestationStorage
+import ch.admin.foitt.wallet.platform.appAttestation.domain.model.ValidateKeyAttestationError
 import ch.admin.foitt.wallet.platform.appAttestation.domain.usecase.ValidateKeyAttestation
 import ch.admin.foitt.wallet.platform.environmentSetup.domain.repository.EnvironmentSetupRepository
 import ch.admin.foitt.wallet.platform.utils.JsonError
 import ch.admin.foitt.wallet.platform.utils.SafeJson
+import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.coroutines.runSuspendCatching
 import com.github.michaelbull.result.getOrThrow
 import com.github.michaelbull.result.mapError
@@ -28,10 +29,9 @@ internal class ValidateKeyAttestationImpl @Inject constructor(
     private val safeJson: SafeJson,
 ) : ValidateKeyAttestation {
     override suspend fun invoke(
-        keyStoreAlias: String,
         originalJwk: Jwk,
         keyAttestationJwt: KeyAttestationJwt,
-    ) = runSuspendCatching {
+    ): Result<Jwt, ValidateKeyAttestationError> = runSuspendCatching {
         val attestation = Jwt(keyAttestationJwt.value)
 
         val issuer = checkNotNull(attestation.iss) { "issuer did is null" }
@@ -88,10 +88,7 @@ internal class ValidateKeyAttestationImpl @Inject constructor(
 
         attestation.checkKeyStorageValues()
 
-        KeyAttestation(
-            keyStoreAlias = keyStoreAlias,
-            attestation = attestation,
-        )
+        attestation
     }.mapError { throwable ->
         Timber.w(t = throwable, message = "Key attestation validation failed")
         AttestationError.ValidationError(throwable.message)
@@ -103,7 +100,7 @@ internal class ValidateKeyAttestationImpl @Inject constructor(
         }
 
         keyStorage.map { value ->
-            checkNotNull(KeyAttestationStorage.get(value.jsonPrimitive.content)) {
+            checkNotNull(KeyStorageSecurityLevel.get(value.jsonPrimitive.content)) {
                 "key storage value is unsupported"
             }
         }

@@ -27,7 +27,7 @@ class GenerateMetadataDisplaysImpl @Inject constructor(
     private val safeJson: SafeJson,
 ) : GenerateMetadataDisplays {
     override suspend fun invoke(
-        credentialClaims: Map<String, String>,
+        credentialClaims: Map<String, String?>,
         metadata: AnyCredentialConfiguration,
     ): Result<MetadataDisplays, GenerateMetadataDisplaysError> = coroutineBinding {
         val localizedCredentialDisplays = metadata.display?.map {
@@ -54,7 +54,7 @@ class GenerateMetadataDisplaysImpl @Inject constructor(
 
     private suspend fun createLocalizedCredentialClaims(
         credentialConfiguration: AnyCredentialConfiguration,
-        credentialClaims: Map<String, String>,
+        credentialClaims: Map<String, String?>,
     ): Result<Map<CredentialClaim, List<AnyClaimDisplay>>, GenerateMetadataDisplaysError> = coroutineBinding {
         val metadataClaims = getMetadataClaims(credentialConfiguration = credentialConfiguration).bind()
 

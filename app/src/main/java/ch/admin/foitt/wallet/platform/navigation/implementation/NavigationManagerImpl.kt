@@ -18,7 +18,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -26,7 +25,7 @@ import java.lang.ref.WeakReference
 import javax.inject.Inject
 
 class NavigationManagerImpl @Inject constructor(
-    @IoDispatcherScope private val ioDispatcherScope: CoroutineScope,
+    @param:IoDispatcherScope private val ioDispatcherScope: CoroutineScope,
 ) : NavigationManager {
     private var destinationFlowJob: Job? = null
     private var backStackFlowJob: Job? = null
@@ -145,9 +144,11 @@ class NavigationManagerImpl @Inject constructor(
     @SuppressLint("RestrictedApi")
     private fun printBackStack(action: String) {
         Timber.d(
-            "NavAction $action, current backStack ${navHost.get()?.currentBackStack?.value?.map {
-                it.route().route
-            }}"
+            "NavAction $action, current backStack ${
+                navHost.get()?.currentBackStack?.value?.map {
+                    it.route().route
+                }
+            }"
         )
     }
 

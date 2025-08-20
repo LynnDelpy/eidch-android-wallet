@@ -19,7 +19,9 @@ open class VcSdJwt(
     val kid: String = keyId ?: error("missing keyId claim")
     val vct = sdJwtJson.jsonObject[CLAIM_KEY_VCT]?.jsonPrimitive?.content ?: error("missing vct claim")
     val vctIntegrity: String? = sdJwtJson.jsonObject[CLAIM_KEY_VCT_INTEGRITY]?.jsonPrimitive?.content
-    val cnf = sdJwtJson.jsonObject[CLAIM_KEY_CNF]
+    val cnfJwk = sdJwtJson.jsonObject[CLAIM_KEY_CNF]?.jsonObject[CLAIM_KEY_CNF_JWK]
+        // Support for both malformed and standard format of cnf claim
+        ?: sdJwtJson.jsonObject[CLAIM_KEY_CNF]
     val status = sdJwtJson.jsonObject[CLAIM_KEY_STATUS]
 
     /* "sub" claim can optionally be put in disclosures, so it has to be read here */
@@ -40,6 +42,7 @@ open class VcSdJwt(
 
     private companion object {
         const val CLAIM_KEY_CNF = "cnf"
+        const val CLAIM_KEY_CNF_JWK = "jwk"
         const val CLAIM_KEY_VCT = "vct"
         const val CLAIM_KEY_VCT_INTEGRITY = "vct#integrity"
         const val CLAIM_KEY_STATUS = "status"

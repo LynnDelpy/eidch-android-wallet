@@ -2,6 +2,7 @@ package ch.admin.foitt.wallet.platform.credentialPresentation.domain.usecase.imp
 
 import ch.admin.foitt.openid4vc.domain.model.anycredential.AnyCredential
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.CredentialFormat
+import ch.admin.foitt.openid4vc.domain.model.keyBinding.KeyBinding
 import ch.admin.foitt.openid4vc.domain.model.presentationRequest.InputDescriptor
 import ch.admin.foitt.openid4vc.domain.model.presentationRequest.InputDescriptorFormat
 import ch.admin.foitt.wallet.platform.credential.domain.model.GetAnyCredentialsError
@@ -40,7 +41,7 @@ class GetCompatibleCredentialsImpl @Inject constructor(
             runSuspendCatching {
                 val inputDescriptor = inputDescriptors.first()
                 val compatibleFormat = getCompatibleFormat(credential.format, inputDescriptor.formats) ?: return@mapNotNull null
-                if (isProofTypeCompatible(compatibleFormat, credential).not()) {
+                if (isProofTypeCompatible(compatibleFormat, credential.keyBinding).not()) {
                     return@mapNotNull null
                 }
                 val fields = getRequestedFields(credential.getClaimsForPresentation().toString(), inputDescriptors)
@@ -63,10 +64,10 @@ class GetCompatibleCredentialsImpl @Inject constructor(
 
     private fun isProofTypeCompatible(
         compatibleFormat: InputDescriptorFormat,
-        credential: AnyCredential
+        keyBinding: KeyBinding?,
     ) = when (compatibleFormat) {
         is InputDescriptorFormat.VcSdJwt ->
-            credential.keyBindingAlgorithm?.let {
+            keyBinding?.algorithm?.let {
                 compatibleFormat.kbJwtAlgorithms?.contains(it) == true
             } ?: compatibleFormat.kbJwtAlgorithms.isNullOrEmpty()
     }

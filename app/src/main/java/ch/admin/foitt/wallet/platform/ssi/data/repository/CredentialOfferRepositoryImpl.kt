@@ -1,7 +1,7 @@
 package ch.admin.foitt.wallet.platform.ssi.data.repository
 
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.CredentialFormat
-import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.SigningAlgorithm
+import ch.admin.foitt.openid4vc.domain.model.keyBinding.KeyBinding
 import ch.admin.foitt.wallet.platform.credential.domain.model.AnyClaimDisplay
 import ch.admin.foitt.wallet.platform.credential.domain.model.AnyCredentialDisplay
 import ch.admin.foitt.wallet.platform.credential.domain.model.AnyIssuerDisplay
@@ -12,6 +12,7 @@ import ch.admin.foitt.wallet.platform.database.data.dao.CredentialClaimDisplayDa
 import ch.admin.foitt.wallet.platform.database.data.dao.CredentialDao
 import ch.admin.foitt.wallet.platform.database.data.dao.CredentialDisplayDao
 import ch.admin.foitt.wallet.platform.database.data.dao.CredentialIssuerDisplayDao
+import ch.admin.foitt.wallet.platform.database.data.dao.CredentialKeyBindingEntityDao
 import ch.admin.foitt.wallet.platform.database.data.dao.DaoProvider
 import ch.admin.foitt.wallet.platform.database.data.dao.RawCredentialDataDao
 import ch.admin.foitt.wallet.platform.database.domain.model.Cluster
@@ -21,6 +22,7 @@ import ch.admin.foitt.wallet.platform.database.domain.model.CredentialClaim
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialClaimDisplay
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialDisplay
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialIssuerDisplay
+import ch.admin.foitt.wallet.platform.database.domain.model.CredentialKeyBindingEntity
 import ch.admin.foitt.wallet.platform.database.domain.model.DisplayConst
 import ch.admin.foitt.wallet.platform.database.domain.model.DisplayLanguage
 import ch.admin.foitt.wallet.platform.database.domain.model.RawCredentialData
@@ -41,13 +43,12 @@ import javax.inject.Inject
 
 class CredentialOfferRepositoryImpl @Inject constructor(
     daoProvider: DaoProvider,
-    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val runInTransaction: RunInTransaction,
 ) : CredentialOfferRepository {
 
     override suspend fun saveCredentialOffer(
-        keyBindingIdentifier: String?,
-        keyBindingAlgorithm: SigningAlgorithm?,
+        keyBinding: KeyBinding?,
         payload: String,
         format: CredentialFormat,
         validFrom: Long?,
@@ -59,19 +60,19 @@ class CredentialOfferRepositoryImpl @Inject constructor(
         rawCredentialData: RawCredentialData
     ): Result<Long, CredentialOfferRepositoryError> = withContext(ioDispatcher) {
         val credential = createCredential(
-            privateKeyIdentifier = keyBindingIdentifier,
-            signingAlgorithm = keyBindingAlgorithm,
             payload = payload,
             format = format,
             issuer = issuer,
             validFrom = validFrom,
             validUntil = validUntil,
         )
+        val credentialKeyBinding = createCredentialKeyBinding(keyBinding)
         val credentialIssuerDisplays = createCredentialIssuerDisplays(issuerDisplays)
         val credDisplays = createCredentialDisplays(credentialDisplays)
 
         saveCredentialOffer(
             credential = credential,
+            keyBinding = credentialKeyBinding,
             issuerDisplays = credentialIssuerDisplays,
             credentialDisplays = credDisplays,
             clusters = clusters,
@@ -80,22 +81,29 @@ class CredentialOfferRepositoryImpl @Inject constructor(
     }
 
     private fun createCredential(
-        privateKeyIdentifier: String?,
-        signingAlgorithm: SigningAlgorithm?,
         payload: String,
         format: CredentialFormat,
         validFrom: Long?,
         validUntil: Long?,
         issuer: String?
     ) = Credential(
-        keyBindingIdentifier = privateKeyIdentifier,
-        keyBindingAlgorithm = signingAlgorithm?.stdName,
         payload = payload,
         format = format,
         issuer = issuer,
         validFrom = validFrom,
         validUntil = validUntil
     )
+
+    private fun createCredentialKeyBinding(keyBinding: KeyBinding?) = keyBinding?.let {
+        CredentialKeyBindingEntity(
+            id = it.identifier,
+            credentialId = -1,
+            algorithm = it.algorithm.stdName,
+            bindingType = it.bindingType,
+            publicKey = it.publicKey,
+            privateKey = it.privateKey,
+        )
+    }
 
     private fun createCredentialIssuerDisplays(
         issuerDisplays: List<AnyIssuerDisplay>,
@@ -140,12 +148,14 @@ class CredentialOfferRepositoryImpl @Inject constructor(
                 claimId = -1,
                 name = display.name,
                 locale = display.locale ?: DisplayLanguage.UNKNOWN,
+                value = display.value,
             )
         }
     }.toMap()
 
     private suspend fun saveCredentialOffer(
         credential: Credential,
+        keyBinding: CredentialKeyBindingEntity?,
         issuerDisplays: List<CredentialIssuerDisplay>,
         credentialDisplays: List<CredentialDisplay>,
         clusters: List<Cluster>,
@@ -153,6 +163,9 @@ class CredentialOfferRepositoryImpl @Inject constructor(
     ): Result<Long, CredentialOfferRepositoryError> = runSuspendCatching {
         val credentialId = runInTransaction {
             val credentialId = credentialDao().insert(credential)
+            keyBinding?.let {
+                credentialKeyBindingDao().insert(it.copy(credentialId = credentialId))
+            }
             credentialIssuerDisplayDao().insertAll(issuerDisplays.map { it.copy(credentialId = credentialId) })
             credentialDisplayDao().insertAll(credentialDisplays.map { it.copy(credentialId = credentialId) })
 
@@ -194,6 +207,11 @@ class CredentialOfferRepositoryImpl @Inject constructor(
 
     private val credentialDaoFlow = daoProvider.credentialDaoFlow
     private suspend fun credentialDao(): CredentialDao = suspendUntilNonNull { credentialDaoFlow.value }
+
+    private val credentialKeyBindingEntityDaoFlow = daoProvider.credentialKeyBindingEntityDaoFlow
+    private suspend fun credentialKeyBindingDao(): CredentialKeyBindingEntityDao = suspendUntilNonNull {
+        credentialKeyBindingEntityDaoFlow.value
+    }
 
     private val credentialDisplayDaoFlow = daoProvider.credentialDisplayDaoFlow
     private suspend fun credentialDisplayDao(): CredentialDisplayDao = suspendUntilNonNull {

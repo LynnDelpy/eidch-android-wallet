@@ -2,7 +2,7 @@ package ch.admin.foitt.openid4vc.domain.usecase.implementation
 
 import ch.admin.foitt.openid4vc.domain.model.JwkError
 import ch.admin.foitt.openid4vc.domain.usecase.CreateJwk
-import ch.admin.foitt.openid4vc.domain.usecase.implementation.mock.MockKeyPairs.VALID_KEY_PAIR
+import ch.admin.foitt.openid4vc.domain.usecase.implementation.mock.MockKeyPairs.VALID_KEY_PAIR_HARDWARE
 import ch.admin.foitt.openid4vc.util.assertErrorType
 import ch.admin.foitt.openid4vc.util.assertOk
 import ch.admin.foitt.openid4vc.utils.retryUseCase
@@ -34,8 +34,8 @@ class RetryUseCaseTest {
     fun `retry returns success if first iteration is successful`() = runTest {
         retryUseCase {
             createJwk(
-                algorithm = VALID_KEY_PAIR.algorithm,
-                keyPair = VALID_KEY_PAIR.keyPair
+                algorithm = VALID_KEY_PAIR_HARDWARE.algorithm,
+                keyPair = VALID_KEY_PAIR_HARDWARE.keyPair
             )
         }.assertOk()
 
@@ -55,8 +55,8 @@ class RetryUseCaseTest {
 
         retryUseCase {
             createJwk(
-                algorithm = VALID_KEY_PAIR.algorithm,
-                keyPair = VALID_KEY_PAIR.keyPair
+                algorithm = VALID_KEY_PAIR_HARDWARE.algorithm,
+                keyPair = VALID_KEY_PAIR_HARDWARE.keyPair
             )
         }.assertOk()
 
@@ -71,8 +71,8 @@ class RetryUseCaseTest {
 
         retryUseCase {
             createJwk(
-                algorithm = VALID_KEY_PAIR.algorithm,
-                keyPair = VALID_KEY_PAIR.keyPair
+                algorithm = VALID_KEY_PAIR_HARDWARE.algorithm,
+                keyPair = VALID_KEY_PAIR_HARDWARE.keyPair
             )
         }.assertErrorType(JwkError.Unexpected::class)
 

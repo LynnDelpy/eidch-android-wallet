@@ -36,9 +36,10 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
-import io.ktor.utils.io.errors.IOException
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.io.IOException
+import timber.log.Timber
 import javax.inject.Inject
 
 internal class CredentialOfferRepositoryImpl @Inject constructor(
@@ -63,7 +64,10 @@ internal class CredentialOfferRepositoryImpl @Inject constructor(
     private suspend fun fetchRawAndParsedIssuerCredentialInfo(
         issuerEndpoint: String
     ): Result<RawAndParsedIssuerCredentialInfo, FetchIssuerCredentialInfoError> = coroutineBinding {
-        val rawData = httpClient.get("$issuerEndpoint/.well-known/openid-credential-issuer").body<String>()
+        val rawData = runSuspendCatching {
+            httpClient.get("$issuerEndpoint/.well-known/openid-credential-issuer").body<String>()
+        }.mapError(Throwable::toFetchIssuerCredentialInfoError).bind()
+
         val issuerCredentialInfo = safeJson.safeDecodeStringTo<IssuerCredentialInfo>(
             rawData
         ).mapError(JsonParsingError::toFetchIssuerCredentialInfoError).bind()
@@ -163,4 +167,12 @@ private fun Throwable.toFetchVerifiableCredentialError(): FetchVerifiableCredent
 private fun Throwable.toFetchIssuerConfigurationError(): FetchIssuerConfigurationError = when (this) {
     is IOException -> CredentialOfferError.NetworkInfoError
     else -> CredentialOfferError.Unexpected(this)
+}
+
+private fun Throwable.toFetchIssuerCredentialInfoError(): FetchIssuerCredentialInfoError {
+    Timber.e(t = this, message = "fetch issuer credential info failed")
+    return when (this) {
+        is IOException -> CredentialOfferError.NetworkInfoError
+        else -> CredentialOfferError.Unexpected(this)
+    }
 }

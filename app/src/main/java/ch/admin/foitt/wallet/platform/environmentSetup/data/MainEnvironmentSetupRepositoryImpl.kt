@@ -30,5 +30,7 @@ class MainEnvironmentSetupRepositoryImpl @Inject constructor() : EnvironmentSetu
 
     override val eIdRequestEnabled = false
 
+    override val eIdMockMrzEnabled = false
+
     override val sidBackendUrl: String = "https://eid.admin.ch"
 }

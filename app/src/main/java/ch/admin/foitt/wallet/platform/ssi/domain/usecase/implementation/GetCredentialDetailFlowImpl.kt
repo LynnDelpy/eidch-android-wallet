@@ -2,19 +2,15 @@ package ch.admin.foitt.wallet.platform.ssi.domain.usecase.implementation
 
 import ch.admin.foitt.wallet.platform.credential.domain.model.MapToCredentialDisplayDataError
 import ch.admin.foitt.wallet.platform.credential.domain.usecase.MapToCredentialDisplayData
-import ch.admin.foitt.wallet.platform.database.domain.model.CredentialClaimWithDisplays
-import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialClaimData
+import ch.admin.foitt.wallet.platform.credentialCluster.domain.usercase.MapToCredentialClaimCluster
 import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialDetail
 import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialWithDisplaysAndClustersRepositoryError
 import ch.admin.foitt.wallet.platform.ssi.domain.model.GetCredentialDetailFlowError
-import ch.admin.foitt.wallet.platform.ssi.domain.model.MapToCredentialClaimDataError
 import ch.admin.foitt.wallet.platform.ssi.domain.model.toGetCredentialDetailFlowError
 import ch.admin.foitt.wallet.platform.ssi.domain.repository.CredentialWithDisplaysAndClustersRepository
 import ch.admin.foitt.wallet.platform.ssi.domain.usecase.GetCredentialDetailFlow
-import ch.admin.foitt.wallet.platform.ssi.domain.usecase.MapToCredentialClaimData
 import ch.admin.foitt.wallet.platform.utils.andThen
 import ch.admin.foitt.wallet.platform.utils.mapError
-import ch.admin.foitt.wallet.platform.utils.sortByOrder
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.coroutines.coroutineBinding
 import com.github.michaelbull.result.mapError
@@ -24,40 +20,26 @@ import javax.inject.Inject
 class GetCredentialDetailFlowImpl @Inject constructor(
     private val credentialWithDisplaysAndClustersRepository: CredentialWithDisplaysAndClustersRepository,
     private val mapToCredentialDisplayData: MapToCredentialDisplayData,
-    private val mapToCredentialClaimData: MapToCredentialClaimData,
+    private val mapToCredentialClaimCluster: MapToCredentialClaimCluster
 ) : GetCredentialDetailFlow {
     override fun invoke(credentialId: Long): Flow<Result<CredentialDetail?, GetCredentialDetailFlowError>> =
         credentialWithDisplaysAndClustersRepository.getNullableCredentialWithDisplaysAndClustersFlowById(credentialId)
             .mapError(CredentialWithDisplaysAndClustersRepositoryError::toGetCredentialDetailFlowError)
-            .andThen { credentialDetail ->
+            .andThen { credentialWithDisplaysAndClusters ->
                 coroutineBinding {
-                    credentialDetail?.let {
-                        val cluster = it.clusters.first()
-
+                    credentialWithDisplaysAndClusters?.let { credentialWithDisplaysAndClusters ->
                         val credentialDisplayData = mapToCredentialDisplayData(
-                            credential = it.credential,
-                            credentialDisplays = it.credentialDisplays,
-                            claims = cluster.claims,
+                            credential = credentialWithDisplaysAndClusters.credential,
+                            credentialDisplays = credentialWithDisplaysAndClusters.credentialDisplays,
+                            claims = credentialWithDisplaysAndClusters.clusters.flatMap { it.claimsWithDisplays }
                         ).mapError(MapToCredentialDisplayDataError::toGetCredentialDetailFlowError)
                             .bind()
 
-                        val claims = getCredentialClaimData(cluster.claims.sortByOrder()).bind()
-
                         CredentialDetail(
                             credential = credentialDisplayData,
-                            claims = claims,
+                            clusterItems = mapToCredentialClaimCluster(credentialWithDisplaysAndClusters.clusters)
                         )
                     }
                 }
             }
-
-    private suspend fun getCredentialClaimData(
-        claims: List<CredentialClaimWithDisplays>
-    ): Result<List<CredentialClaimData>, GetCredentialDetailFlowError> = coroutineBinding {
-        claims.map { claimWithDisplays ->
-            mapToCredentialClaimData(
-                claimWithDisplays
-            ).mapError(MapToCredentialClaimDataError::toGetCredentialDetailFlowError).bind()
-        }
-    }
 }

@@ -20,7 +20,7 @@ import javax.inject.Inject
 
 class CredentialRepoImpl @Inject constructor(
     daoProvider: DaoProvider,
-    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : CredentialRepo {
 
     override suspend fun getAll(): Result<List<Credential>, CredentialRepositoryError> = runSuspendCatching {

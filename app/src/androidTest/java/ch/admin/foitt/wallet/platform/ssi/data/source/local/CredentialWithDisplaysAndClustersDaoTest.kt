@@ -84,8 +84,8 @@ class CredentialWithDisplaysAndClustersDaoTest {
             clusters = listOf(
                 ClusterWithDisplaysAndClaims(
                     cluster = cluster1,
-                    displays = listOf(clusterDisplay1),
-                    claims = listOf(
+                    clusterDisplays = listOf(clusterDisplay1),
+                    claimsWithDisplays = listOf(
                         CredentialClaimWithDisplays(
                             claim = credentialClaim1,
                             displays = listOf(credentialClaimDisplay1, credentialClaimDisplay3)
@@ -129,8 +129,8 @@ class CredentialWithDisplaysAndClustersDaoTest {
             clusters = listOf(
                 ClusterWithDisplaysAndClaims(
                     cluster = cluster1,
-                    displays = listOf(clusterDisplay1),
-                    claims = listOf(
+                    clusterDisplays = listOf(clusterDisplay1),
+                    claimsWithDisplays = listOf(
                         CredentialClaimWithDisplays(
                             claim = credentialClaim1,
                             displays = listOf(credentialClaimDisplay1, credentialClaimDisplay3)
@@ -169,8 +169,8 @@ class CredentialWithDisplaysAndClustersDaoTest {
             clusters = listOf(
                 ClusterWithDisplaysAndClaims(
                     cluster = cluster1,
-                    displays = listOf(clusterDisplay1),
-                    claims = listOf(
+                    clusterDisplays = listOf(clusterDisplay1),
+                    claimsWithDisplays = listOf(
                         CredentialClaimWithDisplays(
                             claim = credentialClaim1,
                             displays = listOf(credentialClaimDisplay1, credentialClaimDisplay3)
@@ -186,8 +186,8 @@ class CredentialWithDisplaysAndClustersDaoTest {
             clusters = listOf(
                 ClusterWithDisplaysAndClaims(
                     cluster = cluster2,
-                    displays = listOf(clusterDisplay2),
-                    claims = listOf(
+                    clusterDisplays = listOf(clusterDisplay2),
+                    claimsWithDisplays = listOf(
                         CredentialClaimWithDisplays(
                             claim = credentialClaim2,
                             displays = listOf(credentialClaimDisplay2)

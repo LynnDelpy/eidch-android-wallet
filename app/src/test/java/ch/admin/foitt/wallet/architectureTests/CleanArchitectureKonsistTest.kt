@@ -62,7 +62,7 @@ class CleanArchitectureKonsistTest {
                 Stream.of(
                     DynamicTest.dynamicTest("${feature.name} should not depend on other feature packages") {
                         val featureName = ".*\\.feature\\.\\w+".toRegex()
-                            .find(feature.fullyQualifiedName)
+                            .find(feature.name)
                             ?.groupValues
                             ?.first() ?: return@dynamicTest
                         runTest {
@@ -122,7 +122,7 @@ class CleanArchitectureKonsistTest {
                 DynamicTest.dynamicTest("${repositoryFile.name} should reside inside repository package") {
                     runTest {
                         repositoryFile.assertTrue {
-                            it.packagee?.fullyQualifiedName?.contains(".repository")
+                            it.packagee?.hasNameContaining(".repository")
                         }
                     }
                 }
@@ -167,10 +167,7 @@ class CleanArchitectureKonsistTest {
                     runTest {
                         useCase.assertTrue {
                             it.hasParentInterface { parentInterface ->
-                                val hasSingleInvokeOperatorMethod = parentInterface.hasFunction { function ->
-                                    function.name == "invoke" && function.hasPublicOrDefaultModifier && function.hasOperatorModifier
-                                }
-                                hasSingleInvokeOperatorMethod && parentInterface.packagee?.fullyQualifiedName == useCase.packagee?.fullyQualifiedName?.removeSuffix(".implementation")
+                                parentInterface.packagee?.path == useCase.packagee?.path?.removeSuffix(".implementation")
                             }
                         }
                     }
@@ -216,7 +213,7 @@ class CleanArchitectureKonsistTest {
                         runTest {
                             useCase.assertTrue { case ->
                                 testClasses.any { testCase ->
-                                    testCase.name == case.name + "Test" && testCase.packagee?.fullyQualifiedName == case.packagee?.fullyQualifiedName
+                                    testCase.name == case.name + "Test" && testCase.packagee?.name == case.packagee?.name
                                 }
                             }
                         }

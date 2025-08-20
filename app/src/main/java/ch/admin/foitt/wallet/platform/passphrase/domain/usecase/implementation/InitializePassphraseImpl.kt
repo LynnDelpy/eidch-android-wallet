@@ -27,7 +27,7 @@ class InitializePassphraseImpl @Inject constructor(
     private val encryptAndSavePassphrase: EncryptAndSavePassphrase,
     private val createAppDatabase: CreateAppDatabase,
     private val pepperPassphrase: PepperPassphrase,
-    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : InitializePassphrase {
     override suspend fun invoke(
         pin: String,

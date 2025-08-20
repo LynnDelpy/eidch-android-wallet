@@ -7,6 +7,7 @@ import ch.admin.foitt.wallet.platform.oca.domain.model.OcaClaimData
 import ch.admin.foitt.wallet.platform.oca.domain.model.overlays.BrandingOverlay1x1
 import ch.admin.foitt.wallet.platform.oca.domain.model.overlays.CharacterEncodingOverlay1x0
 import ch.admin.foitt.wallet.platform.oca.domain.model.overlays.DataSourceOverlay1x0
+import ch.admin.foitt.wallet.platform.oca.domain.model.overlays.EntryOverlay1x0
 import ch.admin.foitt.wallet.platform.oca.domain.model.overlays.FormatOverlay1x0
 import ch.admin.foitt.wallet.platform.oca.domain.model.overlays.LabelOverlay1x0
 import ch.admin.foitt.wallet.platform.oca.domain.model.overlays.MetaOverlay1x0
@@ -691,6 +692,14 @@ object OcaMocks {
     const val BRANDING_BACKGROUND_COLOR = "background color"
     const val BRANDING_PRIMARY_FIELD = "primary field"
 
+    const val ENTRY_CODE_A = "a"
+    const val ENTRY_CODE_B = "b"
+
+    const val ENTRY_CODE_A_EN = "a en"
+    const val ENTRY_CODE_A_DE = "a de"
+    const val ENTRY_CODE_B_EN = "b en"
+    const val ENTRY_CODE_B_DE = "b de"
+
     val simpleCaptureBase = CaptureBase1x0(
         digest = DIGEST,
         attributes = mapOf(
@@ -823,6 +832,28 @@ object OcaMocks {
         )
     )
 
+    val ocaSimpleEntry = OcaBundle(
+        captureBases = listOf(simpleCaptureBase),
+        overlays = listOf(
+            EntryOverlay1x0(
+                captureBaseDigest = DIGEST,
+                language = LANGUAGE_EN,
+                attributeEntries = mapOf(
+                    ATTRIBUTE_KEY_FIRSTNAME to mapOf(ENTRY_CODE_A to ENTRY_CODE_A_EN),
+                    ATTRIBUTE_KEY_AGE to mapOf(ENTRY_CODE_B to ENTRY_CODE_B_EN),
+                )
+            ),
+            EntryOverlay1x0(
+                captureBaseDigest = DIGEST,
+                language = LANGUAGE_DE,
+                attributeEntries = mapOf(
+                    ATTRIBUTE_KEY_FIRSTNAME to mapOf(ENTRY_CODE_A to ENTRY_CODE_A_DE),
+                    ATTRIBUTE_KEY_AGE to mapOf(ENTRY_CODE_B to ENTRY_CODE_B_DE),
+                )
+            )
+        )
+    )
+
     val ocaSimple = OcaBundle(
         captureBases = listOf(simpleCaptureBase),
         overlays = listOf(
@@ -861,8 +892,7 @@ object OcaMocks {
                 dataSources = mapOf(
                     CREDENTIAL_FORMAT to JSON_PATH_FIRSTNAME
                 ),
-                entries = emptyMap(),
-                entryCodes = emptyList(),
+                entryMappings = emptyMap(),
                 format = null,
                 labels = mapOf(
                     LANGUAGE_EN to ATTRIBUTE_LABEL_FIRSTNAME_EN,
@@ -879,8 +909,7 @@ object OcaMocks {
                 dataSources = mapOf(
                     CREDENTIAL_FORMAT to JSON_PATH_AGE
                 ),
-                entries = emptyMap(),
-                entryCodes = emptyList(),
+                entryMappings = emptyMap(),
                 format = null,
                 labels = mapOf(
                     LANGUAGE_EN to ATTRIBUTE_LABEL_AGE_EN,
@@ -992,8 +1021,7 @@ object OcaMocks {
                 name = ATTRIBUTE_KEY_FIRSTNAME,
                 characterEncoding = null,
                 dataSources = mapOf(CREDENTIAL_FORMAT to JSON_PATH_FIRSTNAME),
-                entries = emptyMap(),
-                entryCodes = emptyList(),
+                entryMappings = emptyMap(),
                 format = null,
                 labels = mapOf(LANGUAGE_EN to ATTRIBUTE_LABEL_FIRSTNAME_EN),
                 standard = null
@@ -1005,8 +1033,7 @@ object OcaMocks {
                 name = ATTRIBUTE_KEY_LASTNAME,
                 characterEncoding = null,
                 dataSources = mapOf(CREDENTIAL_FORMAT to JSON_PATH_LASTNAME),
-                entries = emptyMap(),
-                entryCodes = emptyList(),
+                entryMappings = emptyMap(),
                 format = null,
                 labels = mapOf(LANGUAGE_EN to ATTRIBUTE_KEY_LASTNAME),
                 standard = null
@@ -1018,8 +1045,7 @@ object OcaMocks {
                 name = ATTRIBUTE_KEY_ADDRESS_STREET,
                 characterEncoding = null,
                 dataSources = mapOf(CREDENTIAL_FORMAT to JSON_PATH_ADDRESS_STREET),
-                entries = emptyMap(),
-                entryCodes = emptyList(),
+                entryMappings = emptyMap(),
                 format = null,
                 labels = mapOf(LANGUAGE_EN to ATTRIBUTE_KEY_ADDRESS_STREET),
                 standard = null
@@ -1031,8 +1057,7 @@ object OcaMocks {
                 name = ATTRIBUTE_KEY_ADDRESS_CITY,
                 characterEncoding = null,
                 dataSources = mapOf(CREDENTIAL_FORMAT to JSON_PATH_ADDRESS_CITY),
-                entries = emptyMap(),
-                entryCodes = emptyList(),
+                entryMappings = emptyMap(),
                 format = null,
                 labels = mapOf(LANGUAGE_EN to ATTRIBUTE_KEY_ADDRESS_CITY),
                 standard = null
@@ -1044,8 +1069,7 @@ object OcaMocks {
                 name = ATTRIBUTE_KEY_PETS,
                 characterEncoding = null,
                 dataSources = mapOf(CREDENTIAL_FORMAT to JSON_PATH_PETS),
-                entries = emptyMap(),
-                entryCodes = emptyList(),
+                entryMappings = emptyMap(),
                 format = null,
                 labels = mapOf(LANGUAGE_EN to ATTRIBUTE_KEY_PETS),
                 standard = null
@@ -1057,8 +1081,7 @@ object OcaMocks {
                 name = ATTRIBUTE_KEY_NAME,
                 characterEncoding = null,
                 dataSources = mapOf(CREDENTIAL_FORMAT to JSON_PATH_PETS_NAME),
-                entries = emptyMap(),
-                entryCodes = emptyList(),
+                entryMappings = emptyMap(),
                 format = null,
                 labels = mapOf(LANGUAGE_EN to ATTRIBUTE_KEY_NAME),
                 standard = null
@@ -1070,8 +1093,7 @@ object OcaMocks {
                 name = ATTRIBUTE_KEY_RACE,
                 characterEncoding = null,
                 dataSources = mapOf(CREDENTIAL_FORMAT to JSON_PATH_PETS_RACE),
-                entries = emptyMap(),
-                entryCodes = emptyList(),
+                entryMappings = emptyMap(),
                 format = null,
                 labels = mapOf(LANGUAGE_EN to ATTRIBUTE_KEY_RACE),
                 standard = null

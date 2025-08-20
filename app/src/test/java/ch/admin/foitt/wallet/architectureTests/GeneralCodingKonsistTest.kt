@@ -50,10 +50,12 @@ class GeneralCodingKonsistTest {
             .classes()
             .filterNot {
                 // Exceptions: Application and MainActivity
-                listOf(
-                    WalletApplication::class.java.name,
-                    MainActivity::class.java.name
-                ).contains(it.fullyQualifiedName)
+                it.fullyQualifiedName?.let { name ->
+                    name in listOf(
+                        WalletApplication::class.java.name,
+                        MainActivity::class.java.name
+                    )
+                } ?: false
             }
             .properties()
             .assertFalse { it.hasAnnotationOf<Inject>() }

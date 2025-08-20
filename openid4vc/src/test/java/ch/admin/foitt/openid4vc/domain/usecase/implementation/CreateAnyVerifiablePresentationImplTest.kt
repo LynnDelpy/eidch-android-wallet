@@ -1,15 +1,18 @@
 package ch.admin.foitt.openid4vc.domain.usecase.implementation
 
 import ch.admin.foitt.openid4vc.domain.model.anycredential.AnyCredential
+import ch.admin.foitt.openid4vc.domain.model.keyBinding.KeyBinding
 import ch.admin.foitt.openid4vc.domain.model.presentationRequest.PresentationRequest
 import ch.admin.foitt.openid4vc.domain.model.presentationRequest.PresentationRequestError
 import ch.admin.foitt.openid4vc.domain.model.vcSdJwt.VcSdJwtCredential
+import ch.admin.foitt.openid4vc.domain.usecase.CreateAnyVerifiablePresentation
 import ch.admin.foitt.openid4vc.domain.usecase.vcSdJwt.CreateVcSdJwtVerifiablePresentation
 import ch.admin.foitt.openid4vc.util.assertErrorType
 import ch.admin.foitt.openid4vc.util.assertOk
 import com.github.michaelbull.result.Ok
 import io.mockk.MockKAnnotations
 import io.mockk.coEvery
+import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.unmockkAll
 import kotlinx.coroutines.test.runTest
@@ -32,7 +35,10 @@ class CreateAnyVerifiablePresentationImplTest {
     @MockK
     private lateinit var mockPresentationRequest: PresentationRequest
 
-    private lateinit var useCase: CreateAnyVerifiablePresentationImpl
+    @MockK
+    private lateinit var mockKeyBinding: KeyBinding
+
+    private lateinit var useCase: CreateAnyVerifiablePresentation
 
     @BeforeEach
     fun setUp() {
@@ -40,7 +46,7 @@ class CreateAnyVerifiablePresentationImplTest {
 
         useCase = CreateAnyVerifiablePresentationImpl(mockCreateVcSdJwtVerifiablePresentation)
 
-        success()
+        setupDefaultMocks()
     }
 
     @AfterEach
@@ -70,14 +76,17 @@ class CreateAnyVerifiablePresentationImplTest {
         result.assertErrorType(PresentationRequestError.Unexpected::class)
     }
 
-    private fun success() {
+    private fun setupDefaultMocks() {
         coEvery {
             mockCreateVcSdJwtVerifiablePresentation(
                 credential = mockVcSdJwtCredential,
                 requestedFields = requestedFields,
                 presentationRequest = mockPresentationRequest,
+                keyBinding = mockKeyBinding,
             )
         } returns Ok(VERIFIABLE_PRESENTATION)
+
+        every { mockVcSdJwtCredential.keyBinding } returns mockKeyBinding
     }
 
     private companion object {

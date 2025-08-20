@@ -20,7 +20,7 @@ import java.time.Instant
 import javax.inject.Inject
 
 class EIdRequestStateRepositoryImpl @Inject constructor(
-    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     daoProvider: DaoProvider,
 ) : EIdRequestStateRepository {
     override suspend fun saveEIdRequestState(

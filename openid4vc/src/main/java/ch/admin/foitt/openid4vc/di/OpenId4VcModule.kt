@@ -13,7 +13,6 @@ import ch.admin.foitt.openid4vc.domain.repository.VcSchemaRepository
 import ch.admin.foitt.openid4vc.domain.usecase.CreateAnyDescriptorMaps
 import ch.admin.foitt.openid4vc.domain.usecase.CreateAnyVerifiablePresentation
 import ch.admin.foitt.openid4vc.domain.usecase.CreateCredentialRequestProofJwt
-import ch.admin.foitt.openid4vc.domain.usecase.CreateJWSKeyPair
 import ch.admin.foitt.openid4vc.domain.usecase.CreateJwk
 import ch.admin.foitt.openid4vc.domain.usecase.DeclinePresentation
 import ch.admin.foitt.openid4vc.domain.usecase.DeleteKeyPair
@@ -21,15 +20,15 @@ import ch.admin.foitt.openid4vc.domain.usecase.FetchCredentialByConfig
 import ch.admin.foitt.openid4vc.domain.usecase.FetchPresentationRequest
 import ch.admin.foitt.openid4vc.domain.usecase.FetchRawAndParsedIssuerCredentialInfo
 import ch.admin.foitt.openid4vc.domain.usecase.FetchVerifiableCredential
-import ch.admin.foitt.openid4vc.domain.usecase.GenerateKeyPair
-import ch.admin.foitt.openid4vc.domain.usecase.GetKeyPair
+import ch.admin.foitt.openid4vc.domain.usecase.GetHardwareKeyPair
+import ch.admin.foitt.openid4vc.domain.usecase.GetSoftwareKeyPair
+import ch.admin.foitt.openid4vc.domain.usecase.GetVerifiableCredentialParams
 import ch.admin.foitt.openid4vc.domain.usecase.ResolveDid
 import ch.admin.foitt.openid4vc.domain.usecase.SubmitAnyCredentialPresentation
 import ch.admin.foitt.openid4vc.domain.usecase.VerifyJwtSignature
 import ch.admin.foitt.openid4vc.domain.usecase.implementation.CreateAnyDescriptorMapsImpl
 import ch.admin.foitt.openid4vc.domain.usecase.implementation.CreateAnyVerifiablePresentationImpl
 import ch.admin.foitt.openid4vc.domain.usecase.implementation.CreateCredentialRequestProofJwtImpl
-import ch.admin.foitt.openid4vc.domain.usecase.implementation.CreateJWSKeyPairImpl
 import ch.admin.foitt.openid4vc.domain.usecase.implementation.CreateJwkImpl
 import ch.admin.foitt.openid4vc.domain.usecase.implementation.DeclinePresentationImpl
 import ch.admin.foitt.openid4vc.domain.usecase.implementation.DeleteKeyPairImpl
@@ -37,8 +36,9 @@ import ch.admin.foitt.openid4vc.domain.usecase.implementation.FetchCredentialByC
 import ch.admin.foitt.openid4vc.domain.usecase.implementation.FetchPresentationRequestImpl
 import ch.admin.foitt.openid4vc.domain.usecase.implementation.FetchRawAndParsedIssuerCredentialInfoImpl
 import ch.admin.foitt.openid4vc.domain.usecase.implementation.FetchVerifiableCredentialImpl
-import ch.admin.foitt.openid4vc.domain.usecase.implementation.GenerateKeyPairImpl
-import ch.admin.foitt.openid4vc.domain.usecase.implementation.GetKeyPairImpl
+import ch.admin.foitt.openid4vc.domain.usecase.implementation.GetHardwareKeyPairImpl
+import ch.admin.foitt.openid4vc.domain.usecase.implementation.GetSoftwareKeyPairImpl
+import ch.admin.foitt.openid4vc.domain.usecase.implementation.GetVerifiableCredentialParamsImpl
 import ch.admin.foitt.openid4vc.domain.usecase.implementation.ResolveDidImpl
 import ch.admin.foitt.openid4vc.domain.usecase.implementation.SubmitAnyCredentialPresentationImpl
 import ch.admin.foitt.openid4vc.domain.usecase.implementation.VerifyJwtSignatureImpl
@@ -168,14 +168,14 @@ internal interface OpenId4VCBindings {
     ): FetchVerifiableCredential
 
     @Binds
+    fun bindGetVerifiableCredentialParams(
+        useCase: GetVerifiableCredentialParamsImpl
+    ): GetVerifiableCredentialParams
+
+    @Binds
     fun bindCreateCredentialRequestProofJwt(
         useCase: CreateCredentialRequestProofJwtImpl
     ): CreateCredentialRequestProofJwt
-
-    @Binds
-    fun bindCreateJWSKeyPair(
-        useCase: CreateJWSKeyPairImpl
-    ): CreateJWSKeyPair
 
     @Binds
     fun bindFetchPresentationRequest(
@@ -213,14 +213,14 @@ internal interface OpenId4VCBindings {
     ): DeclinePresentation
 
     @Binds
-    fun bindGetKeyPair(
-        useCase: GetKeyPairImpl
-    ): GetKeyPair
+    fun bindGetHardwareKeyPair(
+        useCase: GetHardwareKeyPairImpl
+    ): GetHardwareKeyPair
 
     @Binds
-    fun bindGenerateKeyPair(
-        useCase: GenerateKeyPairImpl
-    ): GenerateKeyPair
+    fun bindGetSoftwareKeyPair(
+        useCase: GetSoftwareKeyPairImpl
+    ): GetSoftwareKeyPair
 
     @Binds
     fun bindDeleteKeyPair(

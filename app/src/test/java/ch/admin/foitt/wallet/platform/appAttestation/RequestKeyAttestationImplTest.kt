@@ -2,11 +2,10 @@ package ch.admin.foitt.wallet.platform.appAttestation
 
 import android.annotation.SuppressLint
 import ch.admin.foitt.openid4vc.domain.model.JwkError
-import ch.admin.foitt.openid4vc.domain.model.KeyPairError
+import ch.admin.foitt.openid4vc.domain.model.SigningAlgorithm
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.JWSKeyPair
-import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.SigningAlgorithm
 import ch.admin.foitt.openid4vc.domain.model.jwt.Jwt
-import ch.admin.foitt.openid4vc.domain.usecase.CreateJWSKeyPair
+import ch.admin.foitt.openid4vc.domain.model.keyBinding.KeyBindingType
 import ch.admin.foitt.openid4vc.domain.usecase.CreateJwk
 import ch.admin.foitt.wallet.platform.appAttestation.domain.model.AttestationChallengeResponse
 import ch.admin.foitt.wallet.platform.appAttestation.domain.model.AttestationError
@@ -19,6 +18,8 @@ import ch.admin.foitt.wallet.platform.appAttestation.domain.usecase.ValidateKeyA
 import ch.admin.foitt.wallet.platform.appAttestation.domain.usecase.implementation.RequestKeyAttestationImpl
 import ch.admin.foitt.wallet.platform.appAttestation.domain.util.getBase64CertificateChain
 import ch.admin.foitt.wallet.platform.appAttestation.mock.KeyAttestationMocks
+import ch.admin.foitt.wallet.platform.holderBinding.domain.model.KeyPairError
+import ch.admin.foitt.wallet.platform.holderBinding.domain.usecase.CreateJWSKeyPairInHardware
 import ch.admin.foitt.wallet.util.assertErrorType
 import ch.admin.foitt.wallet.util.assertOk
 import com.github.michaelbull.result.Err
@@ -45,7 +46,7 @@ class RequestKeyAttestationImplTest {
     private lateinit var mockAppAttestationRepository: AppAttestationRepository
 
     @MockK
-    private lateinit var mockCreateJWSKeyPair: CreateJWSKeyPair
+    private lateinit var mockCreateJWSKeyPairInHardware: CreateJWSKeyPairInHardware
 
     @MockK
     private lateinit var mockCreateJwk: CreateJwk
@@ -60,8 +61,8 @@ class RequestKeyAttestationImplTest {
     private val keyAttestationRawJwt = KeyAttestationMocks.jwtSimple01
     private val keyAttestationJwt = Jwt(keyAttestationRawJwt.value)
     private val signingAlgorithm = SigningAlgorithm.ES512
-    private val jwsKeyPair = JWSKeyPair(signingAlgorithm, keyPair, keyStoreAlias)
-    private val keyAttestation = KeyAttestation(keyStoreAlias, keyAttestationJwt)
+    private val jwsKeyPair = JWSKeyPair(signingAlgorithm, keyPair, keyStoreAlias, KeyBindingType.SOFTWARE)
+    private val keyAttestation = KeyAttestation(jwsKeyPair, keyAttestationJwt)
     private val jwk = KeyAttestationMocks.jwkEcP256_02
 
     private lateinit var useCase: RequestKeyAttestation
@@ -72,14 +73,14 @@ class RequestKeyAttestationImplTest {
 
         useCase = RequestKeyAttestationImpl(
             attestationRepository = mockAppAttestationRepository,
-            createJWSKeyPair = mockCreateJWSKeyPair,
+            createJWSKeyPairInHardware = mockCreateJWSKeyPairInHardware,
             createJwk = mockCreateJwk,
             validateKeyAttestation = mockValidateKeyAttestation,
         )
 
         coEvery { mockAppAttestationRepository.fetchChallenge() } returns Ok(challengeResponse)
 
-        coEvery { mockCreateJWSKeyPair(any(), any(), any()) } returns Ok(jwsKeyPair)
+        coEvery { mockCreateJWSKeyPairInHardware(any(), any(), any(), any(), any()) } returns Ok(jwsKeyPair)
 
         coEvery { mockCreateJwk(any(), any(), any()) } returns Ok(jwk)
 
@@ -90,7 +91,7 @@ class RequestKeyAttestationImplTest {
             mockAppAttestationRepository.fetchKeyAttestation(any())
         } returns Ok(KeyAttestationResponse(keyAttestationRawJwt))
 
-        coEvery { mockValidateKeyAttestation(any(), any(), any()) } returns Ok(keyAttestation)
+        coEvery { mockValidateKeyAttestation(any(), any()) } returns Ok(keyAttestationJwt)
     }
 
     @AfterEach
@@ -108,10 +109,10 @@ class RequestKeyAttestationImplTest {
 
         coVerifyOrder {
             mockAppAttestationRepository.fetchChallenge()
-            mockCreateJWSKeyPair(any(), any(), any())
+            mockCreateJWSKeyPairInHardware(any(), any(), any(), any(), any())
             mockCreateJwk(jwsKeyPair.keyPair, jwsKeyPair.algorithm, any())
             mockAppAttestationRepository.fetchKeyAttestation(any())
-            mockValidateKeyAttestation(any(), any(), any())
+            mockValidateKeyAttestation(any(), any())
         }
     }
 
@@ -126,14 +127,16 @@ class RequestKeyAttestationImplTest {
         }
 
         coVerify(exactly = 0) {
-            mockCreateJWSKeyPair(any(), any(), any())
+            mockCreateJWSKeyPairInHardware(any(), any(), any(), any(), any())
         }
     }
 
     @Test
     fun `A JWSKeyPair creation failure is propagated`() = runTest {
         val exception = Exception("myException")
-        coEvery { mockCreateJWSKeyPair.invoke(any(), any(), any()) } returns Err(KeyPairError.Unexpected(exception))
+        coEvery {
+            mockCreateJWSKeyPairInHardware.invoke(any(), any(), any(), any(), any())
+        } returns Err(KeyPairError.Unexpected(exception))
         val result: Result<KeyAttestation, RequestKeyAttestationError> = useCase()
         val error = result.assertErrorType(AttestationError.Unexpected::class)
         assertEquals(exception, error.throwable)
@@ -172,7 +175,7 @@ class RequestKeyAttestationImplTest {
     fun `An attestation validation failure is propagated`() = runTest {
         val exception = Exception("myException")
         coEvery {
-            mockValidateKeyAttestation.invoke(any(), any(), any())
+            mockValidateKeyAttestation.invoke(any(), any())
         } returns Err(AttestationError.Unexpected(exception))
         val result: Result<KeyAttestation, RequestKeyAttestationError> = useCase()
         val error = result.assertErrorType(AttestationError.Unexpected::class)

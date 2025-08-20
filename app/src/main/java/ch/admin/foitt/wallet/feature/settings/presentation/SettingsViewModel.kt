@@ -22,7 +22,7 @@ import javax.inject.Inject
 class SettingsViewModel @Inject constructor(
     private val navManager: NavigationManager,
     environmentSetupRepository: EnvironmentSetupRepository,
-    @ApplicationContext private val appContext: Context,
+    @param:ApplicationContext private val appContext: Context,
     setTopBarState: SetTopBarState,
 ) : ScreenViewModel(setTopBarState) {
     override val topBarState = TopBarState.Details(navManager::navigateUp, R.string.settings_title)

@@ -118,6 +118,8 @@ class DatabaseRepositoryImplTest {
         every { mockAppDatabase.credentialWithDisplaysAndClustersDao() } returns mockk()
         every { mockAppDatabase.credentialClaimClusterEntityDao() } returns mockk()
         every { mockAppDatabase.credentialClaimClusterDisplayEntityDao() } returns mockk()
+        every { mockAppDatabase.credentialKeyBindingEntityDao() } returns mockk()
+        every { mockAppDatabase.credentialWithKeyBindingDao() } returns mockk()
         every { mockAppDatabase.eIdRequestCaseDao() } returns mockk()
         every { mockAppDatabase.eIdRequestStateDao() } returns mockk()
         every { mockAppDatabase.eIdRequestCaseWithStateDao() } returns mockk()

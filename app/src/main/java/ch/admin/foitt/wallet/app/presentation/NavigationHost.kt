@@ -16,8 +16,6 @@ import ch.admin.foitt.wallet.feature.credentialOffer.presentation.CredentialOffe
 import ch.admin.foitt.wallet.feature.credentialOffer.presentation.CredentialOfferDeclinedViewModel
 import ch.admin.foitt.wallet.feature.credentialOffer.presentation.CredentialOfferScreen
 import ch.admin.foitt.wallet.feature.credentialOffer.presentation.CredentialOfferViewModel
-import ch.admin.foitt.wallet.feature.credentialOffer.presentation.CredentialOfferWrongDataScreen
-import ch.admin.foitt.wallet.feature.credentialOffer.presentation.CredentialOfferWrongDataViewModel
 import ch.admin.foitt.wallet.feature.credentialOffer.presentation.DeclineCredentialOfferScreen
 import ch.admin.foitt.wallet.feature.credentialOffer.presentation.DeclineCredentialOfferViewModel
 import ch.admin.foitt.wallet.feature.eIdApplicationProcess.presentation.eIdApplicationProcessDestinations
@@ -39,6 +37,10 @@ import ch.admin.foitt.wallet.feature.mrzScan.presentation.MrzChooserScreen
 import ch.admin.foitt.wallet.feature.mrzScan.presentation.MrzChooserViewModel
 import ch.admin.foitt.wallet.feature.mrzScan.presentation.MrzScanPermissionScreen
 import ch.admin.foitt.wallet.feature.mrzScan.presentation.MrzScanPermissionViewModel
+import ch.admin.foitt.wallet.feature.mrzScan.presentation.MrzSubmissionScreen
+import ch.admin.foitt.wallet.feature.mrzScan.presentation.MrzSubmissionViewModel
+import ch.admin.foitt.wallet.feature.mrzScan.presentation.SDKScannerScreen
+import ch.admin.foitt.wallet.feature.mrzScan.presentation.SDKScannerViewModel
 import ch.admin.foitt.wallet.feature.onboarding.presentation.OnboardingConfirmPassphraseScreen
 import ch.admin.foitt.wallet.feature.onboarding.presentation.OnboardingConfirmPassphraseViewModel
 import ch.admin.foitt.wallet.feature.onboarding.presentation.OnboardingErrorScreen
@@ -103,6 +105,8 @@ import ch.admin.foitt.wallet.feature.settings.presentation.security.SecuritySett
 import ch.admin.foitt.wallet.feature.settings.presentation.security.SecuritySettingsViewModel
 import ch.admin.foitt.wallet.platform.invitation.presentation.InvitationFailureScreen
 import ch.admin.foitt.wallet.platform.invitation.presentation.InvitationFailureViewModel
+import ch.admin.foitt.wallet.platform.reportWrongData.presentation.ReportWrongDataScreen
+import ch.admin.foitt.wallet.platform.reportWrongData.presentation.ReportWrongDataViewModel
 import ch.admin.foitt.wallet.platform.scaffold.extension.screenDestination
 import ch.admin.foitt.wallet.platform.screens.presentation.ErrorScreen
 import ch.admin.foitt.wallet.platform.screens.presentation.ErrorViewModel
@@ -118,7 +122,6 @@ import ch.admin.foitt.walletcomposedestinations.destinations.CredentialDetailScr
 import ch.admin.foitt.walletcomposedestinations.destinations.CredentialDetailWrongDataScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.CredentialOfferDeclinedScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.CredentialOfferScreenDestination
-import ch.admin.foitt.walletcomposedestinations.destinations.CredentialOfferWrongDataScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.DataAnalysisScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.DeclineCredentialOfferScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.EnableBiometricsErrorScreenDestination
@@ -136,6 +139,7 @@ import ch.admin.foitt.walletcomposedestinations.destinations.LockScreenDestinati
 import ch.admin.foitt.walletcomposedestinations.destinations.LockoutScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.MrzChooserScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.MrzScanPermissionScreenDestination
+import ch.admin.foitt.walletcomposedestinations.destinations.MrzSubmissionScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.OnboardingConfirmPassphraseScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.OnboardingErrorScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.OnboardingIntroScreenDestination
@@ -157,6 +161,8 @@ import ch.admin.foitt.walletcomposedestinations.destinations.PresentationVerific
 import ch.admin.foitt.walletcomposedestinations.destinations.QrScanPermissionScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.QrScannerScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.RegisterBiometricsScreenDestination
+import ch.admin.foitt.walletcomposedestinations.destinations.ReportWrongDataScreenDestination
+import ch.admin.foitt.walletcomposedestinations.destinations.SDKScannerScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.SecuritySettingsScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.SettingsScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.StartScreenDestination
@@ -305,8 +311,8 @@ fun NavigationHost(
             CredentialOfferDeclinedScreen(viewModel)
         }
 
-        screenDestination(CredentialOfferWrongDataScreenDestination) { viewModel: CredentialOfferWrongDataViewModel ->
-            CredentialOfferWrongDataScreen()
+        screenDestination(ReportWrongDataScreenDestination) { viewModel: ReportWrongDataViewModel ->
+            ReportWrongDataScreen()
         }
 
         screenDestination(PresentationRequestScreenDestination) { viewModel: PresentationRequestViewModel ->
@@ -388,6 +394,14 @@ fun NavigationHost(
         }
         screenDestination(MrzChooserScreenDestination) { viewModel: MrzChooserViewModel ->
             MrzChooserScreen(viewModel)
+        }
+
+        screenDestination(SDKScannerScreenDestination) { viewModel: SDKScannerViewModel ->
+            SDKScannerScreen(viewModel)
+        }
+
+        screenDestination(MrzSubmissionScreenDestination) { viewModel: MrzSubmissionViewModel ->
+            MrzSubmissionScreen(viewModel)
         }
     }
 }

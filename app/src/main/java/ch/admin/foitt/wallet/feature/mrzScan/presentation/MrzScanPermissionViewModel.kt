@@ -16,7 +16,7 @@ import ch.admin.foitt.wallet.platform.scaffold.extension.shouldShowRationale
 import ch.admin.foitt.wallet.platform.scaffold.presentation.ScreenViewModel
 import ch.admin.foitt.wallet.platform.utils.openAppDetailsSettings
 import ch.admin.foitt.walletcomposedestinations.destinations.EIdIntroScreenDestination
-import ch.admin.foitt.walletcomposedestinations.destinations.MrzChooserScreenDestination
+import ch.admin.foitt.walletcomposedestinations.destinations.SDKScannerScreenDestination
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,7 +32,7 @@ class MrzScanPermissionViewModel @Inject constructor(
     private val checkCameraPermission: CheckCameraPermission,
     private val shouldAutoTriggerPermissionPrompt: ShouldAutoTriggerPermissionPrompt,
     private val navManager: NavigationManager,
-    @ApplicationContext private val appContext: Context,
+    @param:ApplicationContext private val appContext: Context,
     setTopBarState: SetTopBarState,
 ) : ScreenViewModel(setTopBarState) {
 
@@ -97,7 +97,7 @@ class MrzScanPermissionViewModel @Inject constructor(
     fun onClose() = navManager.navigateUp()
 
     private fun handleNewState(newState: PermissionState) = when (newState) {
-        PermissionState.Granted -> navManager.navigateToAndClearCurrent(MrzChooserScreenDestination)
+        PermissionState.Granted -> navManager.navigateToAndClearCurrent(SDKScannerScreenDestination)
         PermissionState.Blocked,
         PermissionState.Initial,
         PermissionState.Intro,

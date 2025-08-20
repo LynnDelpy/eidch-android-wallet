@@ -26,6 +26,9 @@
 # JOSE
 -keepclasseswithmembernames class com.nimbusds.jose.** { *; }
 
+# PXL
+-keep class com.pxl.PXLBeamOnBoard.** { *; }
+
 # Warnings
 -dontwarn java.awt.Component
 -dontwarn java.awt.GraphicsEnvironment
@@ -37,3 +40,13 @@
 -dontwarn org.apache.commons.lang3.builder.ToStringStyle
 -dontwarn com.google.errorprone.annotations.Immutable
 -dontwarn com.google.errorprone.annotations.MustBeClosed
+
+# PXL Warnings
+-dontwarn colorspace.ColorSpace$CSEnum
+-dontwarn colorspace.ColorSpace
+-dontwarn com.radaee.**
+-dontwarn icc.ICCProfiler
+-dontwarn jj2000.j2k.**
+-dontwarn org.java_websocket.client.WebSocketClient
+-dontwarn org.jnbis.Bitmap
+-dontwarn org.jnbis.WsqDecoder

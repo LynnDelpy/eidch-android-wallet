@@ -33,7 +33,7 @@ import javax.inject.Inject
 @HiltViewModel
 class SecuritySettingsViewModel @Inject constructor(
     private val navManager: NavigationManager,
-    @ApplicationContext private val appContext: Context,
+    @param:ApplicationContext private val appContext: Context,
     private val canUseBiometricsForLogin: CanUseBiometricsForLogin,
     private val applyUserPrivacyPolicy: ApplyUserPrivacyPolicy,
     isUserPrivacyPolicyAcceptedFlow: IsUserPrivacyPolicyAcceptedFlow,

@@ -6,8 +6,8 @@ import ch.admin.foitt.wallet.platform.credential.domain.model.GetAnyCredentialEr
 import ch.admin.foitt.wallet.platform.credential.domain.model.toAnyCredential
 import ch.admin.foitt.wallet.platform.credential.domain.model.toGetAnyCredentialError
 import ch.admin.foitt.wallet.platform.credential.domain.usecase.GetAnyCredential
-import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialRepositoryError
-import ch.admin.foitt.wallet.platform.ssi.domain.repository.CredentialRepo
+import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialWithKeyBindingRepositoryError
+import ch.admin.foitt.wallet.platform.ssi.domain.repository.CredentialWithKeyBindingRepository
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.andThen
 import com.github.michaelbull.result.coroutines.coroutineBinding
@@ -15,14 +15,14 @@ import com.github.michaelbull.result.mapError
 import javax.inject.Inject
 
 class GetAnyCredentialImpl @Inject constructor(
-    private val credentialRepository: CredentialRepo,
+    private val credentialWithKeyBindingRepository: CredentialWithKeyBindingRepository
 ) : GetAnyCredential {
     override suspend fun invoke(credentialId: Long): Result<AnyCredential, GetAnyCredentialError> =
-        credentialRepository.getById(credentialId)
-            .mapError(CredentialRepositoryError::toGetAnyCredentialError)
-            .andThen { credential ->
+        credentialWithKeyBindingRepository.getByCredentialId(credentialId)
+            .mapError(CredentialWithKeyBindingRepositoryError::toGetAnyCredentialError)
+            .andThen { credentialWithKeyBinding ->
                 coroutineBinding {
-                    credential.toAnyCredential().bind()
+                    credentialWithKeyBinding.toAnyCredential().bind()
                 }.mapError(AnyCredentialError::toGetAnyCredentialError)
             }
 }

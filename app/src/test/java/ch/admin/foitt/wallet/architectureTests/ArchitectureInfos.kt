@@ -20,7 +20,7 @@ class ArchitectureInfos {
                 it.resideOutsidePackage("..test..")
             }
             .map {
-                val feature = "feature\\.\\w+".toRegex().find(it.fullyQualifiedName)?.groupValues?.first() ?: it.name
+                val feature = "feature\\.\\w+".toRegex().find(it.name)?.groupValues?.first() ?: it.name
                 feature to it.containingFile.imports
             }
 
@@ -31,7 +31,7 @@ class ArchitectureInfos {
                 it.resideOutsidePackage("..test..")
             }
             .map {
-                val platform = "platform\\.\\w+".toRegex().find(it.fullyQualifiedName)?.groupValues?.first() ?: it.name
+                val platform = "platform\\.\\w+".toRegex().find(it.name)?.groupValues?.first() ?: it.name
                 platform to it.containingFile.imports.filterNot { import ->
                     import.hasNameContaining(platform)
                 }
@@ -45,7 +45,7 @@ class ArchitectureInfos {
             }
             .mapNotNull { platform ->
                 "${CleanArchitectureKonsistTest.BASE_PACKAGE}.*\\.platform\\.\\w+".toRegex()
-                    .find(platform.fullyQualifiedName)
+                    .find(platform.name)
                     ?.groupValues
                     ?.first()
             }

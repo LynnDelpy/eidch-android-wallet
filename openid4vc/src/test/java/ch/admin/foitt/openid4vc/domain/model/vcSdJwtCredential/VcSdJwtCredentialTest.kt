@@ -38,7 +38,7 @@ class VcSdJwtCredentialTest {
     }
 
     @Test
-    fun `getClaimsJson returns json containing technical and non-technical claims`() = runTest {
+    fun `getClaimsForPresentation returns json containing technical and non-technical claims`() = runTest {
         val vcSdJwtCredential = createVcSdJwtCredential(VcSdJwtMocks.VC_SD_JWT_FULL_SAMPLE)
 
         assertEquals(
@@ -48,8 +48,7 @@ class VcSdJwtCredentialTest {
     }
 
     private fun createVcSdJwtCredential(payload: String) = VcSdJwtCredential(
-        keyBindingIdentifier = null,
-        keyBindingAlgorithm = null,
+        keyBinding = null,
         payload = payload,
     )
 

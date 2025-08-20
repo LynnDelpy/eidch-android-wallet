@@ -7,7 +7,7 @@ import com.github.michaelbull.result.Result
 
 interface GenerateMetadataDisplays {
     suspend operator fun invoke(
-        credentialClaims: Map<String, String>,
+        credentialClaims: Map<String, String?>,
         metadata: AnyCredentialConfiguration,
     ): Result<MetadataDisplays, GenerateMetadataDisplaysError>
 }

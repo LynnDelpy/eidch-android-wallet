@@ -79,16 +79,19 @@ class PresentationCredentialListViewModel @Inject constructor(
         }
     }
 
-    fun onCredentialSelected(index: Int) {
-        navManager.navigateToAndClearCurrent(
-            direction = PresentationRequestScreenDestination(
-                navArgs = PresentationRequestNavArg(
-                    navArgs.compatibleCredentials[index],
-                    navArgs.presentationRequest,
-                    navArgs.shouldFetchTrustStatement,
+    fun onCredentialSelected(credentialId: Long) {
+        val compatibleCredential = navArgs.compatibleCredentials.find { it.credentialId == credentialId }
+        compatibleCredential?.let {
+            navManager.navigateToAndClearCurrent(
+                direction = PresentationRequestScreenDestination(
+                    navArgs = PresentationRequestNavArg(
+                        compatibleCredential,
+                        navArgs.presentationRequest,
+                        navArgs.shouldFetchTrustStatement,
+                    )
                 )
             )
-        )
+        } ?: navigateToErrorScreen()
     }
 
     fun onBack() = navManager.navigateUpOrToRoot()

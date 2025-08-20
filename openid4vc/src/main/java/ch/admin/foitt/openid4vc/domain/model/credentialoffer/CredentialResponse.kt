@@ -7,8 +7,6 @@ import kotlinx.serialization.Serializable
 data class CredentialResponse(
     @SerialName("credential")
     val credential: String,
-    @SerialName("format")
-    val format: String,
     @SerialName("transaction_id")
     val transactionId: String? = null,
     @SerialName("c_nonce")

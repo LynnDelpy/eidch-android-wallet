@@ -10,7 +10,7 @@ import timber.log.Timber
 import javax.inject.Inject
 
 class BiometricsStatusImpl @Inject constructor(
-    @ApplicationContext private val appContext: Context,
+    @param:ApplicationContext private val appContext: Context,
 ) : BiometricsStatus {
 
     override fun invoke(): BiometricManagerResult {

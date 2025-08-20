@@ -24,9 +24,9 @@ class SubmitPresentationImpl @Inject constructor(
     ): Result<Unit, SubmitPresentationError> =
         getAnyCredential(compatibleCredential.credentialId)
             .mapError(GetAnyCredentialError::toSubmitPresentationError)
-            .andThen { credential ->
+            .andThen { anyCredential ->
                 submitAnyCredentialPresentation(
-                    anyCredential = credential,
+                    anyCredential = anyCredential,
                     requestedFields = compatibleCredential.requestedFields.map { it.key },
                     presentationRequest = presentationRequest,
                 ).mapError(SubmitAnyCredentialPresentationError::toSubmitPresentationError)

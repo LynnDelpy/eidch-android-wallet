@@ -136,6 +136,18 @@ class MapToCredentialDisplayDataImplTest {
         assertEquals("Test: ", result.subtitle)
     }
 
+    @Test
+    fun `Mapping the credential display where the template references an null claim is replaced by hyphen`() = runTest {
+        val credentialDisplays = listOf(credentialDisplaySimpleTemplate)
+        coEvery {
+            mockGetLocalizedAndThemedDisplay(credentialDisplays)
+        } returns credentialDisplaySimpleTemplate
+
+        val result = useCase(mockCredential, credentialDisplays, claimsWithNullValue).assertOk()
+
+        assertEquals("Test: –", result.subtitle)
+    }
+
     @ParameterizedTest
     @MethodSource("generateNestedTests")
     fun `Mapping the credential display correctly resolves nested templates`(input: Pair<String, String>) = runTest {
@@ -224,15 +236,30 @@ class MapToCredentialDisplayDataImplTest {
             valueType = "string"
         )
 
+        val claimWithNullValue = CredentialClaim(
+            clusterId = 1,
+            key = "claim1Key",
+            value = null,
+            valueType = "string"
+        )
+
         val claimDisplay = CredentialClaimDisplay(
             claimId = 1,
             name = "name1",
-            locale = "locale1"
+            locale = "locale1",
+            value = null,
         )
 
         val claims = listOf(
             CredentialClaimWithDisplays(
                 claim = claim1,
+                displays = listOf(claimDisplay)
+            )
+        )
+
+        val claimsWithNullValue = listOf(
+            CredentialClaimWithDisplays(
+                claim = claimWithNullValue,
                 displays = listOf(claimDisplay)
             )
         )

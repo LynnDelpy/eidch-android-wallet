@@ -3,6 +3,7 @@ package ch.admin.foitt.wallet.platform.oca.domain.usecase.implementation
 import ch.admin.foitt.wallet.platform.oca.domain.model.AttributeKey
 import ch.admin.foitt.wallet.platform.oca.domain.model.CaptureBase
 import ch.admin.foitt.wallet.platform.oca.domain.model.DataSourceFormat
+import ch.admin.foitt.wallet.platform.oca.domain.model.EntryCode
 import ch.admin.foitt.wallet.platform.oca.domain.model.JsonPath
 import ch.admin.foitt.wallet.platform.oca.domain.model.Locale
 import ch.admin.foitt.wallet.platform.oca.domain.model.OcaClaimData
@@ -11,6 +12,8 @@ import ch.admin.foitt.wallet.platform.oca.domain.model.overlays.CharacterEncodin
 import ch.admin.foitt.wallet.platform.oca.domain.model.overlays.CharacterEncodingOverlay1x0
 import ch.admin.foitt.wallet.platform.oca.domain.model.overlays.DataSourceOverlay
 import ch.admin.foitt.wallet.platform.oca.domain.model.overlays.DataSourceOverlay1x0
+import ch.admin.foitt.wallet.platform.oca.domain.model.overlays.EntryOverlay
+import ch.admin.foitt.wallet.platform.oca.domain.model.overlays.EntryOverlay1x0
 import ch.admin.foitt.wallet.platform.oca.domain.model.overlays.FormatOverlay
 import ch.admin.foitt.wallet.platform.oca.domain.model.overlays.FormatOverlay1x0
 import ch.admin.foitt.wallet.platform.oca.domain.model.overlays.LabelOverlay
@@ -23,6 +26,7 @@ import ch.admin.foitt.wallet.platform.oca.domain.model.overlays.StandardOverlay
 import ch.admin.foitt.wallet.platform.oca.domain.model.overlays.StandardOverlay1x0
 import ch.admin.foitt.wallet.platform.oca.domain.usecase.GenerateOcaClaimData
 import ch.admin.foitt.wallet.platform.oca.domain.util.getLatestOverlaysOfType
+import ch.admin.foitt.wallet.platform.utils.associateNotNull
 import ch.admin.foitt.wallet.platform.utils.associateWithNotNull
 import timber.log.Timber
 import javax.inject.Inject
@@ -38,6 +42,7 @@ class GenerateOcaClaimDataImpl @Inject constructor() : GenerateOcaClaimData {
         val labelOverlays = getLabelsForAttributes(overlays, captureBase)
         val standards = getStandardsForAttributes(overlays, captureBase)
         val order = getOrderForAttributes(overlays, captureBase)
+        val entries = getEntryMappingForAttributes(overlays, captureBase)
         captureBase.attributes.map { attribute ->
             OcaClaimData(
                 attributeType = attribute.value,
@@ -48,7 +53,8 @@ class GenerateOcaClaimDataImpl @Inject constructor() : GenerateOcaClaimData {
                 format = formats.getOrDefault(attribute.key, null),
                 labels = labelOverlays.getOrDefault(attribute.key, emptyMap()),
                 standard = standards.getOrDefault(attribute.key, null),
-                order = order.getOrDefault(attribute.key, null)
+                order = order.getOrDefault(attribute.key, null),
+                entryMappings = entries.getOrDefault(attribute.key, emptyMap())
             )
         }
     }
@@ -142,5 +148,21 @@ class GenerateOcaClaimDataImpl @Inject constructor() : GenerateOcaClaimData {
                 is OrderOverlay1x0 -> overlay.attributeOrders[attribute]
             }
         }
+    }
+
+    private fun getEntryMappingForAttributes(
+        overlays: List<Overlay>,
+        captureBase: CaptureBase
+    ): Map<AttributeKey, Map<Locale, Map<EntryCode, String>>> {
+        val entryOverlays = getLatestOverlaysOfType<EntryOverlay>(overlays = overlays, digest = captureBase.digest)
+        val attributes = captureBase.attributes.map { it.key }
+        val entries = attributes.associateWithNotNull { attribute ->
+            entryOverlays.associateNotNull { overlay ->
+                when (overlay) {
+                    is EntryOverlay1x0 -> overlay.language to overlay.attributeEntries[attribute]
+                }
+            }
+        }
+        return entries
     }
 }

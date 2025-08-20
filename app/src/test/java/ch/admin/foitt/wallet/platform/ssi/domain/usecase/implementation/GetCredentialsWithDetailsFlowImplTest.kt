@@ -4,7 +4,7 @@ import ch.admin.foitt.wallet.platform.credential.domain.model.CredentialError
 import ch.admin.foitt.wallet.platform.credential.domain.usecase.MapToCredentialDisplayData
 import ch.admin.foitt.wallet.platform.database.domain.model.ClusterWithDisplaysAndClaims
 import ch.admin.foitt.wallet.platform.database.domain.model.Credential
-import ch.admin.foitt.wallet.platform.database.domain.model.CredentialClaimClusterEntity
+import ch.admin.foitt.wallet.platform.database.domain.model.CredentialClusterWithDisplays
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialWithDisplaysAndClusters
 import ch.admin.foitt.wallet.platform.ssi.domain.model.SsiError
 import ch.admin.foitt.wallet.platform.ssi.domain.repository.CredentialWithDisplaysAndClustersRepository
@@ -47,10 +47,10 @@ class GetCredentialsWithDetailsFlowImplTest {
     lateinit var mockCredential2: Credential
 
     @MockK
-    lateinit var mockCluster1: CredentialClaimClusterEntity
+    lateinit var mockCluster1: CredentialClusterWithDisplays
 
     @MockK
-    lateinit var mockCluster2: CredentialClaimClusterEntity
+    lateinit var mockCluster2: CredentialClusterWithDisplays
 
     @MockK
     lateinit var mockCredentialWithDisplaysAndClusters1: CredentialWithDisplaysAndClusters
@@ -120,9 +120,8 @@ class GetCredentialsWithDetailsFlowImplTest {
         every { mockCredentialWithDisplaysAndClusters1.credentialDisplays } returns listOf(credentialDisplay1)
         every { mockCredentialWithDisplaysAndClusters1.clusters } returns listOf(
             ClusterWithDisplaysAndClaims(
-                cluster = mockCluster1,
-                displays = emptyList(),
-                claims = claims,
+                clusterWithDisplays = mockCluster1,
+                claimsWithDisplays = claims,
             )
         )
 
@@ -130,9 +129,8 @@ class GetCredentialsWithDetailsFlowImplTest {
         every { mockCredentialWithDisplaysAndClusters2.credentialDisplays } returns listOf(credentialDisplay2)
         every { mockCredentialWithDisplaysAndClusters2.clusters } returns listOf(
             ClusterWithDisplaysAndClaims(
-                cluster = mockCluster2,
-                displays = emptyList(),
-                claims = claims,
+                clusterWithDisplays = mockCluster2,
+                claimsWithDisplays = claims,
             )
         )
 

@@ -1,6 +1,8 @@
 package ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata
 
 import ch.admin.foitt.openid4vc.domain.model.AnyCredentialConfigurationListSerializer
+import ch.admin.foitt.openid4vc.domain.model.KeyStorageSecurityLevel
+import ch.admin.foitt.openid4vc.domain.model.SigningAlgorithm
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -52,19 +54,10 @@ sealed class AnyCredentialConfiguration {
 
     abstract val cryptographicBindingMethodsSupported: List<String>?
     abstract val credentialSigningAlgValuesSupported: List<SigningAlgorithm>
-    abstract val proofTypesSupported: Map<ProofType, ProofTypeSigningAlgorithms>
+    abstract val proofTypesSupported: Map<ProofType, ProofTypeConfig>
     abstract val display: List<OidCredentialDisplay>?
     abstract val order: List<String>?
     abstract val claims: String?
-}
-
-@Serializable
-enum class SigningAlgorithm(val stdName: String) {
-    @SerialName("ES512")
-    ES512("ES512"),
-
-    @SerialName("ES256")
-    ES256("ES256"),
 }
 
 @Serializable
@@ -84,9 +77,19 @@ enum class ProofType(val type: String) {
 }
 
 @Serializable
-data class ProofTypeSigningAlgorithms(
+data class ProofTypeConfig(
     @SerialName("proof_signing_alg_values_supported")
-    val signingAlgorithms: List<SigningAlgorithm>
+    val proofSigningAlgValuesSupported: List<SigningAlgorithm>,
+    @SerialName("key_attestations_required")
+    val keyAttestationsRequired: KeyAttestationConfig? = null,
+)
+
+@Serializable
+data class KeyAttestationConfig(
+    @SerialName("key_storage")
+    val keyStorage: List<KeyStorageSecurityLevel>? = null,
+    @SerialName("user_authentication")
+    val userAuthentication: List<KeyStorageSecurityLevel>? = null,
 )
 
 @Serializable
