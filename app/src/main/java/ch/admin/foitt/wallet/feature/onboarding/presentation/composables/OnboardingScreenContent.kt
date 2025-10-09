@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import ch.admin.foitt.wallet.platform.composables.presentation.nonFocusableAccessibilityAnchor
 import ch.admin.foitt.wallet.theme.Sizes
 import ch.admin.foitt.wallet.theme.WalletTexts
 
@@ -17,7 +16,6 @@ fun OnboardingScreenContent(
 ) {
     Spacer(modifier = Modifier.height(Sizes.s06))
     WalletTexts.TitleScreen(
-        modifier = Modifier.nonFocusableAccessibilityAnchor(),
         text = title
     )
     Spacer(modifier = Modifier.height(Sizes.s06))

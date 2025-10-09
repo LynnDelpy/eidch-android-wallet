@@ -15,6 +15,9 @@ interface ClientAttestationDao {
     @Query("SELECT * FROM ClientAttestation WHERE id = :keyAlias")
     fun getFlowById(keyAlias: String): Flow<ClientAttestation?>
 
+    @Query("SELECT * FROM ClientAttestation WHERE id = :keyAlias")
+    suspend fun getById(keyAlias: String): ClientAttestation
+
     @Query("DELETE FROM ClientAttestation WHERE id = :keyAlias")
     suspend fun deleteById(keyAlias: String)
 }

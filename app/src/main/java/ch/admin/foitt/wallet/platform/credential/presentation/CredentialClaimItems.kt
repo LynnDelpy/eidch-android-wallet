@@ -2,7 +2,6 @@ package ch.admin.foitt.wallet.platform.credential.presentation
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -32,7 +31,6 @@ import ch.admin.foitt.wallet.platform.composables.Avatar
 import ch.admin.foitt.wallet.platform.composables.AvatarSize
 import ch.admin.foitt.wallet.platform.composables.presentation.ClaimClusterCard
 import ch.admin.foitt.wallet.platform.composables.presentation.InfoClusterCard
-import ch.admin.foitt.wallet.platform.composables.presentation.SurroundingClusterCard
 import ch.admin.foitt.wallet.platform.composables.presentation.spaceBarKeyClickable
 import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialClaimCluster
 import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialClaimImage
@@ -45,50 +43,27 @@ import ch.admin.foitt.wallet.theme.WalletTheme
 import coil.compose.AsyncImage
 
 fun LazyListScope.credentialClaimItems(
-    useSurroundingCard: Boolean = false,
     claimItems: List<CredentialClaimCluster>,
     showIssuer: Boolean = false,
     issuer: String? = null,
     issuerIcon: Painter? = null,
     onWrongData: (() -> Unit)? = null,
 ) {
-    if (useSurroundingCard) {
+    itemsIndexed(claimItems) { index, claim ->
+        CredentialClaimCluster(claim = claim, firstCluster = claimItems.indices.first == index)
+    }
+
+    if (showIssuer) {
         item {
-            SurroundingClusterCard {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = Sizes.s04, bottom = Sizes.s04)
-                ) {
-                    claimItems.forEachIndexed { index, claim ->
-                        CredentialClaimCluster(claim = claim, firstCluster = claimItems.indices.first == index)
-                    }
-                }
-                if (showIssuer) {
-                    CredentialIssuer(issuer, issuerIcon)
-                }
+            Spacer(modifier = Modifier.height(Sizes.s06))
+            CredentialIssuer(issuer, issuerIcon)
+        }
+    }
 
-                onWrongData?.let {
-                    WrongDataCard(onWrongData)
-                }
-            }
-        }
-    } else {
-        itemsIndexed(claimItems) { index, claim ->
-            CredentialClaimCluster(claim = claim, firstCluster = claimItems.indices.first == index)
-        }
-        if (showIssuer) {
-            item {
-                Spacer(modifier = Modifier.height(Sizes.s06))
-                CredentialIssuer(issuer, issuerIcon)
-            }
-        }
-
-        onWrongData?.let {
-            item {
-                Spacer(modifier = Modifier.height(Sizes.s06))
-                WrongDataCard(onWrongData)
-            }
+    onWrongData?.let {
+        item {
+            Spacer(modifier = Modifier.height(Sizes.s06))
+            WrongDataCard(onWrongData)
         }
     }
 }

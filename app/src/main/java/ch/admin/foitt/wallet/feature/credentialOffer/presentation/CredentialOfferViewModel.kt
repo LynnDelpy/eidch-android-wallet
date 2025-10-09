@@ -18,6 +18,7 @@ import ch.admin.foitt.wallet.platform.navigation.domain.model.ComponentScope
 import ch.admin.foitt.wallet.platform.scaffold.domain.model.TopBarState
 import ch.admin.foitt.wallet.platform.scaffold.domain.usecase.SetTopBarState
 import ch.admin.foitt.wallet.platform.scaffold.extension.navigateUpOrToRoot
+import ch.admin.foitt.wallet.platform.scaffold.extension.refreshableStateFlow
 import ch.admin.foitt.wallet.platform.scaffold.presentation.ScreenViewModel
 import ch.admin.foitt.walletcomposedestinations.destinations.CredentialOfferScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.DeclineCredentialOfferScreenDestination
@@ -75,20 +76,20 @@ class CredentialOfferViewModel @Inject constructor(
             )
         }.toStateFlow(null)
 
-    val credentialOfferUiState: StateFlow<CredentialOfferUiState> = combine(
-        credentialOffer,
-        issuerUiState,
-    ) { credentialOffer, issuerUiState ->
-        credentialOffer?.let {
-            CredentialOfferUiState(
-                issuer = issuerUiState,
-                credential = getCredentialCardState(credentialOffer.credential),
-                claims = credentialOffer.claims,
-            )
-        }
+    val credentialOfferUiState = refreshableStateFlow(initialData = CredentialOfferUiState.EMPTY) {
+        combine(
+            credentialOffer,
+            issuerUiState,
+        ) { credentialOffer, issuerUiState ->
+            credentialOffer?.let {
+                CredentialOfferUiState(
+                    issuer = issuerUiState,
+                    credential = getCredentialCardState(credentialOffer.credential),
+                    claims = credentialOffer.claims,
+                )
+            }
+        }.filterNotNull()
     }
-        .filterNotNull()
-        .toStateFlow(CredentialOfferUiState.EMPTY)
 
     init {
         viewModelScope.launch {

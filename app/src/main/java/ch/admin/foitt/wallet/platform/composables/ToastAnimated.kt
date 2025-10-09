@@ -57,6 +57,7 @@ fun ToastAnimated(
             ) {
                 Toast(
                     modifier = Modifier,
+                    shouldRequestFocus = true,
                     text = text,
                     backgroundColor = WalletTheme.colorScheme.inverseSurface,
                     textColor = WalletTheme.colorScheme.inverseOnSurface,

@@ -1,12 +1,12 @@
 package ch.admin.foitt.wallet.platform.trustRegistry.domain.usecase
 
-import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.TrustStatement
+import ch.admin.foitt.openid4vc.domain.model.vcSdJwt.VcSdJwt
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.ValidateTrustStatementError
 import com.github.michaelbull.result.Result
 
-fun interface ValidateTrustStatement {
+interface ValidateTrustStatement {
     suspend operator fun invoke(
-        trustStatementRawVcSdJwt: String,
+        trustStatement: VcSdJwt,
         actorDid: String,
-    ): Result<TrustStatement, ValidateTrustStatementError>
+    ): Result<VcSdJwt, ValidateTrustStatementError>
 }

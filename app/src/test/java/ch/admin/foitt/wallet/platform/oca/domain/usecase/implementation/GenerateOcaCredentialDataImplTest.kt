@@ -1,13 +1,15 @@
 package ch.admin.foitt.wallet.platform.oca.domain.usecase.implementation
 
+import android.R.attr.logo
 import ch.admin.foitt.wallet.platform.oca.domain.model.OcaCredentialData
 import ch.admin.foitt.wallet.platform.oca.domain.model.overlays.BrandingOverlay1x1
 import ch.admin.foitt.wallet.platform.oca.domain.model.overlays.MetaOverlay1x0
 import ch.admin.foitt.wallet.platform.oca.domain.usecase.GenerateOcaCredentialData
 import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.BRANDING_BACKGROUND_COLOR
+import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.BRANDING_DARK_THEME
+import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.BRANDING_LIGHT_THEME
 import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.BRANDING_LOGO
 import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.BRANDING_PRIMARY_FIELD
-import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.BRANDING_THEME
 import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.DIGEST
 import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.LANGUAGE_DE
 import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.LANGUAGE_EN
@@ -16,11 +18,13 @@ import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.META_NAME
 import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ocaSimpleBranding
 import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ocaSimpleMeta
 import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.simpleCaptureBase
+import ch.admin.foitt.wallet.util.assertTrue
 import io.mockk.MockKAnnotations
 import io.mockk.unmockkAll
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
@@ -48,7 +52,7 @@ class GenerateOcaCredentialDataImplTest {
             captureBaseDigest = simpleCaptureBase.digest,
             locale = LANGUAGE_EN,
             name = META_NAME,
-            theme = BRANDING_THEME,
+            theme = BRANDING_LIGHT_THEME,
             description = BRANDING_PRIMARY_FIELD,
             logoData = BRANDING_LOGO,
             backgroundColor = BRANDING_BACKGROUND_COLOR,
@@ -85,7 +89,7 @@ class GenerateOcaCredentialDataImplTest {
             captureBaseDigest = simpleCaptureBase.digest,
             locale = LANGUAGE_EN,
             name = null,
-            theme = BRANDING_THEME,
+            theme = BRANDING_LIGHT_THEME,
             description = BRANDING_PRIMARY_FIELD,
             logoData = BRANDING_LOGO,
             backgroundColor = BRANDING_BACKGROUND_COLOR,
@@ -103,7 +107,7 @@ class GenerateOcaCredentialDataImplTest {
     }
 
     @Test
-    fun `Generator correctly processes data when there are overlays for multiple languages`() = runTest {
+    fun `Generator correctly processes data when there are overlays for multiple languages and themes`() = runTest {
         val overlayBundleAttributes = useCase(rootCaptureBase = simpleCaptureBase, overlays = overlaysMultipleLanguages)
 
         val expectedCredentialDataDe = OcaCredentialData(
@@ -116,19 +120,41 @@ class GenerateOcaCredentialDataImplTest {
             backgroundColor = null,
         )
 
-        val expectedCredentialDataEn = OcaCredentialData(
+        val expectedCredentialDataEnLight = OcaCredentialData(
             captureBaseDigest = simpleCaptureBase.digest,
             locale = LANGUAGE_EN,
             name = null,
-            theme = BRANDING_THEME,
+            theme = BRANDING_LIGHT_THEME,
             description = BRANDING_PRIMARY_FIELD,
             logoData = BRANDING_LOGO,
             backgroundColor = BRANDING_BACKGROUND_COLOR,
         )
 
-        assertEquals(2, overlayBundleAttributes.size)
-        assertEquals(expectedCredentialDataEn, overlayBundleAttributes[0])
-        assertEquals(expectedCredentialDataDe, overlayBundleAttributes[1])
+        val expectedCredentialDataEnDark = OcaCredentialData(
+            captureBaseDigest = simpleCaptureBase.digest,
+            locale = LANGUAGE_EN,
+            name = null,
+            theme = BRANDING_DARK_THEME,
+            description = BRANDING_PRIMARY_FIELD,
+            logoData = BRANDING_LOGO,
+            backgroundColor = BRANDING_BACKGROUND_COLOR,
+        )
+
+        val expectedCredentialDataEnNoTheme = OcaCredentialData(
+            captureBaseDigest = simpleCaptureBase.digest,
+            locale = LANGUAGE_EN,
+            name = null,
+            theme = null,
+            description = BRANDING_PRIMARY_FIELD,
+            logoData = BRANDING_LOGO,
+            backgroundColor = BRANDING_BACKGROUND_COLOR,
+        )
+
+        assertEquals(4, overlayBundleAttributes.size)
+        assertTrue(overlayBundleAttributes.contains(expectedCredentialDataDe))
+        assertTrue(overlayBundleAttributes.contains(expectedCredentialDataEnLight))
+        assertTrue(overlayBundleAttributes.contains(expectedCredentialDataEnDark))
+        assertTrue(overlayBundleAttributes.contains(expectedCredentialDataEnNoTheme))
     }
 
     private val overlaysMetaAndBranding = ocaSimpleMeta.overlays + ocaSimpleBranding.overlays
@@ -143,7 +169,23 @@ class GenerateOcaCredentialDataImplTest {
         BrandingOverlay1x1(
             captureBaseDigest = DIGEST,
             language = LANGUAGE_EN,
-            theme = BRANDING_THEME,
+            theme = null,
+            logo = BRANDING_LOGO,
+            primaryBackgroundColor = BRANDING_BACKGROUND_COLOR,
+            primaryField = BRANDING_PRIMARY_FIELD,
+        ),
+        BrandingOverlay1x1(
+            captureBaseDigest = DIGEST,
+            language = LANGUAGE_EN,
+            theme = BRANDING_LIGHT_THEME,
+            logo = BRANDING_LOGO,
+            primaryBackgroundColor = BRANDING_BACKGROUND_COLOR,
+            primaryField = BRANDING_PRIMARY_FIELD,
+        ),
+        BrandingOverlay1x1(
+            captureBaseDigest = DIGEST,
+            language = LANGUAGE_EN,
+            theme = BRANDING_DARK_THEME,
             logo = BRANDING_LOGO,
             primaryBackgroundColor = BRANDING_BACKGROUND_COLOR,
             primaryField = BRANDING_PRIMARY_FIELD,

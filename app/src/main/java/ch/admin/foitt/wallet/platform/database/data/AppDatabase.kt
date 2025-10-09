@@ -23,6 +23,7 @@ import ch.admin.foitt.wallet.platform.database.data.dao.CredentialWithDisplaysAn
 import ch.admin.foitt.wallet.platform.database.data.dao.CredentialWithKeyBindingDao
 import ch.admin.foitt.wallet.platform.database.data.dao.EIdRequestCaseDao
 import ch.admin.foitt.wallet.platform.database.data.dao.EIdRequestCaseWithStateDao
+import ch.admin.foitt.wallet.platform.database.data.dao.EIdRequestFileDao
 import ch.admin.foitt.wallet.platform.database.data.dao.EIdRequestStateDao
 import ch.admin.foitt.wallet.platform.database.data.dao.RawCredentialDataDao
 import ch.admin.foitt.wallet.platform.database.domain.model.ClientAttestation
@@ -36,6 +37,7 @@ import ch.admin.foitt.wallet.platform.database.domain.model.CredentialIssuerDisp
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialKeyBindingEntity
 import ch.admin.foitt.wallet.platform.database.domain.model.DatabaseError
 import ch.admin.foitt.wallet.platform.database.domain.model.EIdRequestCase
+import ch.admin.foitt.wallet.platform.database.domain.model.EIdRequestFile
 import ch.admin.foitt.wallet.platform.database.domain.model.EIdRequestState
 import ch.admin.foitt.wallet.platform.database.domain.model.RawCredentialData
 import com.github.michaelbull.result.Result
@@ -56,6 +58,7 @@ import timber.log.Timber
         CredentialKeyBindingEntity::class,
         EIdRequestCase::class,
         EIdRequestState::class,
+        EIdRequestFile::class,
         RawCredentialData::class,
         ClientAttestation::class,
     ],
@@ -65,6 +68,8 @@ import timber.log.Timber
         AutoMigration(from = 4, to = 5),
         AutoMigration(from = 7, to = 8),
         AutoMigration(from = 8, to = 9),
+        AutoMigration(from = 9, to = 10),
+        AutoMigration(from = 10, to = 11),
     ], // see also migrations in SqlCipherDatabaseInitializer
     exportSchema = true,
 )
@@ -85,6 +90,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun eIdRequestCaseDao(): EIdRequestCaseDao
     abstract fun eIdRequestStateDao(): EIdRequestStateDao
     abstract fun eIdRequestCaseWithStateDao(): EIdRequestCaseWithStateDao
+    abstract fun eIdRequestFileDao(): EIdRequestFileDao
     abstract fun clientAttestationDao(): ClientAttestationDao
 
     abstract fun rawCredentialDataDao(): RawCredentialDataDao
@@ -118,6 +124,6 @@ abstract class AppDatabase : RoomDatabase() {
     }
 
     companion object {
-        internal const val DATABASE_VERSION = 9 // db scheme v3.10
+        internal const val DATABASE_VERSION = 11 // db scheme v4.1
     }
 }

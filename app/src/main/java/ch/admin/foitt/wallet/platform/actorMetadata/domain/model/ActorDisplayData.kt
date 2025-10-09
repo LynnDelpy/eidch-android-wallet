@@ -2,6 +2,7 @@ package ch.admin.foitt.wallet.platform.actorMetadata.domain.model
 
 import ch.admin.foitt.wallet.platform.database.domain.model.LocalizedDisplay
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.TrustStatus
+import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.VcSchemaTrustStatus
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -10,6 +11,7 @@ data class ActorDisplayData(
     val image: List<ActorField<String>>?,
     val preferredLanguage: String?,
     val trustStatus: TrustStatus,
+    val vcSchemaTrustStatus: VcSchemaTrustStatus,
     val actorType: ActorType,
 ) {
     companion object {
@@ -19,6 +21,7 @@ data class ActorDisplayData(
                 image = listOf(),
                 preferredLanguage = null,
                 trustStatus = TrustStatus.UNKNOWN,
+                vcSchemaTrustStatus = VcSchemaTrustStatus.UNPROTECTED,
                 actorType = ActorType.UNKNOWN,
             )
         }

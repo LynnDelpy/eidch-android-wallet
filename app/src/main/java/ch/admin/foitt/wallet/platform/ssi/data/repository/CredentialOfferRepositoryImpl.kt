@@ -129,6 +129,7 @@ class CredentialOfferRepositoryImpl @Inject constructor(
             logoUri = display.logo,
             logoAltText = display.logoAltText,
             backgroundColor = display.backgroundColor,
+            theme = display.theme
         )
     }
 

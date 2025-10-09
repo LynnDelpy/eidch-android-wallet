@@ -6,6 +6,7 @@ import ch.admin.foitt.wallet.platform.locale.domain.usecase.implementation.Local
 import ch.admin.foitt.wallet.platform.locale.domain.usecase.implementation.LocalizedAndThemedDisplayTestData.withFallbackAndNoSupportedLocale
 import ch.admin.foitt.wallet.platform.locale.domain.usecase.implementation.LocalizedAndThemedDisplayTestData.withSupportedLocaleNoCountryCode
 import ch.admin.foitt.wallet.platform.locale.domain.usecase.implementation.LocalizedAndThemedDisplayTestData.withSupportedLocaleWithCountryCode
+import ch.admin.foitt.wallet.platform.theme.domain.model.Theme
 import io.mockk.MockKAnnotations
 import io.mockk.coEvery
 import io.mockk.impl.annotations.MockK
@@ -43,28 +44,28 @@ class GetLocalizedAndThemedDisplayImplTest {
 
         val displayWithSupportedLocaleWithCountryCode = getLocalizedAndThemedDisplay(
             credentialDisplays = withSupportedLocaleWithCountryCode,
-            preferredTheme = "dark"
+            preferredTheme = Theme.DARK
         )
         assertEquals("de-CH", displayWithSupportedLocaleWithCountryCode?.locale)
         assertEquals("dark", displayWithSupportedLocaleWithCountryCode?.theme)
 
         val displayWithSupportedLocaleNoCountryCode = getLocalizedAndThemedDisplay(
             credentialDisplays = withSupportedLocaleNoCountryCode,
-            preferredTheme = "dark"
+            preferredTheme = Theme.DARK
         )
         assertEquals("en", displayWithSupportedLocaleNoCountryCode?.locale)
         assertEquals("dark", displayWithSupportedLocaleNoCountryCode?.theme)
 
         val displayNoSupportedLocaleAndNoFallback = getLocalizedAndThemedDisplay(
             credentialDisplays = noSupportedLocaleAndNoFallback,
-            preferredTheme = "dark"
+            preferredTheme = Theme.DARK
         )
         assertEquals("xx", displayNoSupportedLocaleAndNoFallback?.locale)
         assertEquals("dark", displayNoSupportedLocaleAndNoFallback?.theme)
 
         val displayWithFallbackAndNoSupportedLocale = getLocalizedAndThemedDisplay(
             credentialDisplays = withFallbackAndNoSupportedLocale,
-            preferredTheme = "dark"
+            preferredTheme = Theme.DARK
         )
         assertEquals("fallback", displayWithFallbackAndNoSupportedLocale?.locale)
         assertEquals("dark", displayWithFallbackAndNoSupportedLocale?.theme)
@@ -75,28 +76,28 @@ class GetLocalizedAndThemedDisplayImplTest {
         coEvery { mockGetCurrentAppLocale() } returns Locale("de", "CH")
         val displayWithSupportedLocaleWithCountryCode = getLocalizedAndThemedDisplay(
             credentialDisplays = withSupportedLocaleWithCountryCode,
-            preferredTheme = "light"
+            preferredTheme = Theme.LIGHT
         )
         assertEquals("de-CH", displayWithSupportedLocaleWithCountryCode?.locale)
         assertEquals("dark", displayWithSupportedLocaleWithCountryCode?.theme)
 
         val displayWithSupportedLocaleNoCountryCode = getLocalizedAndThemedDisplay(
             credentialDisplays = withSupportedLocaleNoCountryCode,
-            preferredTheme = "light"
+            preferredTheme = Theme.LIGHT
         )
         assertEquals("en", displayWithSupportedLocaleNoCountryCode?.locale)
         assertEquals("dark", displayWithSupportedLocaleNoCountryCode?.theme)
 
         val displayNoSupportedLocaleAndNoFallback = getLocalizedAndThemedDisplay(
             credentialDisplays = noSupportedLocaleAndNoFallback,
-            preferredTheme = "light"
+            preferredTheme = Theme.LIGHT
         )
         assertEquals("xx", displayNoSupportedLocaleAndNoFallback?.locale)
         assertEquals("dark", displayNoSupportedLocaleAndNoFallback?.theme)
 
         val displayWithFallbackAndNoSupportedLocale = getLocalizedAndThemedDisplay(
             credentialDisplays = withFallbackAndNoSupportedLocale,
-            preferredTheme = "light"
+            preferredTheme = Theme.LIGHT
         )
         assertEquals("fallback", displayWithFallbackAndNoSupportedLocale?.locale)
         assertEquals("dark", displayWithFallbackAndNoSupportedLocale?.theme)
@@ -107,28 +108,28 @@ class GetLocalizedAndThemedDisplayImplTest {
         coEvery { mockGetCurrentAppLocale() } returns Locale("de", "XX")
         val displayWithSupportedLocaleWithCountryCode = getLocalizedAndThemedDisplay(
             credentialDisplays = withSupportedLocaleWithCountryCode,
-            preferredTheme = "dark"
+            preferredTheme = Theme.DARK
         )
         assertEquals("de-CH", displayWithSupportedLocaleWithCountryCode?.locale)
         assertEquals("dark", displayWithSupportedLocaleWithCountryCode?.theme)
 
         val displayWithSupportedLocaleNoCountryCode = getLocalizedAndThemedDisplay(
             credentialDisplays = withSupportedLocaleNoCountryCode,
-            preferredTheme = "dark"
+            preferredTheme = Theme.DARK
         )
         assertEquals("en", displayWithSupportedLocaleNoCountryCode?.locale)
         assertEquals("dark", displayWithSupportedLocaleNoCountryCode?.theme)
 
         val displayNoSupportedLocaleAndNoFallback = getLocalizedAndThemedDisplay(
             credentialDisplays = noSupportedLocaleAndNoFallback,
-            preferredTheme = "dark"
+            preferredTheme = Theme.DARK
         )
         assertEquals("xx", displayNoSupportedLocaleAndNoFallback?.locale)
         assertEquals("dark", displayNoSupportedLocaleAndNoFallback?.theme)
 
         val displayWithFallbackAndNoSupportedLocale = getLocalizedAndThemedDisplay(
             credentialDisplays = withFallbackAndNoSupportedLocale,
-            preferredTheme = "dark"
+            preferredTheme = Theme.DARK
         )
         assertEquals("fallback", displayWithFallbackAndNoSupportedLocale?.locale)
         assertEquals("dark", displayWithFallbackAndNoSupportedLocale?.theme)
@@ -139,28 +140,28 @@ class GetLocalizedAndThemedDisplayImplTest {
         coEvery { mockGetCurrentAppLocale() } returns Locale("de", "XX")
         val displayWithSupportedLocaleWithCountryCode = getLocalizedAndThemedDisplay(
             credentialDisplays = withSupportedLocaleWithCountryCode,
-            preferredTheme = "light"
+            preferredTheme = Theme.LIGHT
         )
         assertEquals("de-CH", displayWithSupportedLocaleWithCountryCode?.locale)
         assertEquals("dark", displayWithSupportedLocaleWithCountryCode?.theme)
 
         val displayWithSupportedLocaleNoCountryCode = getLocalizedAndThemedDisplay(
             credentialDisplays = withSupportedLocaleNoCountryCode,
-            preferredTheme = "light"
+            preferredTheme = Theme.LIGHT
         )
         assertEquals("en", displayWithSupportedLocaleNoCountryCode?.locale)
         assertEquals("dark", displayWithSupportedLocaleNoCountryCode?.theme)
 
         val displayNoSupportedLocaleAndNoFallback = getLocalizedAndThemedDisplay(
             credentialDisplays = noSupportedLocaleAndNoFallback,
-            preferredTheme = "light"
+            preferredTheme = Theme.LIGHT
         )
         assertEquals("xx", displayNoSupportedLocaleAndNoFallback?.locale)
         assertEquals("dark", displayNoSupportedLocaleAndNoFallback?.theme)
 
         val displayWithFallbackAndNoSupportedLocale = getLocalizedAndThemedDisplay(
             credentialDisplays = withFallbackAndNoSupportedLocale,
-            preferredTheme = "light"
+            preferredTheme = Theme.LIGHT
         )
         assertEquals("fallback", displayWithFallbackAndNoSupportedLocale?.locale)
         assertEquals("dark", displayWithFallbackAndNoSupportedLocale?.theme)
@@ -171,28 +172,28 @@ class GetLocalizedAndThemedDisplayImplTest {
         coEvery { mockGetCurrentAppLocale() } returns Locale("de")
         val displayWithSupportedLocaleWithCountryCode = getLocalizedAndThemedDisplay(
             credentialDisplays = withSupportedLocaleWithCountryCode,
-            preferredTheme = "dark"
+            preferredTheme = Theme.DARK
         )
         assertEquals("de-CH", displayWithSupportedLocaleWithCountryCode?.locale)
         assertEquals("dark", displayWithSupportedLocaleWithCountryCode?.theme)
 
         val displayWithSupportedLocaleNoCountryCode = getLocalizedAndThemedDisplay(
             credentialDisplays = withSupportedLocaleNoCountryCode,
-            preferredTheme = "dark"
+            preferredTheme = Theme.DARK
         )
         assertEquals("en", displayWithSupportedLocaleNoCountryCode?.locale)
         assertEquals("dark", displayWithSupportedLocaleNoCountryCode?.theme)
 
         val displayNoSupportedLocaleAndNoFallback = getLocalizedAndThemedDisplay(
             credentialDisplays = noSupportedLocaleAndNoFallback,
-            preferredTheme = "dark"
+            preferredTheme = Theme.DARK
         )
         assertEquals("xx", displayNoSupportedLocaleAndNoFallback?.locale)
         assertEquals("dark", displayNoSupportedLocaleAndNoFallback?.theme)
 
         val displayWithFallbackAndNoSupportedLocale = getLocalizedAndThemedDisplay(
             credentialDisplays = withFallbackAndNoSupportedLocale,
-            preferredTheme = "dark"
+            preferredTheme = Theme.DARK
         )
         assertEquals("fallback", displayWithFallbackAndNoSupportedLocale?.locale)
         assertEquals("dark", displayWithFallbackAndNoSupportedLocale?.theme)
@@ -203,28 +204,28 @@ class GetLocalizedAndThemedDisplayImplTest {
         coEvery { mockGetCurrentAppLocale() } returns Locale("de")
         val displayWithSupportedLocaleWithCountryCode = getLocalizedAndThemedDisplay(
             credentialDisplays = withSupportedLocaleWithCountryCode,
-            preferredTheme = "light"
+            preferredTheme = Theme.LIGHT
         )
         assertEquals("de-CH", displayWithSupportedLocaleWithCountryCode?.locale)
         assertEquals("dark", displayWithSupportedLocaleWithCountryCode?.theme)
 
         val displayWithSupportedLocaleNoCountryCode = getLocalizedAndThemedDisplay(
             credentialDisplays = withSupportedLocaleNoCountryCode,
-            preferredTheme = "light"
+            preferredTheme = Theme.LIGHT
         )
         assertEquals("en", displayWithSupportedLocaleNoCountryCode?.locale)
         assertEquals("dark", displayWithSupportedLocaleNoCountryCode?.theme)
 
         val displayNoSupportedLocaleAndNoFallback = getLocalizedAndThemedDisplay(
             credentialDisplays = noSupportedLocaleAndNoFallback,
-            preferredTheme = "light"
+            preferredTheme = Theme.LIGHT
         )
         assertEquals("xx", displayNoSupportedLocaleAndNoFallback?.locale)
         assertEquals("dark", displayNoSupportedLocaleAndNoFallback?.theme)
 
         val displayWithFallbackAndNoSupportedLocale = getLocalizedAndThemedDisplay(
             credentialDisplays = withFallbackAndNoSupportedLocale,
-            preferredTheme = "light"
+            preferredTheme = Theme.LIGHT
         )
         assertEquals("fallback", displayWithFallbackAndNoSupportedLocale?.locale)
         assertEquals("dark", displayWithFallbackAndNoSupportedLocale?.theme)
@@ -234,6 +235,6 @@ class GetLocalizedAndThemedDisplayImplTest {
     fun `Empty input list returns empty list`() = runTest {
         coEvery { mockGetCurrentAppLocale() } returns Locale("de", "CH")
 
-        assertNull(getLocalizedAndThemedDisplay(emptyList()))
+        assertNull(getLocalizedAndThemedDisplay(credentialDisplays = emptyList(), preferredTheme = Theme.LIGHT))
     }
 }

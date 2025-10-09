@@ -1,5 +1,6 @@
 package ch.admin.foitt.wallet.app.presentation
 
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -8,7 +9,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
-import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
 import ch.admin.foitt.wallet.platform.scaffold.presentation.ScreenContainer
 import ch.admin.foitt.wallet.platform.utils.LocalActivity
@@ -18,7 +18,7 @@ import com.ramcosta.composedestinations.rememberNavHostEngine
 
 @Composable
 fun MainScreen(
-    activity: FragmentActivity,
+    activity: AppCompatActivity,
     viewModel: MainViewModel = hiltViewModel(),
 ) {
     WalletTheme {

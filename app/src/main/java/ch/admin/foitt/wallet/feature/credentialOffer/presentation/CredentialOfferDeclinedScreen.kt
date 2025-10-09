@@ -11,6 +11,7 @@ import ch.admin.foitt.wallet.platform.credential.presentation.CredentialActionFe
 import ch.admin.foitt.wallet.platform.navArgs.domain.model.CredentialOfferDeclinedNavArg
 import ch.admin.foitt.wallet.platform.preview.WalletAllScreenPreview
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.TrustStatus
+import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.VcSchemaTrustStatus
 import ch.admin.foitt.wallet.theme.WalletTheme
 import com.ramcosta.composedestinations.annotation.Destination
 
@@ -55,6 +56,7 @@ private fun CredentialOfferDeclinedScreenContentPreview() {
                 name = "Test Issuer",
                 painter = painterResource(id = R.drawable.wallet_ic_scan_person),
                 trustStatus = TrustStatus.TRUSTED,
+                vcSchemaTrustStatus = VcSchemaTrustStatus.TRUSTED,
                 actorType = ActorType.ISSUER,
             ),
         )

@@ -10,6 +10,7 @@ import ch.admin.foitt.openid4vc.domain.model.vcSdJwt.VcSdJwtCredential
 import ch.admin.foitt.openid4vc.domain.usecase.FetchCredentialByConfig
 import ch.admin.foitt.openid4vc.domain.usecase.FetchRawAndParsedIssuerCredentialInfo
 import ch.admin.foitt.openid4vc.domain.usecase.GetVerifiableCredentialParams
+import ch.admin.foitt.wallet.platform.actorMetadata.domain.usecase.CacheIssuerDisplayData
 import ch.admin.foitt.wallet.platform.credential.domain.model.AnyDisplays
 import ch.admin.foitt.wallet.platform.credential.domain.model.CredentialError
 import ch.admin.foitt.wallet.platform.credential.domain.usecase.FetchAndSaveCredential
@@ -31,6 +32,7 @@ import ch.admin.foitt.wallet.platform.credential.domain.usecase.implementation.m
 import ch.admin.foitt.wallet.platform.credential.domain.usecase.implementation.mock.MockFetchCredential.verifiableCredentialParamsHardwareBinding
 import ch.admin.foitt.wallet.platform.credential.domain.usecase.implementation.mock.MockFetchCredential.verifiableCredentialParamsNoBinding
 import ch.admin.foitt.wallet.platform.credential.domain.usecase.implementation.mock.MockFetchCredential.verifiableCredentialParamsSoftwareBinding
+import ch.admin.foitt.wallet.platform.environmentSetup.domain.repository.EnvironmentSetupRepository
 import ch.admin.foitt.wallet.platform.holderBinding.domain.model.KeyPairError
 import ch.admin.foitt.wallet.platform.holderBinding.domain.usecase.GenerateKeyPair
 import ch.admin.foitt.wallet.platform.oca.domain.model.OcaBundle
@@ -39,15 +41,26 @@ import ch.admin.foitt.wallet.platform.oca.domain.model.RawOcaBundle
 import ch.admin.foitt.wallet.platform.oca.domain.model.VcMetadata
 import ch.admin.foitt.wallet.platform.oca.domain.usecase.FetchVcMetadataByFormat
 import ch.admin.foitt.wallet.platform.oca.domain.usecase.OcaBundler
+import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.IdentityV1TrustStatement
+import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.MetadataV1TrustStatement
+import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.TrustCheckResult
+import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.TrustRegistryError
+import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.TrustStatementActor
+import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.VcSchemaTrustStatus
+import ch.admin.foitt.wallet.platform.trustRegistry.domain.usecase.FetchVcSchemaTrustStatus
+import ch.admin.foitt.wallet.platform.trustRegistry.domain.usecase.ProcessIdentityV1TrustStatement
+import ch.admin.foitt.wallet.platform.trustRegistry.domain.usecase.ProcessMetadataV1TrustStatement
 import ch.admin.foitt.wallet.util.assertErrorType
 import ch.admin.foitt.wallet.util.assertOk
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
 import io.mockk.MockKAnnotations
+import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
+import io.mockk.just
 import io.mockk.unmockkAll
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json.Default.parseToJsonElement
@@ -58,7 +71,6 @@ import org.junit.jupiter.api.Test
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.CredentialOfferError as OpenIdCredentialOfferError
 
 class FetchAndSaveCredentialImplTest {
-
     @MockK
     private lateinit var mockFetchRawAndParsedCredentialInfo: FetchRawAndParsedIssuerCredentialInfo
 
@@ -78,13 +90,34 @@ class FetchAndSaveCredentialImplTest {
     private lateinit var mockOcaBundler: OcaBundler
 
     @MockK
+    private lateinit var mockEnvironmentSetupRepository: EnvironmentSetupRepository
+
+    @MockK
+    private lateinit var mockProcessMetadataV1TrustStatement: ProcessMetadataV1TrustStatement
+
+    @MockK
+    private lateinit var mockProcessIdentityV1TrustStatement: ProcessIdentityV1TrustStatement
+
+    @MockK
+    private lateinit var mockFetchVcSchemaTrustStatus: FetchVcSchemaTrustStatus
+
+    @MockK
     private lateinit var mockGenerateAnyDisplays: GenerateAnyDisplays
+
+    @MockK
+    private lateinit var mockCacheIssuerDisplayData: CacheIssuerDisplayData
 
     @MockK
     private lateinit var mockSaveCredential: SaveCredential
 
     @MockK
     private lateinit var mockVcSdJwtCredential: VcSdJwtCredential
+
+    @MockK
+    private lateinit var mockMetadataTrustStatement: MetadataV1TrustStatement
+
+    @MockK
+    private lateinit var mockIdentityTrustStatement: IdentityV1TrustStatement
 
     private lateinit var useCase: FetchAndSaveCredential
 
@@ -99,7 +132,12 @@ class FetchAndSaveCredentialImplTest {
             fetchCredentialByConfig = mockFetchCredentialByConfig,
             fetchVcMetadataByFormat = mockFetchVcMetadataByFormat,
             ocaBundler = mockOcaBundler,
+            environmentSetupRepository = mockEnvironmentSetupRepository,
+            processMetadataV1TrustStatement = mockProcessMetadataV1TrustStatement,
+            processIdentityV1TrustStatement = mockProcessIdentityV1TrustStatement,
+            fetchVcSchemaTrustStatus = mockFetchVcSchemaTrustStatus,
             generateAnyDisplays = mockGenerateAnyDisplays,
+            cacheIssuerDisplayData = mockCacheIssuerDisplayData,
             saveCredential = mockSaveCredential
         )
 
@@ -132,7 +170,23 @@ class FetchAndSaveCredentialImplTest {
             )
             mockFetchVcMetadataByFormat(mockVcSdJwtCredential)
             mockOcaBundler(vcMetadata.rawOcaBundle!!.rawOcaBundle)
-            mockGenerateAnyDisplays(mockVcSdJwtCredential, oneConfigCredentialInformation, credentialConfig, ocaBundle)
+            mockProcessIdentityV1TrustStatement(ISSUER_DID)
+            mockFetchVcSchemaTrustStatus(
+                trustStatementActor = TrustStatementActor.ISSUER,
+                actorDid = ISSUER_DID,
+                vcSchemaId = VC_SCHEMA_ID,
+            )
+            mockGenerateAnyDisplays(
+                anyCredential = mockVcSdJwtCredential,
+                issuerInfo = oneConfigCredentialInformation,
+                trustIssuerNames = orgNames,
+                metadata = credentialConfig,
+                ocaBundle = ocaBundle
+            )
+            mockCacheIssuerDisplayData(
+                TrustCheckResult(mockIdentityTrustStatement, VcSchemaTrustStatus.TRUSTED),
+                anyDisplays.issuerDisplays,
+            )
             mockSaveCredential(mockVcSdJwtCredential, anyDisplays, any())
         }
     }
@@ -312,10 +366,88 @@ class FetchAndSaveCredentialImplTest {
     }
 
     @Test
+    fun `Fetching and saving credential uses metadataV1 trust statement if feature flag is set`() = runTest {
+        coEvery { mockEnvironmentSetupRepository.useMetadataV1TrustStatement } returns true
+
+        useCase(oneIdentifierCredentialOffer).assertOk()
+
+        coVerify(exactly = 1) {
+            mockProcessMetadataV1TrustStatement(ISSUER_DID)
+        }
+
+        coVerify(exactly = 0) {
+            mockProcessIdentityV1TrustStatement(any())
+            mockFetchVcSchemaTrustStatus(any(), any(), any())
+        }
+    }
+
+    @Test
+    fun `Fetching and saving credential uses identityV1 trust statement if feature flag is set`() = runTest {
+        coEvery { mockEnvironmentSetupRepository.useMetadataV1TrustStatement } returns false
+
+        useCase(oneIdentifierCredentialOffer).assertOk()
+
+        coVerify(exactly = 1) {
+            mockProcessIdentityV1TrustStatement(ISSUER_DID)
+            mockFetchVcSchemaTrustStatus(
+                trustStatementActor = TrustStatementActor.ISSUER,
+                actorDid = ISSUER_DID,
+                vcSchemaId = VC_SCHEMA_ID,
+            )
+        }
+
+        coVerify(exactly = 0) {
+            mockProcessMetadataV1TrustStatement(any())
+        }
+    }
+
+    @Test
+    fun `Fetching and saving credential does not use issuer name from trust statement if fetching fails`() = runTest {
+        setupDefaultMocks()
+
+        val exception = IllegalStateException("fetching trust failed")
+        coEvery {
+            mockProcessIdentityV1TrustStatement(ISSUER_DID)
+        } returns Err(TrustRegistryError.Unexpected(exception))
+
+        useCase(oneIdentifierCredentialOffer).assertOk()
+
+        coVerify {
+            mockGenerateAnyDisplays(any(), any(), null, any(), any())
+        }
+    }
+
+    @Test
+    fun `Fetching and saving credential fetches identity and issuance trust independently`() = runTest {
+        setupDefaultMocks()
+
+        val exception = IllegalStateException("fetching trust failed")
+        coEvery {
+            mockProcessIdentityV1TrustStatement(ISSUER_DID)
+        } returns Err(TrustRegistryError.Unexpected(exception))
+
+        coEvery {
+            mockFetchVcSchemaTrustStatus(TrustStatementActor.ISSUER, ISSUER_DID, VC_SCHEMA_ID)
+        } returns Ok(VcSchemaTrustStatus.TRUSTED)
+
+        useCase(oneIdentifierCredentialOffer).assertOk()
+
+        val expectedTrustCheckResult = TrustCheckResult(
+            actorTrustStatement = null,
+            vcSchemaTrustStatus = VcSchemaTrustStatus.TRUSTED,
+        )
+
+        coVerify {
+            mockGenerateAnyDisplays(any(), any(), null, any(), any())
+            mockCacheIssuerDisplayData(expectedTrustCheckResult, any())
+        }
+    }
+
+    @Test
     fun `Fetching and saving credential maps errors from credential displays generator`() = runTest {
         val exception = IllegalStateException()
         coEvery {
-            mockGenerateAnyDisplays(any(), any(), any(), any())
+            mockGenerateAnyDisplays(any(), any(), any(), any(), any())
         } returns Err(CredentialError.Unexpected(exception))
 
         useCase(oneIdentifierCredentialOffer).assertErrorType(CredentialError.Unexpected::class)
@@ -342,6 +474,8 @@ class FetchAndSaveCredentialImplTest {
         every {
             mockVcSdJwtCredential.getClaimsForPresentation()
         } returns parseToJsonElement(CREDENTIAL_CLAIMS_FOR_PRESENTATION)
+        every { mockVcSdJwtCredential.issuer } returns ISSUER_DID
+        every { mockVcSdJwtCredential.vcSchemaId } returns VC_SCHEMA_ID
 
         coEvery { mockFetchRawAndParsedCredentialInfo(CREDENTIAL_ISSUER) } returns
             Ok(RawAndParsedIssuerCredentialInfo(issuerCredentialInfo = credentialInfo, rawIssuerCredentialInfo = ""))
@@ -361,9 +495,34 @@ class FetchAndSaveCredentialImplTest {
 
         coEvery { mockOcaBundler(any()) } returns Ok(ocaBundle)
 
+        every { mockEnvironmentSetupRepository.useMetadataV1TrustStatement } returns false
+
+        every { mockMetadataTrustStatement.orgName } returns orgNames
+        every { mockIdentityTrustStatement.entityName } returns orgNames
+
         coEvery {
-            mockGenerateAnyDisplays(mockVcSdJwtCredential, credentialInfo, credentialConfig, ocaBundle)
+            mockProcessMetadataV1TrustStatement(ISSUER_DID)
+        } returns Ok(mockMetadataTrustStatement)
+
+        coEvery {
+            mockProcessIdentityV1TrustStatement(ISSUER_DID)
+        } returns Ok(mockIdentityTrustStatement)
+
+        coEvery {
+            mockFetchVcSchemaTrustStatus(TrustStatementActor.ISSUER, ISSUER_DID, VC_SCHEMA_ID)
+        } returns Ok(VcSchemaTrustStatus.TRUSTED)
+
+        coEvery {
+            mockGenerateAnyDisplays(
+                anyCredential = mockVcSdJwtCredential,
+                issuerInfo = credentialInfo,
+                trustIssuerNames = any(),
+                metadata = credentialConfig,
+                ocaBundle = ocaBundle,
+            )
         } returns Ok(anyDisplays)
+
+        coEvery { mockCacheIssuerDisplayData(any(), any()) } just Runs
 
         coEvery {
             mockSaveCredential(
@@ -381,9 +540,17 @@ class FetchAndSaveCredentialImplTest {
                 "key":"value"
             }
         """.trimIndent()
+        const val ISSUER_DID = "issuer did"
 
         const val VC_SCHEMA = "schema"
         const val RAW_OCA_BUNDLE = "oca bundle"
+
+        const val VC_SCHEMA_ID = "vcSchemaId"
+
+        val orgNames = mapOf(
+            "en" to "issuer name en",
+            "de" to "issuer name de",
+        )
 
         val vcMetadata = VcMetadata(vcSchema = VcSchema(VC_SCHEMA), rawOcaBundle = RawOcaBundle(RAW_OCA_BUNDLE))
         val ocaBundle = OcaBundle(emptyList(), emptyList())

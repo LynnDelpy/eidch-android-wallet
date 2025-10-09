@@ -7,18 +7,22 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ch.admin.foitt.wallet.R
 import ch.admin.foitt.wallet.platform.composables.Buttons
 import ch.admin.foitt.wallet.platform.composables.presentation.ScreenMainImage
 import ch.admin.foitt.wallet.platform.composables.presentation.layout.ScrollableColumnWithPicture
 import ch.admin.foitt.wallet.platform.composables.presentation.layout.WalletLayouts
+import ch.admin.foitt.wallet.platform.navArgs.domain.model.EIdOnlineSessionNavArg
 import ch.admin.foitt.wallet.platform.preview.WalletAllScreenPreview
 import ch.admin.foitt.wallet.theme.Sizes
 import ch.admin.foitt.wallet.theme.WalletTexts
 import ch.admin.foitt.wallet.theme.WalletTheme
 import com.ramcosta.composedestinations.annotation.Destination
 
-@Destination
+@Destination(
+    navArgsDelegate = EIdOnlineSessionNavArg::class,
+)
 @Composable
 fun EIdWalletPairingScreen(
     viewModel: EIdWalletPairingViewModel,
@@ -26,18 +30,20 @@ fun EIdWalletPairingScreen(
     EIdWalletPairingScreenContent(
         onSingleDeviceFlow = viewModel::onSingleDeviceFlow,
         onMultiDeviceFlow = viewModel::onMultiDeviceFlow,
+        isLoading = viewModel.isLoading.collectAsStateWithLifecycle().value,
     )
 }
 
 @Composable
 private fun EIdWalletPairingScreenContent(
     onSingleDeviceFlow: () -> Unit,
-    onMultiDeviceFlow: () -> Unit
+    onMultiDeviceFlow: () -> Unit,
+    isLoading: Boolean,
 ) {
     WalletLayouts.ScrollableColumnWithPicture(
         stickyStartContent = {
             ScreenMainImage(
-                iconRes = R.drawable.wallet_ic_pairing,
+                iconRes = R.drawable.wallet_ic_pairing_colored,
                 backgroundColor = WalletTheme.colorScheme.surfaceContainerLow,
             )
         },
@@ -46,10 +52,12 @@ private fun EIdWalletPairingScreenContent(
             Buttons.TonalSecondary(
                 text = stringResource(R.string.tk_getEid_walletPairing1_secondaryButton),
                 onClick = onMultiDeviceFlow,
+                enabled = !isLoading,
             )
             Buttons.FilledPrimary(
                 text = stringResource(R.string.tk_getEid_walletPairing1_primaryButton),
                 onClick = onSingleDeviceFlow,
+                enabled = !isLoading,
             )
         }
     ) {
@@ -62,11 +70,6 @@ private fun EIdWalletPairingScreenContent(
             modifier = Modifier.fillMaxWidth(),
             text = stringResource(R.string.tk_getEid_walletPairing1_body)
         )
-        Spacer(modifier = Modifier.height(Sizes.s06))
-        WalletTexts.BodySmall(
-            modifier = Modifier.fillMaxWidth(),
-            text = stringResource(R.string.tk_getEid_walletPairing1_smallBody)
-        )
     }
 }
 
@@ -77,6 +80,7 @@ private fun EIdWalletPairingScreenPreview() {
         EIdWalletPairingScreenContent(
             onSingleDeviceFlow = {},
             onMultiDeviceFlow = {},
+            isLoading = false,
         )
     }
 }

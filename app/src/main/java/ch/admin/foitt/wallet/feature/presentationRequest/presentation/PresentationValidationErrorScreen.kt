@@ -9,6 +9,7 @@ import ch.admin.foitt.wallet.platform.actorMetadata.presentation.model.ActorUiSt
 import ch.admin.foitt.wallet.platform.credential.presentation.CredentialActionFeedbackCardError
 import ch.admin.foitt.wallet.platform.preview.WalletAllScreenPreview
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.TrustStatus
+import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.VcSchemaTrustStatus
 import ch.admin.foitt.wallet.theme.WalletTheme
 import com.ramcosta.composedestinations.annotation.Destination
 
@@ -48,6 +49,7 @@ private fun PresentationValidationErrorPreview() {
                 name = "My Verifier Name",
                 painter = painterResource(R.drawable.wallet_ic_error_general),
                 trustStatus = TrustStatus.TRUSTED,
+                vcSchemaTrustStatus = VcSchemaTrustStatus.TRUSTED,
                 actorType = ActorType.VERIFIER,
             ),
             onClose = {},

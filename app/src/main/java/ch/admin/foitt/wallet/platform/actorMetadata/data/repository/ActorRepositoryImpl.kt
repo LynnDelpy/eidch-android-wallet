@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
 class ActorRepositoryImpl @Inject constructor() : ActorRepository {
-    private val _actorDisplayData = MutableStateFlow<ActorDisplayData>(ActorDisplayData.EMPTY)
+    private val _actorDisplayData = MutableStateFlow(ActorDisplayData.EMPTY)
     override val actorDisplayData = _actorDisplayData.asStateFlow()
 
     override fun setActor(actor: ActorDisplayData) {

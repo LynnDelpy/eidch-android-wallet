@@ -12,7 +12,5 @@ sealed interface HomeScreenState {
     ) : HomeScreenState
     data class NoCredential(
         val eIdRequests: List<SIdRequestDisplayData>,
-        val showBetaIdRequestButton: Boolean,
-        val showEIdRequestButton: Boolean,
     ) : HomeScreenState
 }

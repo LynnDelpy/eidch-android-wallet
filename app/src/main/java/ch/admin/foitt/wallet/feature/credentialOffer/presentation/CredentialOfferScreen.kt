@@ -22,16 +22,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -61,6 +62,7 @@ import ch.admin.foitt.wallet.platform.navArgs.domain.model.CredentialOfferNavArg
 import ch.admin.foitt.wallet.platform.preview.AllCompactScreensPreview
 import ch.admin.foitt.wallet.platform.preview.AllLargeScreensPreview
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.TrustStatus
+import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.VcSchemaTrustStatus
 import ch.admin.foitt.wallet.platform.utils.TestTags
 import ch.admin.foitt.wallet.theme.Sizes
 import ch.admin.foitt.wallet.theme.WalletTexts
@@ -78,9 +80,14 @@ fun CredentialOfferScreen(
         viewModel.onDeclineClicked()
     }
 
+    val uiMode = LocalConfiguration.current.uiMode
+    LaunchedEffect(uiMode) {
+        viewModel.credentialOfferUiState.refreshData()
+    }
+
     CredentialOfferScreenContent(
         isLoading = viewModel.isLoading.collectAsStateWithLifecycle().value,
-        credentialOfferUiState = viewModel.credentialOfferUiState.collectAsStateWithLifecycle().value,
+        credentialOfferUiState = viewModel.credentialOfferUiState.stateFlow.collectAsStateWithLifecycle().value,
         onAccept = viewModel::onAcceptClicked,
         onDecline = viewModel::onDeclineClicked,
         onWrongData = viewModel::onReportWrongDataClicked,
@@ -94,7 +101,11 @@ private fun CredentialOfferScreenContent(
     onAccept: () -> Unit,
     onDecline: () -> Unit,
     onWrongData: () -> Unit,
-) = Box(modifier = Modifier.fillMaxSize()) {
+) = Box(
+    modifier = Modifier
+        .fillMaxSize()
+        .background(WalletTheme.colorScheme.surfaceContainerLow)
+) {
     val windowSizeClass = currentWindowAdaptiveInfo().windowSizeClass
     if (windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.COMPACT) {
         CompactContent(
@@ -134,14 +145,15 @@ private fun CompactContent(
     WalletLayouts.LazyColumn(
         modifier = Modifier.fillMaxWidth(),
         state = lazyListState,
+        useTopInsets = false,
         contentPadding = PaddingValues(bottom = Sizes.s06),
     ) {
         item {
             InvitationHeader(
-                modifier = Modifier.padding(start = Sizes.s04, top = Sizes.s06, end = Sizes.s04, bottom = Sizes.s02),
                 inviterName = credentialOffer.issuer.name,
                 inviterImage = credentialOffer.issuer.painter,
                 trustStatus = credentialOffer.issuer.trustStatus,
+                vcSchemaTrustStatus = credentialOffer.issuer.vcSchemaTrustStatus,
                 actorType = credentialOffer.issuer.actorType,
             )
         }
@@ -155,12 +167,13 @@ private fun CompactContent(
         item {
             CredentialBoxCompact(
                 credential = credentialOffer.credential,
+                onAccept = onAccept,
+                onDecline = onDecline,
             )
             Spacer(modifier = Modifier.height(Sizes.s04))
         }
 
         credentialClaimItems(
-            useSurroundingCard = true,
             claimItems = credentialOffer.claims,
             onWrongData = onWrongData,
         )
@@ -180,12 +193,14 @@ private fun CompactContent(
 @Composable
 private fun CredentialBoxCompact(
     credential: CredentialCardState,
+    onAccept: () -> Unit,
+    onDecline: () -> Unit,
 ) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .background(
-                color = WalletTheme.colorScheme.surfaceContainerLow,
+                color = WalletTheme.colorScheme.background,
                 shape = RoundedCornerShape(Sizes.credentialCardCorner),
             )
             .padding(vertical = Sizes.s10, horizontal = Sizes.s04),
@@ -196,6 +211,11 @@ private fun CredentialBoxCompact(
                 .padding(horizontal = Sizes.s10)
                 .testTag(TestTags.OFFER_CREDENTIAL.name),
             credentialCardState = credential,
+        )
+        Spacer(modifier = Modifier.height(Sizes.s06))
+        CredentialOfferButtons(
+            onAccept = onAccept,
+            onDecline = onDecline,
         )
     }
 }
@@ -238,7 +258,7 @@ private fun CredentialBoxLarge(
         Box(
             modifier = Modifier
                 .background(
-                    color = WalletTheme.colorScheme.surfaceContainerLow,
+                    color = WalletTheme.colorScheme.background,
                     shape = RoundedCornerShape(Sizes.credentialCardCorner),
                 )
                 .padding(Sizes.s04),
@@ -264,25 +284,17 @@ private fun DetailsWithHeader(
         WalletLayouts.LazyColumn(
             modifier = Modifier.fillMaxWidth(),
             state = lazyListState,
+            useTopInsets = false,
             contentPadding = PaddingValues(bottom = Sizes.s02 + stickyBottomHeight.value),
         ) {
             item {
-                Column {
-                    // Only working way to add top insets, windowInsetPaddings did not work
-                    Spacer(modifier = Modifier.windowInsetsTopHeight(WindowInsets.safeDrawing))
-                    InvitationHeader(
-                        modifier = Modifier.padding(
-                            start = Sizes.s04,
-                            top = Sizes.s02,
-                            end = Sizes.s04,
-                            bottom = Sizes.s06,
-                        ),
-                        inviterName = credentialOffer.issuer.name,
-                        inviterImage = credentialOffer.issuer.painter,
-                        trustStatus = credentialOffer.issuer.trustStatus,
-                        actorType = credentialOffer.issuer.actorType,
-                    )
-                }
+                InvitationHeader(
+                    inviterName = credentialOffer.issuer.name,
+                    inviterImage = credentialOffer.issuer.painter,
+                    trustStatus = credentialOffer.issuer.trustStatus,
+                    vcSchemaTrustStatus = credentialOffer.issuer.vcSchemaTrustStatus,
+                    actorType = credentialOffer.issuer.actorType,
+                )
             }
 
             item {
@@ -294,10 +306,10 @@ private fun DetailsWithHeader(
             }
 
             credentialClaimItems(
-                useSurroundingCard = true,
                 claimItems = credentialOffer.claims,
                 onWrongData = onWrongData,
             )
+
             item {
                 Spacer(modifier = Modifier.height(Sizes.s06))
             }
@@ -339,14 +351,16 @@ private fun StickyButtons(
             maxItemsInEachRow = 2,
         ) {
             Buttons.FilledPrimary(
-                modifier = Modifier.weight(1f)
+                modifier = Modifier
+                    .weight(1f)
                     .testTag(TestTags.STICKY_DECLINE_BUTTON.name),
                 text = stringResource(id = R.string.tk_receive_credentialOffer_button_decline),
                 startIcon = painterResource(id = R.drawable.wallet_ic_cross),
                 onClick = onDecline,
             )
             Buttons.FilledTertiary(
-                modifier = Modifier.weight(1f)
+                modifier = Modifier
+                    .weight(1f)
                     .testTag(TestTags.STICKY_ACCEPT_BUTTON.name),
                 text = stringResource(id = R.string.tk_receive_credentialOffer_button_accept),
                 startIcon = painterResource(id = R.drawable.wallet_ic_checkmark),
@@ -400,6 +414,7 @@ private fun CredentialOfferScreenPreview() {
                     name = "Test Issuer",
                     painter = painterResource(id = R.drawable.ic_swiss_cross_small),
                     trustStatus = TrustStatus.TRUSTED,
+                    vcSchemaTrustStatus = VcSchemaTrustStatus.TRUSTED,
                     actorType = ActorType.ISSUER,
                 ),
                 credential = CredentialMocks.cardState01,
@@ -422,6 +437,7 @@ private fun CredentialOfferLargeContentPreview() {
                     name = "Test Issuer",
                     painter = painterResource(id = R.drawable.ic_swiss_cross_small),
                     trustStatus = TrustStatus.TRUSTED,
+                    vcSchemaTrustStatus = VcSchemaTrustStatus.TRUSTED,
                     actorType = ActorType.ISSUER,
                 ),
                 credential = CredentialMocks.cardState01,

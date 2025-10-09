@@ -5,6 +5,7 @@ import ch.admin.foitt.wallet.platform.database.domain.model.DisplayLanguage
 import ch.admin.foitt.wallet.platform.locale.domain.usecase.GetCurrentAppLocale
 import ch.admin.foitt.wallet.platform.locale.domain.usecase.GetLocalizedAndThemedDisplay
 import ch.admin.foitt.wallet.platform.oca.domain.model.overlays.BrandingOverlay
+import ch.admin.foitt.wallet.platform.theme.domain.model.Theme
 import javax.inject.Inject
 
 class GetLocalizedAndThemedDisplayImpl @Inject constructor(
@@ -13,16 +14,17 @@ class GetLocalizedAndThemedDisplayImpl @Inject constructor(
     override fun invoke(
         credentialDisplays: List<CredentialDisplay>,
         preferredLocale: String?,
-        preferredTheme: String,
+        preferredTheme: Theme,
     ): CredentialDisplay? {
         val appLocale = getCurrentAppLocale()
+        val theme = preferredTheme.value
         val language = appLocale.language // e.g. "de"
         val country = appLocale.country // e.g. "CH"
 
         val perfectMatchingDisplay = credentialDisplays.getPerfectMatch(
             language = language,
             country = country,
-            theme = preferredTheme,
+            theme = theme
         )
 
         val almostPerfectMatchingDisplay = credentialDisplays.getWithLocale(language = language, country = country)
@@ -30,7 +32,7 @@ class GetLocalizedAndThemedDisplayImpl @Inject constructor(
         val bestMatchingDisplay = credentialDisplays.bestMatchingLocaleAndTheme(
             language = language,
             preferredLocale = preferredLocale,
-            preferredTheme = preferredTheme
+            preferredTheme = theme
         )
 
         return perfectMatchingDisplay ?: almostPerfectMatchingDisplay ?: bestMatchingDisplay ?: credentialDisplays.firstOrNull()

@@ -15,6 +15,7 @@ import ch.admin.foitt.wallet.platform.scaffold.presentation.ScreenViewModel
 import ch.admin.foitt.wallet.platform.ssi.domain.model.SsiError
 import ch.admin.foitt.wallet.platform.ssi.domain.usecase.DeleteCredential
 import ch.admin.foitt.walletcomposedestinations.destinations.CredentialOfferDeclinedScreenDestination
+import ch.admin.foitt.walletcomposedestinations.destinations.CredentialOfferScreenDestination
 import com.github.michaelbull.result.onFailure
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
@@ -67,7 +68,7 @@ class CredentialOfferDeclinedViewModel @Inject constructor(
         navigateToHome()
     }
 
-    fun navigateToHome() = navManager.navigateBackToHome(popUntil = CredentialOfferDeclinedScreenDestination)
+    fun navigateToHome() = navManager.navigateBackToHome(popUntil = CredentialOfferScreenDestination)
 
     companion object {
         private const val NAV_DELAY = 2500L

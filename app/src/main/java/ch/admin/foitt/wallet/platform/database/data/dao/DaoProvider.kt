@@ -16,6 +16,7 @@ interface DaoProvider {
     val eIdRequestCaseDaoFlow: StateFlow<EIdRequestCaseDao?>
     val eIdRequestStateDaoFlow: StateFlow<EIdRequestStateDao?>
     val eIdRequestCaseWithStateDaoFlow: StateFlow<EIdRequestCaseWithStateDao?>
+    val eIdRequestFileDaoFlow: StateFlow<EIdRequestFileDao?>
     val rawCredentialDataDao: StateFlow<RawCredentialDataDao?>
     val clientAttestationDaoFlow: StateFlow<ClientAttestationDao?>
 }

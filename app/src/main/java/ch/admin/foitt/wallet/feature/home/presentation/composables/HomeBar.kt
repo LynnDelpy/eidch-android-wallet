@@ -45,6 +45,7 @@ import ch.admin.foitt.wallet.theme.WalletTheme
 fun HomeBarHorizontal(
     onScan: () -> Unit,
     onMenu: () -> Unit,
+    usesBigScanButton: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) = Row(
     horizontalArrangement = Arrangement.spacedBy(
@@ -52,7 +53,6 @@ fun HomeBarHorizontal(
         alignment = Alignment.CenterHorizontally
     ),
     modifier = modifier
-        .padding(start = Sizes.s14, end = Sizes.s14)
         .clip(RoundedCornerShape(corner = CornerSize(Sizes.s16)))
         .background(WalletTheme.colorScheme.background)
         .padding(Sizes.s03)
@@ -62,6 +62,7 @@ fun HomeBarHorizontal(
         modifier = Modifier.traversalIndex(TraversalIndex.HIGH2)
     )
     ScanButton(
+        usesBigScanButton = usesBigScanButton,
         onClick = onScan,
         modifier = Modifier.traversalIndex(TraversalIndex.HIGH1)
     )
@@ -101,7 +102,6 @@ fun HomeBarVertical(
         alignment = Alignment.CenterVertically,
     ),
     modifier = modifier
-        .padding(top = Sizes.s10, bottom = Sizes.s10)
         .clip(RoundedCornerShape(corner = CornerSize(Sizes.s16)))
         .background(WalletTheme.colorScheme.background)
         .padding(Sizes.s03)
@@ -138,10 +138,12 @@ private fun MenuIconButton(
 
 @Composable
 private fun ScanButton(
+    usesBigScanButton: (Boolean) -> Unit,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) = Box {
     SubComposeScanButton { canPlaceContent: Boolean ->
+        usesBigScanButton(canPlaceContent)
         if (canPlaceContent) {
             ScanTextButton(
                 onClick = onClick,
@@ -207,6 +209,7 @@ private fun HomeBarHorizontalPreview() {
         HomeBarHorizontal(
             onMenu = {},
             onScan = {},
+            usesBigScanButton = {},
         )
     }
 }

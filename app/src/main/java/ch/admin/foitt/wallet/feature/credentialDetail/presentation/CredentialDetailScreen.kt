@@ -30,12 +30,14 @@ import androidx.compose.material3.SheetState
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
@@ -67,6 +69,7 @@ import ch.admin.foitt.wallet.platform.navArgs.domain.model.CredentialDetailNavAr
 import ch.admin.foitt.wallet.platform.preview.AllCompactScreensPreview
 import ch.admin.foitt.wallet.platform.preview.AllLargeScreensPreview
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.TrustStatus
+import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.VcSchemaTrustStatus
 import ch.admin.foitt.wallet.theme.Sizes
 import ch.admin.foitt.wallet.theme.WalletTheme
 import com.ramcosta.composedestinations.annotation.Destination
@@ -85,6 +88,11 @@ fun CredentialDetailScreen(
 
     val menuSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val deleteSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    val uiMode = LocalConfiguration.current.uiMode
+    LaunchedEffect(uiMode) {
+        viewModel.credentialDetailUiState.refreshData()
+    }
 
     val visibleBottomSheet = viewModel.visibleBottomSheet.collectAsStateWithLifecycle().value
     if (visibleBottomSheet == VisibleBottomSheet.MENU) {
@@ -115,7 +123,7 @@ fun CredentialDetailScreen(
 
     CredentialDetailScreenContent(
         isLoading = viewModel.isLoading.collectAsStateWithLifecycle().value,
-        credentialDetail = viewModel.credentialDetailUiState.collectAsStateWithLifecycle().value,
+        credentialDetail = viewModel.credentialDetailUiState.stateFlow.collectAsStateWithLifecycle().value,
         onWrongData = viewModel::onWrongData,
         onBack = viewModel::onBack,
         onMenu = viewModel::onMenu,
@@ -353,6 +361,7 @@ private fun ExampleScreen(windowWidthClass: WindowWidthSizeClass) {
                 name = "Issuer",
                 painter = painterResource(id = R.drawable.ic_swiss_cross_small),
                 trustStatus = TrustStatus.TRUSTED,
+                vcSchemaTrustStatus = VcSchemaTrustStatus.TRUSTED,
                 actorType = ActorType.ISSUER,
             )
         ),

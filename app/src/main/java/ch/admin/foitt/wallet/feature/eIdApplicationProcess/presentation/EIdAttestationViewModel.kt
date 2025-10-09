@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.lifecycle.viewModelScope
 import ch.admin.foitt.wallet.R
 import ch.admin.foitt.wallet.feature.eIdApplicationProcess.presentation.model.AttestationUiState
+import ch.admin.foitt.wallet.feature.eIdApplicationProcess.presentation.model.AttestationUiState.IntegrityError
+import ch.admin.foitt.wallet.feature.eIdApplicationProcess.presentation.model.AttestationUiState.IntegrityNetworkError
 import ch.admin.foitt.wallet.feature.eIdApplicationProcess.presentation.model.AttestationUiState.InvalidClientAttestation
 import ch.admin.foitt.wallet.feature.eIdApplicationProcess.presentation.model.AttestationUiState.InvalidKeyAttestation
 import ch.admin.foitt.wallet.feature.eIdApplicationProcess.presentation.model.AttestationUiState.NetworkError
@@ -67,14 +69,23 @@ internal class EIdAttestationViewModel @Inject constructor(
             isLoading -> AttestationUiState.Loading
             sidValidation?.isOk == true -> AttestationUiState.Valid
             sidValidation?.isErr == true -> sidValidation.unwrapError().toUiState()
-            keyAttestation?.isErr == true && keyAttestation.unwrapError() is AttestationError.NetworkError -> NetworkError(
-                onClose = ::onClose,
-                onRetry = ::onRetry,
-            )
-            clientAttestation?.isErr == true && clientAttestation.unwrapError() is AttestationError.NetworkError -> NetworkError(
-                onClose = ::onClose,
-                onRetry = ::onRetry,
-            )
+            keyAttestation?.isErr == true && keyAttestation.unwrapError() is AttestationError.NetworkError ->
+                NetworkError(
+                    onClose = ::onClose,
+                    onRetry = ::onRetry,
+                )
+
+            clientAttestation?.isErr == true && clientAttestation.unwrapError() is AttestationError.NetworkError ->
+                IntegrityNetworkError(
+                    onClose = ::onClose,
+                    onRetry = ::onRetry,
+                )
+
+            clientAttestation?.isErr == true && clientAttestation.unwrapError() is AttestationError.Unexpected ->
+                IntegrityError(
+                    onClose = ::onClose,
+                )
+
             else -> Unexpected(
                 onClose = ::onClose,
                 onRetry = ::onRetry,
@@ -142,15 +153,18 @@ internal class EIdAttestationViewModel @Inject constructor(
             onClose = ::onClose,
             onHelp = ::onHelp,
         )
+
         EIdRequestError.InvalidClientAttestation -> InvalidClientAttestation(
             onClose = ::onClose,
             onHelp = ::onHelp,
             onPlaystore = ::onPlaystore,
         )
+
         EIdRequestError.NetworkError -> NetworkError(
             onClose = ::onClose,
             onRetry = ::onRetry,
         )
+
         is EIdRequestError.Unexpected -> Unexpected(
             onClose = ::onClose,
             onRetry = ::onRetry,

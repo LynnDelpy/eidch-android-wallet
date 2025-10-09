@@ -14,7 +14,7 @@ class GetCurrentSIdCaseIdImpl @Inject constructor(
     override operator fun invoke(): StateFlow<String?> {
         val eidApplicationRepository = destinationScopedComponentManager.getEntryPoint(
             entryPointClass = EidApplicationProcessEntryPoint::class.java,
-            componentScope = ComponentScope.EidSIdCase,
+            componentScope = ComponentScope.EidCurrentSIdCase,
         ).eidCurrentCaseRepository()
 
         return eidApplicationRepository.caseId

@@ -1,5 +1,6 @@
 package ch.admin.foitt.wallet.feature.eIdApplicationProcess.presentation
 
+import ch.admin.foitt.avwrapper.AVBeam
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.EIdDocumentType
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.usecase.SetDocumentType
 import ch.admin.foitt.wallet.platform.environmentSetup.domain.repository.EnvironmentSetupRepository
@@ -15,6 +16,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class EIdDocumentSelectionViewModel @Inject constructor(
+    private val avBeam: AVBeam,
     private val navManager: NavigationManager,
     private val setDocumentType: SetDocumentType,
     environmentSetupRepository: EnvironmentSetupRepository,
@@ -23,7 +25,10 @@ class EIdDocumentSelectionViewModel @Inject constructor(
     override val topBarState = TopBarState.DetailsWithCloseButton(
         titleId = null,
         onUp = navManager::popBackStack,
-        onClose = { navManager.navigateBackToHome(EIdIntroScreenDestination) }
+        onClose = {
+            avBeam.shutDown()
+            navManager.navigateBackToHome(EIdIntroScreenDestination)
+        }
     )
 
     val showEIdMockMrzButton = environmentSetupRepository.eIdMockMrzEnabled

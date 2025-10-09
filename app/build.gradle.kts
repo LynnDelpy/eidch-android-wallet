@@ -1,3 +1,6 @@
+import com.mikepenz.aboutlibraries.plugin.DuplicateMode
+import com.mikepenz.aboutlibraries.plugin.DuplicateRule
+
 plugins {
     id("android-application")
     id("jacoco-android-app")
@@ -97,6 +100,12 @@ android {
             manifestPlaceholders["appLabel"] = "(ABN) swiyu"
         }
 
+        create("abnstore") {
+            dimension = "environment"
+            applicationIdSuffix = ".abnstore"
+            manifestPlaceholders["appLabel"] = "(ABNSTORE) swiyu"
+        }
+
         create("prod") {
             dimension = "environment"
         }
@@ -122,6 +131,23 @@ android {
     sourceSets {
         // Adds exported schema location as test app assets.
         getByName("androidTest").assets.srcDir("$projectDir/schemas")
+
+        getByName("abnstore") {
+            java.srcDirs("src/abn/java")
+            res.srcDirs("src/abn/res/xml")
+        }
+    }
+}
+
+aboutLibraries {
+    export {
+        prettyPrint = true
+        outputFile = file("src/main/res/raw/aboutlibraries.json")
+    }
+
+    library {
+        duplicationMode = DuplicateMode.MERGE
+        duplicationRule = DuplicateRule.GROUP
     }
 }
 
@@ -210,7 +236,6 @@ dependencies {
 
     // AboutLibraries
     implementation(libs.aboutlibraries.core)
-    implementation(libs.aboutlibraries.compose)
 
     // Json schema validator
     implementation(libs.json.schema.validator)

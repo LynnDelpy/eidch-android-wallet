@@ -7,6 +7,7 @@ import ch.admin.foitt.wallet.platform.credential.presentation.model.CredentialCa
 import ch.admin.foitt.wallet.platform.credentialStatus.domain.model.CredentialDisplayStatus
 import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialClaimCluster
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.TrustStatus
+import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.VcSchemaTrustStatus
 
 data class CredentialDetailUiState(
     val credential: CredentialCardState,
@@ -27,7 +28,13 @@ data class CredentialDetailUiState(
                 isCredentialFromBetaIssuer = false
             ),
             clusterItems = emptyList(),
-            issuer = ActorUiState(null, null, TrustStatus.UNKNOWN, ActorType.UNKNOWN),
+            issuer = ActorUiState(
+                name = null,
+                painter = null,
+                trustStatus = TrustStatus.UNKNOWN,
+                vcSchemaTrustStatus = VcSchemaTrustStatus.TRUSTED,
+                actorType = ActorType.UNKNOWN
+            ),
         )
     }
 }

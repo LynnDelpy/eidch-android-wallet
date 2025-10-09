@@ -10,6 +10,7 @@ import ch.admin.foitt.wallet.platform.actorMetadata.domain.usecase.implementatio
 import ch.admin.foitt.wallet.platform.navigation.DestinationScopedComponentManager
 import ch.admin.foitt.wallet.platform.navigation.domain.model.ComponentScope
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.TrustStatus
+import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.VcSchemaTrustStatus
 import io.mockk.MockKAnnotations
 import io.mockk.coEvery
 import io.mockk.coVerifyOrder
@@ -92,6 +93,7 @@ class InitializeActorForScopeTest {
         ),
         preferredLanguage = "test_de",
         trustStatus = TrustStatus.TRUSTED,
+        vcSchemaTrustStatus = VcSchemaTrustStatus.TRUSTED,
         actorType = ActorType.ISSUER,
     )
     //endregion

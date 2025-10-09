@@ -96,6 +96,10 @@ class ValidatePresentationRequestImpl @Inject constructor(
 
         runSuspendCatching {
             val issuerDid = checkNotNull(jwt.iss) { "issuer is missing" }
+            val clientId = jwt.payloadJson["client_id"]?.jsonPrimitive?.content
+
+            check(issuerDid == clientId) { "jwt issuer did does not match request object clientId" }
+
             val keyId = checkNotNull(jwt.keyId) { "keyId is missing" }
 
             verifyJwtSignature(
@@ -115,9 +119,9 @@ class ValidatePresentationRequestImpl @Inject constructor(
         }.bind()
     }
 
-    private fun PresentationRequestContainer.Json.toPresentationRequest():
-        Result<PresentationRequest, ValidatePresentationRequestError> = safeJson.safeDecodeElementTo<PresentationRequest>(json)
-        .mapError(JsonParsingError::toValidatePresentationRequestError)
+    private fun PresentationRequestContainer.Json.toPresentationRequest(): Result<PresentationRequest, ValidatePresentationRequestError> =
+        safeJson.safeDecodeElementTo<PresentationRequest>(json)
+            .mapError(JsonParsingError::toValidatePresentationRequestError)
 
     private companion object {
         const val ID_SCHEME_DID = "did"

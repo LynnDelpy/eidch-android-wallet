@@ -2,7 +2,7 @@ package ch.admin.foitt.wallet.platform.eIdApplicationProcess
 
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.di.EidApplicationProcessEntryPoint
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.EIdDocumentType
-import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.repository.EidDocumentTypeRepository
+import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.repository.EidApplicationProcessRepository
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.usecase.implementation.SetDocumentTypeImpl
 import ch.admin.foitt.wallet.platform.navigation.DestinationScopedComponentManager
 import io.mockk.MockKAnnotations
@@ -24,7 +24,7 @@ class SetDocumentTypeTest {
     private lateinit var mockDestinationScopedComponentManager: DestinationScopedComponentManager
 
     @MockK
-    private lateinit var mockEidDocumentTypeRepository: EidDocumentTypeRepository
+    private lateinit var mockEidApplicationProcessRepository: EidApplicationProcessRepository
 
     @MockK
     private lateinit var mockEidApplicationProcessEntryPoint: EidApplicationProcessEntryPoint
@@ -47,11 +47,11 @@ class SetDocumentTypeTest {
         } returns mockEidApplicationProcessEntryPoint
 
         coEvery {
-            mockEidApplicationProcessEntryPoint.eidDocumentTypeRepository()
-        } returns mockEidDocumentTypeRepository
+            mockEidApplicationProcessEntryPoint.eidApplicationProcessRepository()
+        } returns mockEidApplicationProcessRepository
 
         coEvery {
-            mockEidDocumentTypeRepository.setDocumentType(eIdDocumentType = any())
+            mockEidApplicationProcessRepository.setDocumentType(eIdDocumentType = any())
         } just Runs
     }
 
@@ -71,8 +71,8 @@ class SetDocumentTypeTest {
                     EidApplicationProcessEntryPoint::class.java,
                     any()
                 )
-                mockEidApplicationProcessEntryPoint.eidDocumentTypeRepository()
-                mockEidDocumentTypeRepository.setDocumentType(eIdDocumentType = documentType)
+                mockEidApplicationProcessEntryPoint.eidApplicationProcessRepository()
+                mockEidApplicationProcessRepository.setDocumentType(eIdDocumentType = documentType)
             }
         }
 }

@@ -81,8 +81,8 @@ class FetchVcMetadataByFormatImpl @Inject constructor(
                 ?.flatMap { it.renderings ?: emptyList() }
                 ?.firstOrNull { it is Rendering.VcSdJwtOcaRendering } as? Rendering.VcSdJwtOcaRendering
 
-            vcSdJwtOcaRendering?.uri?.let {
-                rawOcaBundle = fetchOcaBundle(uri = it, integrity = vcSdJwtOcaRendering.uriIntegrity)
+            rawOcaBundle = vcSdJwtOcaRendering?.uri?.let { uri ->
+                fetchOcaBundle(uri = uri, integrity = vcSdJwtOcaRendering.uriIntegrity)
                     .mapError(FetchOcaBundleError::toFetchVcMetadataByFormatError)
                     .bind()
             }

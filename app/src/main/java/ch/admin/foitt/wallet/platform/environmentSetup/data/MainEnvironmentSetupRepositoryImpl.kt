@@ -1,5 +1,6 @@
 package ch.admin.foitt.wallet.platform.environmentSetup.data
 
+import ch.admin.foitt.wallet.BuildConfig
 import ch.admin.foitt.wallet.platform.environmentSetup.domain.repository.EnvironmentSetupRepository
 import javax.inject.Inject
 
@@ -26,6 +27,8 @@ class MainEnvironmentSetupRepositoryImpl @Inject constructor() : EnvironmentSetu
     override val baseTrustDomainRegex =
         Regex("^did:tdw:[^:]+:([^:]+\\.swiyu(-int)?\\.admin\\.ch):[^:]+", setOf(RegexOption.MULTILINE))
 
+    override val useMetadataV1TrustStatement = true
+
     override val betaIdRequestEnabled = true
 
     override val eIdRequestEnabled = false
@@ -33,4 +36,10 @@ class MainEnvironmentSetupRepositoryImpl @Inject constructor() : EnvironmentSetu
     override val eIdMockMrzEnabled = false
 
     override val sidBackendUrl: String = "https://eid.admin.ch"
+
+    override val avBackendUrl: String = "https://av.admin.ch/"
+
+    override val appId: String = BuildConfig.APPLICATION_ID
+
+    override val avBeamLoggingEnabled: Boolean = false
 }

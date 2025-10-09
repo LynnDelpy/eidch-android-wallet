@@ -15,6 +15,7 @@ import ch.admin.foitt.wallet.platform.navigation.domain.model.ComponentScope
 import ch.admin.foitt.wallet.platform.scaffold.domain.model.TopBarState
 import ch.admin.foitt.wallet.platform.scaffold.domain.usecase.SetTopBarState
 import ch.admin.foitt.wallet.platform.scaffold.extension.navigateUpOrToRoot
+import ch.admin.foitt.wallet.platform.scaffold.extension.refreshableStateFlow
 import ch.admin.foitt.wallet.platform.scaffold.presentation.ScreenViewModel
 import ch.admin.foitt.walletcomposedestinations.destinations.ErrorScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.PresentationCredentialListScreenDestination
@@ -22,7 +23,6 @@ import ch.admin.foitt.walletcomposedestinations.destinations.PresentationRequest
 import com.github.michaelbull.result.mapBoth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
@@ -54,24 +54,24 @@ class PresentationCredentialListViewModel @Inject constructor(
         )
     }.toStateFlow(ActorUiState.EMPTY, 0)
 
-    val presentationCredentialListUiState: StateFlow<PresentationCredentialListUiState> = getPresentationRequestCredentialListFlow(
-        compatibleCredentials = navArgs.compatibleCredentials,
-    ).map { result ->
-        result.mapBoth(
-            success = { presentationCredentialListUi ->
-                _isLoading.value = false
-                PresentationCredentialListUiState(
-                    credentials = presentationCredentialListUi.credentials.map { getCredentialCardState(it) },
-                )
-            },
-            failure = {
-                navigateToErrorScreen()
-                null
-            },
-        )
+    val presentationCredentialListUiState = refreshableStateFlow(PresentationCredentialListUiState.EMPTY) {
+        getPresentationRequestCredentialListFlow(
+            compatibleCredentials = navArgs.compatibleCredentials,
+        ).map { result ->
+            result.mapBoth(
+                success = { presentationCredentialListUi ->
+                    _isLoading.value = false
+                    PresentationCredentialListUiState(
+                        credentials = presentationCredentialListUi.credentials.map { getCredentialCardState(it) },
+                    )
+                },
+                failure = {
+                    navigateToErrorScreen()
+                    null
+                },
+            )
+        }.filterNotNull()
     }
-        .filterNotNull()
-        .toStateFlow(PresentationCredentialListUiState.EMPTY)
 
     init {
         viewModelScope.launch {
@@ -87,7 +87,7 @@ class PresentationCredentialListViewModel @Inject constructor(
                     navArgs = PresentationRequestNavArg(
                         compatibleCredential,
                         navArgs.presentationRequest,
-                        navArgs.shouldFetchTrustStatement,
+                        false,
                     )
                 )
             )

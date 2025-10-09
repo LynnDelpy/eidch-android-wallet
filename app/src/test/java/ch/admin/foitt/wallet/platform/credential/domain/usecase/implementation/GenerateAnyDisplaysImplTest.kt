@@ -78,10 +78,27 @@ class GenerateAnyDisplaysImplTest {
 
     @Test
     fun `Generating valid credential displays returns success`() = runTest {
-        val result = useCase(mockAnyCredential, mockIssuerInfo, mockMetadata, mockOcaBundle).assertOk()
+        val result = useCase(mockAnyCredential, mockIssuerInfo, trustIssuerNames, mockMetadata, mockOcaBundle).assertOk()
 
         val expectedIssuerDisplays = listOf(
-            AnyIssuerDisplay(locale = "en", name = "firstname"),
+            AnyIssuerDisplay(locale = trustIssuerNames.keys.first(), name = trustIssuerNames.values.first()),
+            AnyIssuerDisplay(locale = DisplayLanguage.FALLBACK, DisplayConst.ISSUER_FALLBACK_NAME)
+        )
+
+        val expectedCredentialDisplays = emptyList<AnyCredentialDisplay>()
+        val expectedClusters = emptyList<Cluster>()
+
+        assertEquals(expectedIssuerDisplays, result.issuerDisplays)
+        assertEquals(expectedCredentialDisplays, result.credentialDisplays)
+        assertEquals(expectedClusters, result.clusters)
+    }
+
+    @Test
+    fun `Generating the credential displays uses the metadata issuer name when trust issuer name is not provided`() = runTest {
+        val result = useCase(mockAnyCredential, mockIssuerInfo, null, mockMetadata, mockOcaBundle).assertOk()
+
+        val expectedIssuerDisplays = listOf(
+            AnyIssuerDisplay(locale = issuerDisplay.locale, issuerDisplay.name),
             AnyIssuerDisplay(locale = DisplayLanguage.FALLBACK, DisplayConst.ISSUER_FALLBACK_NAME)
         )
 
@@ -97,7 +114,7 @@ class GenerateAnyDisplaysImplTest {
     fun `Generating credential displays adds fallback language if empty`() = runTest {
         every { mockIssuerInfo.display } returns null
 
-        val result = useCase(mockAnyCredential, mockIssuerInfo, mockMetadata, mockOcaBundle).assertOk()
+        val result = useCase(mockAnyCredential, mockIssuerInfo, trustIssuerNames, mockMetadata, mockOcaBundle).assertOk()
 
         val expectedIssuerDisplays = listOf(
             AnyIssuerDisplay(locale = DisplayLanguage.FALLBACK, DisplayConst.ISSUER_FALLBACK_NAME)
@@ -108,10 +125,10 @@ class GenerateAnyDisplaysImplTest {
 
     @Test
     fun `Generating credential displays adds fallback language if not contained`() = runTest {
-        val result = useCase(mockAnyCredential, mockIssuerInfo, mockMetadata, mockOcaBundle).assertOk()
+        val result = useCase(mockAnyCredential, mockIssuerInfo, trustIssuerNames, mockMetadata, mockOcaBundle).assertOk()
 
         val expectedIssuerDisplays = listOf(
-            AnyIssuerDisplay(locale = "en", name = "firstname"),
+            AnyIssuerDisplay(locale = trustIssuerNames.keys.first(), name = trustIssuerNames.values.first()),
             AnyIssuerDisplay(locale = DisplayLanguage.FALLBACK, DisplayConst.ISSUER_FALLBACK_NAME)
         )
 
@@ -122,12 +139,13 @@ class GenerateAnyDisplaysImplTest {
     fun `Generating credential displays maps errors from getting the credential claims`() = runTest {
         every { mockAnyCredential.getClaimsToSave() } throws IllegalStateException()
 
-        useCase(mockAnyCredential, mockIssuerInfo, mockMetadata, mockOcaBundle).assertErrorType(CredentialError.Unexpected::class)
+        useCase(mockAnyCredential, mockIssuerInfo, trustIssuerNames, mockMetadata, mockOcaBundle)
+            .assertErrorType(CredentialError.Unexpected::class)
     }
 
     @Test
     fun `Generating credential displays gets the oca displays if oca bundle is provided`() = runTest {
-        useCase(mockAnyCredential, mockIssuerInfo, mockMetadata, mockOcaBundle).assertOk()
+        useCase(mockAnyCredential, mockIssuerInfo, trustIssuerNames, mockMetadata, mockOcaBundle).assertOk()
 
         coVerify(exactly = 1) {
             mockGenerateOcaDisplays(any(), any())
@@ -139,7 +157,7 @@ class GenerateAnyDisplaysImplTest {
 
     @Test
     fun `Generating credential displays gets the metadata displays if the oca bundle is not provided`() = runTest {
-        useCase(mockAnyCredential, mockIssuerInfo, mockMetadata, null).assertOk()
+        useCase(mockAnyCredential, mockIssuerInfo, trustIssuerNames, mockMetadata, null).assertOk()
 
         coVerify(exactly = 1) {
             mockGenerateMetadataDisplays(any(), any())
@@ -154,7 +172,13 @@ class GenerateAnyDisplaysImplTest {
         val exception = IllegalStateException()
         coEvery { mockGenerateOcaDisplays(any(), mockOcaBundle) } returns Err(OcaError.Unexpected(exception))
 
-        useCase(mockAnyCredential, mockIssuerInfo, mockMetadata, mockOcaBundle).assertErrorType(CredentialError.Unexpected::class)
+        useCase(
+            mockAnyCredential,
+            mockIssuerInfo,
+            trustIssuerNames,
+            mockMetadata,
+            mockOcaBundle
+        ).assertErrorType(CredentialError.Unexpected::class)
     }
 
     @Test
@@ -162,7 +186,7 @@ class GenerateAnyDisplaysImplTest {
         val exception = IllegalStateException()
         coEvery { mockGenerateMetadataDisplays(any(), mockMetadata) } returns Err(CredentialError.Unexpected(exception))
 
-        useCase(mockAnyCredential, mockIssuerInfo, mockMetadata, null).assertErrorType(CredentialError.Unexpected::class)
+        useCase(mockAnyCredential, mockIssuerInfo, trustIssuerNames, mockMetadata, null).assertErrorType(CredentialError.Unexpected::class)
     }
 
     private fun setupDefaultMocks() {
@@ -177,6 +201,10 @@ class GenerateAnyDisplaysImplTest {
 
     private companion object {
         val issuerDisplay = OidIssuerDisplay(locale = "en", name = "firstname")
+        val trustIssuerNames = mapOf(
+            "en" to "issuer name en",
+            "de" to "issuer name de",
+        )
 
         const val DISCLOSABLE_CLAIMS_JSON = """
         {

@@ -1,5 +1,6 @@
 package ch.admin.foitt.wallet.feature.settings.presentation.biometrics
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -71,6 +72,7 @@ private fun AuthWithPassphraseScreenContent(
 ) {
     when (currentWindowAdaptiveInfo().windowSizeClass.windowWidthSizeClass) {
         WindowWidthSizeClass.COMPACT -> WalletLayouts.CompactContainerFloatingBottom(
+            modifier = Modifier.background(WalletTheme.colorScheme.surfaceContainerLow),
             shouldScrollUnderTopBar = false,
             verticalArrangement = Arrangement.Top,
             content = {
@@ -95,6 +97,7 @@ private fun AuthWithPassphraseScreenContent(
         )
 
         else -> WalletLayouts.LargeContainerFloatingBottom(
+            modifier = Modifier.background(WalletTheme.colorScheme.surfaceContainerLow),
             shouldScrollUnderTopBar = false,
             verticalArrangement = Arrangement.Top,
             content = {

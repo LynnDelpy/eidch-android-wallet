@@ -2,7 +2,6 @@ package ch.admin.foitt.wallet.platform.trustRegistry.domain.usecase.implementati
 
 import ch.admin.foitt.openid4vc.domain.model.SigningAlgorithm
 import ch.admin.foitt.openid4vc.domain.model.anycredential.CredentialValidity
-import ch.admin.foitt.openid4vc.domain.model.sdjwt.SdJwt
 import ch.admin.foitt.openid4vc.domain.model.vcSdJwt.VcSdJwt
 import ch.admin.foitt.openid4vc.domain.model.vcSdJwt.VerifyJwtError
 import ch.admin.foitt.openid4vc.domain.usecase.VerifyJwtSignature
@@ -10,19 +9,15 @@ import ch.admin.foitt.wallet.platform.credentialStatus.domain.model.CredentialSt
 import ch.admin.foitt.wallet.platform.credentialStatus.domain.usecase.FetchCredentialStatus
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialStatus
 import ch.admin.foitt.wallet.platform.environmentSetup.domain.repository.EnvironmentSetupRepository
-import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.TrustStatement
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.ValidateTrustStatementError
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.toValidateTrustStatementError
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.usecase.ValidateTrustStatement
-import ch.admin.foitt.wallet.platform.utils.JsonParsingError
 import ch.admin.foitt.wallet.platform.utils.SafeJson
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.coroutines.coroutineBinding
 import com.github.michaelbull.result.coroutines.runSuspendCatching
 import com.github.michaelbull.result.get
 import com.github.michaelbull.result.mapError
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.jsonObject
 import javax.inject.Inject
 
 internal class ValidateTrustStatementImpl @Inject constructor(
@@ -31,19 +26,17 @@ internal class ValidateTrustStatementImpl @Inject constructor(
     private val fetchCredentialStatus: FetchCredentialStatus,
     private val safeJson: SafeJson,
 ) : ValidateTrustStatement {
-    override suspend operator fun invoke(
-        trustStatementRawVcSdJwt: String,
+    override suspend fun invoke(
+        trustStatement: VcSdJwt,
         actorDid: String,
-    ): Result<TrustStatement, ValidateTrustStatementError> = coroutineBinding {
+    ): Result<VcSdJwt, ValidateTrustStatementError> = coroutineBinding {
         runSuspendCatching {
-            val trustStatement = VcSdJwt(trustStatementRawVcSdJwt)
-
             check(trustStatement.hasTrustedDid()) {
                 errorMessageStart + "issuer did is not trusted"
             }
 
             // Header checks
-            check(trustStatement.type == SDJWT_TYPE_VALUE) {
+            check(trustStatement.type == VCSDJWT_TYPE_VALUE) {
                 errorMessageStart + "type is unsupported"
             }
             check(trustStatement.algorithm == SigningAlgorithm.ES256.stdName) {
@@ -60,19 +53,11 @@ internal class ValidateTrustStatementImpl @Inject constructor(
 
             // Claim checks
             checkNotNull(trustStatement.issuedAt) { "$errorMessageStart iat is missing" }
-            checkNotNull(trustStatement.nbfInstant) { "$errorMessageStart nbf is missing" }
-            checkNotNull(trustStatement.expInstant) { "$errorMessageStart exp is missing" }
             checkNotNull(trustStatement.subject) { "$errorMessageStart sub is missing" }
             check(trustStatement.subject == actorDid) { "trust statement is not from did we requested it for" }
             check(trustStatement.jwtValidity == CredentialValidity.Valid) {
                 "$errorMessageStart is ${trustStatement.jwtValidity}"
             }
-            check(trustStatement.vct == VC_TYPE_VALUE) { "$errorMessageStart vct is missing" }
-
-            // Specific trust statements claims
-            trustStatement.checkClaimNotNull(VC_ORGNAME_KEY)
-
-            trustStatement.checkClaimNotNull(VC_PREFLANG_KEY)
 
             // Status of trust statement
             val statusJsonElement = checkNotNull(trustStatement.status)
@@ -87,28 +72,17 @@ internal class ValidateTrustStatementImpl @Inject constructor(
                 "$errorMessageStart status is not valid"
             }
 
-            val trustStatementObject = safeJson.safeDecodeElementTo<TrustStatement>(trustStatement.sdJwtJson)
-                .mapError(JsonParsingError::toValidateTrustStatementError)
-                .bind()
-            trustStatementObject
-        }
-            .mapError { throwable ->
-                throwable.toValidateTrustStatementError("ValidateTrustStatement error")
-            }.bind()
+            trustStatement
+        }.mapError { throwable ->
+            throwable.toValidateTrustStatementError("ValidateTrustStatement error")
+        }.bind()
     }
 
     private fun VcSdJwt.hasTrustedDid() = environmentSetupRepo.trustRegistryTrustedDids.contains(vcIssuer)
 
-    private fun SdJwt.checkClaimNotNull(claimKey: String): JsonElement = checkNotNull(sdJwtJson.jsonObject[claimKey]) {
-        "$errorMessageStart $claimKey is missing"
-    }
-
     private val errorMessageStart = "Trust statement "
 
     private companion object {
-        const val VC_TYPE_VALUE = "TrustStatementMetadataV1"
-        const val SDJWT_TYPE_VALUE = "vc+sd-jwt"
-        const val VC_ORGNAME_KEY = "orgName"
-        const val VC_PREFLANG_KEY = "prefLang"
+        const val VCSDJWT_TYPE_VALUE = "vc+sd-jwt"
     }
 }

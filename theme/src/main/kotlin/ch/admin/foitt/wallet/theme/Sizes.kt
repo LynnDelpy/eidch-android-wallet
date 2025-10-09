@@ -57,4 +57,6 @@ object Sizes {
     val scannerBoxMaxSize = 200.dp
 
     val maxTextWidth = 400.dp
+
+    val homeMenuMinWidth = 200.dp
 }

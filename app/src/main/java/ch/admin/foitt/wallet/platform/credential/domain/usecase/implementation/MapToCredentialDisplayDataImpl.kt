@@ -1,5 +1,7 @@
 package ch.admin.foitt.wallet.platform.credential.domain.usecase.implementation
 
+import android.content.Context
+import android.os.Build
 import ch.admin.foitt.wallet.platform.credential.domain.model.CredentialDisplayData
 import ch.admin.foitt.wallet.platform.credential.domain.model.CredentialError
 import ch.admin.foitt.wallet.platform.credential.domain.model.MapToCredentialDisplayDataError
@@ -10,13 +12,16 @@ import ch.admin.foitt.wallet.platform.database.domain.model.Credential
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialClaimWithDisplays
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialDisplay
 import ch.admin.foitt.wallet.platform.locale.domain.usecase.GetLocalizedAndThemedDisplay
+import ch.admin.foitt.wallet.platform.theme.domain.model.Theme
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.coroutines.coroutineBinding
+import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
 class MapToCredentialDisplayDataImpl @Inject constructor(
+    @param:ApplicationContext private val context: Context,
     private val getLocalizedAndThemedDisplay: GetLocalizedAndThemedDisplay,
     private val isBetaIssuer: IsBetaIssuer,
 ) : MapToCredentialDisplayData {
@@ -37,9 +42,19 @@ class MapToCredentialDisplayDataImpl @Inject constructor(
         )
     }
 
-    private fun getDisplay(displays: List<CredentialDisplay>): Result<CredentialDisplay, MapToCredentialDisplayDataError> =
-        getLocalizedAndThemedDisplay(displays)?.let { Ok(it) }
+    private fun getDisplay(displays: List<CredentialDisplay>): Result<CredentialDisplay, MapToCredentialDisplayDataError> {
+        val currentTheme = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && context.resources.configuration.isNightModeActive) {
+            Theme.DARK
+        } else {
+            Theme.LIGHT
+        }
+
+        return getLocalizedAndThemedDisplay(
+            credentialDisplays = displays,
+            preferredTheme = currentTheme,
+        )?.let { Ok(it) }
             ?: Err(CredentialError.Unexpected(IllegalStateException("No localized display found")))
+    }
 
     private fun CredentialDisplay.resolveTemplate(claims: List<CredentialClaimWithDisplays>): CredentialDisplay {
         val description = this.description ?: ""

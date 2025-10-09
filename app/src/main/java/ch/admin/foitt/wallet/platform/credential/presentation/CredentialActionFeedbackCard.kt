@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -53,6 +52,7 @@ import ch.admin.foitt.wallet.platform.composables.LoadingOverlay
 import ch.admin.foitt.wallet.platform.composables.presentation.HeightReportingLayout
 import ch.admin.foitt.wallet.platform.preview.WalletAllScreenPreview
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.TrustStatus
+import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.VcSchemaTrustStatus
 import ch.admin.foitt.wallet.platform.utils.TestTags
 import ch.admin.foitt.wallet.theme.Sizes
 import ch.admin.foitt.wallet.theme.WalletButtonColors
@@ -162,21 +162,20 @@ fun CredentialActionFeedbackCard(
     BoxWithConstraints(
         modifier = modifier
             .fillMaxSize()
+            .background(WalletTheme.colorScheme.surfaceContainerLow)
             .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top))
         ) {
             Header(
                 issuer = issuer,
                 headerHeight = headerHeight
             )
 
-            val topInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top).asPaddingValues()
-            val minHeight = this@BoxWithConstraints.maxHeight - headerHeight.value - topInsets.calculateTopPadding()
+            val minHeight = this@BoxWithConstraints.maxHeight - headerHeight.value
             Sheet(
                 modifier = Modifier.heightIn(min = minHeight),
                 stickyBottomHeight = stickyBottomHeight.value,
@@ -213,12 +212,12 @@ private fun Header(
     onContentHeightMeasured = { height -> headerHeight.value = height }
 ) {
     Column {
-        Spacer(modifier = Modifier.height(Sizes.s06))
         InvitationHeader(
             modifier = Modifier.padding(horizontal = Sizes.s04),
             inviterName = issuer.name,
             inviterImage = issuer.painter,
             trustStatus = issuer.trustStatus,
+            vcSchemaTrustStatus = issuer.vcSchemaTrustStatus,
             actorType = issuer.actorType,
         )
         Spacer(modifier = Modifier.height(Sizes.s06))
@@ -351,6 +350,7 @@ private fun CredentialActionFeedbackCardPreview() {
                 name = "Test Issuer",
                 painter = painterResource(id = R.drawable.wallet_ic_scan_person),
                 trustStatus = TrustStatus.TRUSTED,
+                vcSchemaTrustStatus = VcSchemaTrustStatus.TRUSTED,
                 actorType = ActorType.ISSUER,
             ),
             contentTextFirstParagraphText = R.string.tk_receive_declineOffer_primary,

@@ -3,6 +3,7 @@ package ch.admin.foitt.wallet.feature.settings.presentation.language
 import android.content.res.Resources
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
+import ch.admin.foitt.wallet.R
 import ch.admin.foitt.wallet.platform.database.domain.model.DisplayLanguage
 import ch.admin.foitt.wallet.platform.locale.domain.usecase.GetCurrentAppLocale
 import ch.admin.foitt.wallet.platform.locale.domain.usecase.GetSupportedAppLocales
@@ -25,65 +26,65 @@ class LanguageViewModel @Inject constructor(
     setTopBarState: SetTopBarState,
 ) : ScreenViewModel(setTopBarState) {
 
-    override val topBarState = TopBarState.Details(navManager::popBackStack, null)
+    override val topBarState = TopBarState.Details(navManager::popBackStack, R.string.tk_settings_language_title)
 
-    private val defaultLanguage = Locale(DisplayLanguage.DEFAULT)
+    private val defaultLocale = Locale(DisplayLanguage.DEFAULT)
 
-    private var _selectedLanguage = MutableStateFlow(defaultLanguage)
-    val selectedLanguage = _selectedLanguage.asStateFlow()
+    private var _selectedLocale = MutableStateFlow(defaultLocale)
+    val selectedLocale = _selectedLocale.asStateFlow()
 
-    private var _supportedLanguages = MutableStateFlow(listOf(defaultLanguage))
-    val supportedLanguages = _supportedLanguages.asStateFlow()
+    private var _supportedLocales = MutableStateFlow(listOf(defaultLocale))
+    val supportedLocales = _supportedLocales.asStateFlow()
 
-    private var _isSystemLanguage = MutableStateFlow(true)
-    val isSystemLanguage = _isSystemLanguage.asStateFlow()
+    private var _isSystemLocale = MutableStateFlow(true)
+    val isSystemLocale = _isSystemLocale.asStateFlow()
 
     init {
-        _supportedLanguages.value = getSupportedAppLocales()
-        _selectedLanguage.value = getSelectedLanguage()
+        _supportedLocales.value = getSupportedAppLocales()
+        _selectedLocale.value = getSelectedLocale()
     }
 
-    private fun getSelectedLanguage(): Locale {
+    private fun getSelectedLocale(): Locale {
         return if (AppCompatDelegate.getApplicationLocales().isEmpty) {
             // no specific app language was set
             // -> use one from the device if possible (but use the order as prioritization)
-            useDeviceLanguageOrDefault()
+            useDeviceLocaleOrDefault()
         } else {
-            useAppSpecificLanguage()
+            useAppSpecificLocale()
         }
     }
 
-    private fun useDeviceLanguageOrDefault(): Locale {
-        _isSystemLanguage.value = true
+    private fun useDeviceLocaleOrDefault(): Locale {
+        _isSystemLocale.value = true
         val supportedLanguages = getSupportedAppLocales().map { it.language }.toSet()
         val systemLocales = Resources.getSystem().configuration.locales.toListOfLocales()
         val systemLanguages = systemLocales.map { it.language }
-        val preferredLanguage = systemLanguages.intersect(supportedLanguages).firstOrNull() ?: defaultLanguage.language
+        val preferredLanguage = systemLanguages.intersect(supportedLanguages).firstOrNull() ?: defaultLocale.language
         return Locale(preferredLanguage)
     }
 
-    private fun useAppSpecificLanguage(): Locale {
-        _isSystemLanguage.value = false
-        return AppCompatDelegate.getApplicationLocales()[0] ?: defaultLanguage
+    private fun useAppSpecificLocale(): Locale {
+        _isSystemLocale.value = false
+        return AppCompatDelegate.getApplicationLocales()[0] ?: defaultLocale
     }
 
-    fun checkLanguageChangedInSettings() {
-        val currentLanguage = getCurrentAppLocale()
-        val isCurrentLanguageSystemDefault = AppCompatDelegate.getApplicationLocales().isEmpty
-        if (currentLanguage.language != selectedLanguage.value.language || isSystemLanguage.value != isCurrentLanguageSystemDefault) {
-            _isSystemLanguage.value = isCurrentLanguageSystemDefault
-            _selectedLanguage.value = currentLanguage
+    fun checkLocaleChangedInSettings() {
+        val currentLocale = getCurrentAppLocale()
+        val isCurrentLocaleSystemDefault = AppCompatDelegate.getApplicationLocales().isEmpty
+        if (currentLocale.language != selectedLocale.value.language || isSystemLocale.value != isCurrentLocaleSystemDefault) {
+            _isSystemLocale.value = isCurrentLocaleSystemDefault
+            _selectedLocale.value = currentLocale
         }
     }
 
-    fun onUpdateLanguage(locale: Locale) {
-        _isSystemLanguage.value = false
-        _selectedLanguage.value = locale
+    fun onUpdateLocale(locale: Locale) {
+        _isSystemLocale.value = false
+        _selectedLocale.value = locale
         AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(locale.language))
     }
 
-    fun useSystemDefaultLanguage() {
-        _isSystemLanguage.value = true
+    fun useSystemDefaultLocale() {
+        _isSystemLocale.value = true
         AppCompatDelegate.setApplicationLocales(LocaleListCompat.getEmptyLocaleList())
     }
 }

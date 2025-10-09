@@ -1,5 +1,6 @@
 package ch.admin.foitt.wallet.platform.credential.domain.usecase.implementation
 
+import android.content.Context
 import ch.admin.foitt.wallet.platform.credential.domain.model.CredentialError
 import ch.admin.foitt.wallet.platform.credential.domain.model.toDisplayStatus
 import ch.admin.foitt.wallet.platform.credential.domain.usecase.IsBetaIssuer
@@ -11,6 +12,7 @@ import ch.admin.foitt.wallet.platform.database.domain.model.CredentialClaimWithD
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialDisplay
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialStatus
 import ch.admin.foitt.wallet.platform.locale.domain.usecase.GetLocalizedAndThemedDisplay
+import ch.admin.foitt.wallet.platform.theme.domain.model.Theme
 import ch.admin.foitt.wallet.util.assertErrorType
 import ch.admin.foitt.wallet.util.assertOk
 import io.mockk.MockKAnnotations
@@ -37,6 +39,9 @@ class MapToCredentialDisplayDataImplTest {
     private lateinit var mockIsBetaIssuer: IsBetaIssuer
 
     @MockK
+    private lateinit var mockAppContext: Context
+
+    @MockK
     private lateinit var mockCredential: Credential
 
     private lateinit var useCase: MapToCredentialDisplayData
@@ -46,6 +51,7 @@ class MapToCredentialDisplayDataImplTest {
         MockKAnnotations.init(this)
 
         useCase = MapToCredentialDisplayDataImpl(
+            mockAppContext,
             mockGetLocalizedAndThemedDisplay,
             mockIsBetaIssuer,
         )
@@ -84,7 +90,9 @@ class MapToCredentialDisplayDataImplTest {
 
     @Test
     fun `Mapping the credential display data maps errors from the GetLocalizedDisplay use case`() = runTest {
-        coEvery { mockGetLocalizedAndThemedDisplay(listOf(credentialDisplay)) } returns null
+        coEvery {
+            mockGetLocalizedAndThemedDisplay(listOf(element = credentialDisplay), preferredTheme = Theme.LIGHT)
+        } returns null
 
         val result = useCase(mockCredential, credentialDisplays, claims)
         result.assertErrorType(CredentialError.Unexpected::class)
@@ -94,10 +102,10 @@ class MapToCredentialDisplayDataImplTest {
     fun `Mapping the credential display data correctly resolves a simple template`() = runTest {
         val credentialDisplays = listOf(credentialDisplaySimpleTemplate)
         coEvery {
-            mockGetLocalizedAndThemedDisplay(credentialDisplays)
+            mockGetLocalizedAndThemedDisplay(credentialDisplays = credentialDisplays, preferredTheme = Theme.LIGHT)
         } returns credentialDisplaySimpleTemplate
 
-        val result = useCase(mockCredential, credentialDisplays, claims).assertOk()
+        val result = useCase(credential = mockCredential, credentialDisplays = credentialDisplays, claims = claims).assertOk()
 
         assertEquals("Test: value1", result.subtitle)
     }
@@ -106,7 +114,7 @@ class MapToCredentialDisplayDataImplTest {
     fun `Mapping the credential display data correctly resolves a multi template`() = runTest {
         val credentialDisplays = listOf(credentialDisplayMultiTemplate)
         coEvery {
-            mockGetLocalizedAndThemedDisplay(credentialDisplays)
+            mockGetLocalizedAndThemedDisplay(credentialDisplays = credentialDisplays, preferredTheme = Theme.LIGHT)
         } returns credentialDisplayMultiTemplate
 
         val claims = listOf(
@@ -128,7 +136,7 @@ class MapToCredentialDisplayDataImplTest {
     fun `Mapping the credential display where the template references an unknown key is replaced by empty string`() = runTest {
         val credentialDisplays = listOf(credentialDisplayUnknownKey)
         coEvery {
-            mockGetLocalizedAndThemedDisplay(credentialDisplays)
+            mockGetLocalizedAndThemedDisplay(credentialDisplays = credentialDisplays, preferredTheme = Theme.LIGHT)
         } returns credentialDisplayUnknownKey
 
         val result = useCase(mockCredential, credentialDisplays, claims).assertOk()
@@ -140,7 +148,7 @@ class MapToCredentialDisplayDataImplTest {
     fun `Mapping the credential display where the template references an null claim is replaced by hyphen`() = runTest {
         val credentialDisplays = listOf(credentialDisplaySimpleTemplate)
         coEvery {
-            mockGetLocalizedAndThemedDisplay(credentialDisplays)
+            mockGetLocalizedAndThemedDisplay(credentialDisplays = credentialDisplays, preferredTheme = Theme.LIGHT)
         } returns credentialDisplaySimpleTemplate
 
         val result = useCase(mockCredential, credentialDisplays, claimsWithNullValue).assertOk()
@@ -154,7 +162,7 @@ class MapToCredentialDisplayDataImplTest {
         val credentialDisplay = createCredentialDisplay(input.first)
         val credentialDisplays = listOf(credentialDisplay)
         coEvery {
-            mockGetLocalizedAndThemedDisplay(credentialDisplays)
+            mockGetLocalizedAndThemedDisplay(credentialDisplays = credentialDisplays, preferredTheme = Theme.LIGHT)
         } returns credentialDisplay
 
         val result = useCase(mockCredential, credentialDisplays, claims).assertOk()
@@ -177,7 +185,7 @@ class MapToCredentialDisplayDataImplTest {
         val credentialDisplayInvalidTemplate = createCredentialDisplay(template)
         val credentialDisplays = listOf(credentialDisplayInvalidTemplate)
         coEvery {
-            mockGetLocalizedAndThemedDisplay(credentialDisplays)
+            mockGetLocalizedAndThemedDisplay(credentialDisplays = credentialDisplays, preferredTheme = Theme.LIGHT)
         } returns credentialDisplayInvalidTemplate
 
         val result = useCase(mockCredential, credentialDisplays, claims).assertOk()
@@ -192,7 +200,12 @@ class MapToCredentialDisplayDataImplTest {
         every { mockCredential.validUntil } returns 17768026519L
         every { mockCredential.issuer } returns ISSUER
 
-        coEvery { mockGetLocalizedAndThemedDisplay(listOf(credentialDisplay)) } returns credentialDisplay
+        coEvery {
+            mockGetLocalizedAndThemedDisplay(
+                credentialDisplays = listOf(credentialDisplay),
+                preferredTheme = Theme.LIGHT
+            )
+        } returns credentialDisplay
         coEvery { mockIsBetaIssuer(ISSUER) } returns true
     }
 

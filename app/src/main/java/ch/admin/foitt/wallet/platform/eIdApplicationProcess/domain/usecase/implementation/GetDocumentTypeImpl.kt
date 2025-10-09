@@ -14,8 +14,8 @@ class GetDocumentTypeImpl @Inject constructor(
     override operator fun invoke(): StateFlow<EIdDocumentType> {
         val repository = destinationScopedComponentManager.getEntryPoint(
             entryPointClass = EidApplicationProcessEntryPoint::class.java,
-            componentScope = ComponentScope.EidDocumentType,
-        ).eidDocumentTypeRepository()
+            componentScope = ComponentScope.EidApplicationProcess,
+        ).eidApplicationProcessRepository()
 
         return repository.documentType
     }

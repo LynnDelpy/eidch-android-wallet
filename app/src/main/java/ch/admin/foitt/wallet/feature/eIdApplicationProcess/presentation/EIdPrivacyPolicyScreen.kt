@@ -1,6 +1,5 @@
 package ch.admin.foitt.wallet.feature.eIdApplicationProcess.presentation
 
-import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -26,7 +25,7 @@ import com.ramcosta.composedestinations.annotation.Destination
 fun EIdPrivacyPolicyScreen(
     viewModel: EIdPrivacyPolicyViewModel,
 ) {
-    val activity = LocalActivity.current as AppCompatActivity
+    val activity = LocalActivity.current
 
     EIdPrivacyPolicyScreenContent(
         onEIdPrivacyPolicy = viewModel::onEIdPrivacyPolicy,

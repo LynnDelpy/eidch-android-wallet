@@ -16,12 +16,14 @@ import ch.admin.foitt.wallet.platform.database.domain.model.DisplayLanguage
 import ch.admin.foitt.wallet.platform.navigation.NavigationManager
 import ch.admin.foitt.wallet.platform.scaffold.domain.model.TopBarState
 import ch.admin.foitt.wallet.platform.scaffold.domain.usecase.SetTopBarState
+import ch.admin.foitt.wallet.platform.scaffold.extension.refreshableStateFlow
 import ch.admin.foitt.wallet.platform.scaffold.presentation.ScreenViewModel
 import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialDetail
 import ch.admin.foitt.wallet.platform.ssi.domain.model.SsiError
 import ch.admin.foitt.wallet.platform.ssi.domain.usecase.DeleteCredential
 import ch.admin.foitt.wallet.platform.ssi.domain.usecase.GetCredentialDetailFlow
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.TrustStatus
+import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.VcSchemaTrustStatus
 import ch.admin.foitt.wallet.platform.utils.toPainter
 import ch.admin.foitt.walletcomposedestinations.destinations.CredentialDetailScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.CredentialDetailWrongDataScreenDestination
@@ -31,7 +33,6 @@ import com.github.michaelbull.result.get
 import com.github.michaelbull.result.onFailure
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
@@ -61,25 +62,27 @@ class CredentialDetailViewModel @Inject constructor(
     private val _visibleBottomSheet = MutableStateFlow(VisibleBottomSheet.NONE)
     val visibleBottomSheet = _visibleBottomSheet.asStateFlow()
 
-    val credentialDetailUiState: StateFlow<CredentialDetailUiState> = combine(
-        getCredentialDetailFlow(navArgs.credentialId),
-        getCredentialIssuerDisplaysFlow(navArgs.credentialId)
-    ) { detailsResult, issuerDisplayResult ->
-        when {
-            detailsResult.isOk -> {
-                _isLoading.value = false
-                mapToUiState(
-                    credentialDetail = detailsResult.value,
-                    issuerDisplay = issuerDisplayResult.get()
-                )
+    val credentialDetailUiState = refreshableStateFlow(CredentialDetailUiState.EMPTY) {
+        combine(
+            getCredentialDetailFlow(navArgs.credentialId),
+            getCredentialIssuerDisplaysFlow(navArgs.credentialId)
+        ) { detailsResult, issuerDisplayResult ->
+            when {
+                detailsResult.isOk -> {
+                    _isLoading.value = false
+                    mapToUiState(
+                        credentialDetail = detailsResult.value,
+                        issuerDisplay = issuerDisplayResult.get()
+                    )
+                }
+
+                else -> {
+                    navigateToErrorScreen()
+                    null
+                }
             }
-            else -> {
-                navigateToErrorScreen()
-                null
-            }
-        }
-    }.filterNotNull()
-        .toStateFlow(CredentialDetailUiState.EMPTY)
+        }.filterNotNull()
+    }
 
     private suspend fun mapToUiState(
         credentialDetail: CredentialDetail?,
@@ -153,6 +156,7 @@ class CredentialDetailViewModel @Inject constructor(
             },
             painter = getDrawableFromUri(image)?.toPainter(),
             trustStatus = TrustStatus.UNKNOWN,
+            vcSchemaTrustStatus = VcSchemaTrustStatus.UNPROTECTED,
             actorType = ActorType.ISSUER,
         )
     } ?: ActorUiState.EMPTY.copy(actorType = ActorType.ISSUER)

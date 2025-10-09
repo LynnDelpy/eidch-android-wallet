@@ -13,5 +13,5 @@ class DataAnalysisViewModel @Inject constructor(
     private val navManager: NavigationManager,
     setTopBarState: SetTopBarState,
 ) : ScreenViewModel(setTopBarState) {
-    override val topBarState = TopBarState.Details(navManager::navigateUp, R.string.dataAnalysis_screenTitle)
+    override val topBarState = TopBarState.Details(navManager::navigateUp, R.string.tk_settings_diagnosticData_title)
 }

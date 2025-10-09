@@ -36,7 +36,7 @@ fun ScreenContainer(
         topBar = {
             Box(
                 modifier = Modifier
-                    .setIsTraversalGroup(index = TraversalIndex.LOW1)
+                    .setIsTraversalGroup(index = TraversalIndex.FIRST)
                     .focusGroup()
                     .focusRequester(focus02Ref)
                     .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))

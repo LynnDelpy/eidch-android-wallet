@@ -8,6 +8,7 @@ import ch.admin.foitt.openid4vc.domain.usecase.VerifyJwtSignature
 import ch.admin.foitt.wallet.platform.credentialPresentation.domain.model.CredentialPresentationError
 import ch.admin.foitt.wallet.platform.credentialPresentation.domain.usecase.ValidatePresentationRequest
 import ch.admin.foitt.wallet.platform.credentialPresentation.mock.MockPresentationRequest
+import ch.admin.foitt.wallet.platform.credentialPresentation.mock.MockPresentationRequest.CLIENT_ID
 import ch.admin.foitt.wallet.util.SafeJsonTestInstance
 import ch.admin.foitt.wallet.util.assertErrorType
 import ch.admin.foitt.wallet.util.assertOk
@@ -158,7 +159,7 @@ class ValidatePresentationRequestImplTest {
 
     @Test
     fun `Json Presentation request clientId that matches the clientId of the deeplink returns a success`() = runTest {
-        coEvery { mockJsonPresentationContainer.clientId } returns MockPresentationRequest.CLIENT_ID
+        coEvery { mockJsonPresentationContainer.clientId } returns CLIENT_ID
 
         useCase(mockJsonPresentationContainer).assertOk()
     }
@@ -232,6 +233,13 @@ class ValidatePresentationRequestImplTest {
     }
 
     @Test
+    fun `Jwt Presentation request where clientId does not match iss return invalid presentation error`() = runTest {
+        coEvery { mockJwtPresentationContainer.clientId } returns "did:somethingDifferentThanIssDid:123"
+
+        useCase(mockJwtPresentationContainer).assertErrorType(CredentialPresentationError.InvalidPresentation::class)
+    }
+
+    @Test
     fun `Jwt Presentation request with a missing jwt kid header return invalid presentation error `(): Unit = runTest {
         coEvery { mockPresentationJwt.keyId } returns null
 
@@ -283,7 +291,7 @@ class ValidatePresentationRequestImplTest {
 
     @Test
     fun `Jwt Presentation request clientId that matches the clientId of the deeplink returns a success`() = runTest {
-        coEvery { mockJwtPresentationContainer.clientId } returns MockPresentationRequest.CLIENT_ID
+        coEvery { mockJwtPresentationContainer.clientId } returns CLIENT_ID
 
         useCase(mockJwtPresentationContainer).assertOk()
     }

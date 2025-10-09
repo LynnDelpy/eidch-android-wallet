@@ -2,11 +2,15 @@ package ch.admin.foitt.wallet.platform.trustRegistry.di
 
 import ch.admin.foitt.wallet.platform.trustRegistry.data.TrustStatementRepositoryImpl
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.repository.TrustStatementRepository
-import ch.admin.foitt.wallet.platform.trustRegistry.domain.usecase.FetchTrustStatementFromDid
+import ch.admin.foitt.wallet.platform.trustRegistry.domain.usecase.FetchVcSchemaTrustStatus
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.usecase.GetTrustUrlFromDid
+import ch.admin.foitt.wallet.platform.trustRegistry.domain.usecase.ProcessIdentityV1TrustStatement
+import ch.admin.foitt.wallet.platform.trustRegistry.domain.usecase.ProcessMetadataV1TrustStatement
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.usecase.ValidateTrustStatement
-import ch.admin.foitt.wallet.platform.trustRegistry.domain.usecase.implementation.FetchTrustStatementFromDidImpl
+import ch.admin.foitt.wallet.platform.trustRegistry.domain.usecase.implementation.FetchVcSchemaTrustStatusImpl
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.usecase.implementation.GetTrustUrlFromDidImpl
+import ch.admin.foitt.wallet.platform.trustRegistry.domain.usecase.implementation.ProcessIdentityV1TrustStatementImpl
+import ch.admin.foitt.wallet.platform.trustRegistry.domain.usecase.implementation.ProcessMetadataV1TrustStatementImpl
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.usecase.implementation.ValidateTrustStatementImpl
 import dagger.Binds
 import dagger.Module
@@ -18,14 +22,24 @@ import dagger.hilt.android.scopes.ActivityRetainedScoped
 @InstallIn(ActivityRetainedComponent::class)
 internal interface TrustRegistryModule {
     @Binds
-    fun bindGetTrustUrlFromDid(
-        useCase: GetTrustUrlFromDidImpl
-    ): GetTrustUrlFromDid
+    fun bindProcessMetadataV1TrustStatement(
+        useCase: ProcessMetadataV1TrustStatementImpl
+    ): ProcessMetadataV1TrustStatement
 
     @Binds
-    fun bindValidateTrustStatement(
-        useCase: ValidateTrustStatementImpl
-    ): ValidateTrustStatement
+    fun bindProcessIdentityV1TrustStatement(
+        useCase: ProcessIdentityV1TrustStatementImpl
+    ): ProcessIdentityV1TrustStatement
+
+    @Binds
+    fun bindFetchVcSchemaTrustStatus(
+        useCase: FetchVcSchemaTrustStatusImpl
+    ): FetchVcSchemaTrustStatus
+
+    @Binds
+    fun bindGetTrustDomainFromDid(
+        useCase: GetTrustUrlFromDidImpl
+    ): GetTrustUrlFromDid
 
     @Binds
     @ActivityRetainedScoped
@@ -34,7 +48,7 @@ internal interface TrustRegistryModule {
     ): TrustStatementRepository
 
     @Binds
-    fun bindFetchTrustStatementFromDid(
-        useCase: FetchTrustStatementFromDidImpl
-    ): FetchTrustStatementFromDid
+    fun bindValidateTrustStatement(
+        useCase: ValidateTrustStatementImpl
+    ): ValidateTrustStatement
 }

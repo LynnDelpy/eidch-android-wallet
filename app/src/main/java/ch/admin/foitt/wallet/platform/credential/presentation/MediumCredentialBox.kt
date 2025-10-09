@@ -33,7 +33,7 @@ fun MediumCredentialBox(
 ) = Box(
     modifier = modifier
         .clip(WalletTheme.shapes.large)
-        .background(WalletTheme.colorScheme.surfaceContainerLow),
+        .background(WalletTheme.colorScheme.background),
 ) {
     val windowSizeClass = currentWindowAdaptiveInfo().windowSizeClass
     if (windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.COMPACT) {

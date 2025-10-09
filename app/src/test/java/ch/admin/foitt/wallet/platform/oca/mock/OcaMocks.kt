@@ -687,7 +687,8 @@ object OcaMocks {
     const val UNKNOWN_ENCODING = "default encoding"
     const val META_NAME = "name"
     const val META_DESCRIPTION = "description"
-    const val BRANDING_THEME = "light"
+    const val BRANDING_LIGHT_THEME = "light"
+    const val BRANDING_DARK_THEME = "dark"
     const val BRANDING_LOGO = "logo"
     const val BRANDING_BACKGROUND_COLOR = "background color"
     const val BRANDING_PRIMARY_FIELD = "primary field"
@@ -774,7 +775,7 @@ object OcaMocks {
             BrandingOverlay1x1(
                 captureBaseDigest = DIGEST,
                 language = LANGUAGE_EN,
-                theme = BRANDING_THEME,
+                theme = BRANDING_LIGHT_THEME,
                 logo = BRANDING_LOGO,
                 primaryBackgroundColor = BRANDING_BACKGROUND_COLOR,
                 primaryField = BRANDING_PRIMARY_FIELD,

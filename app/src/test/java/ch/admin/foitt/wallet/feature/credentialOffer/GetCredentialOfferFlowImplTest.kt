@@ -8,7 +8,6 @@ import ch.admin.foitt.wallet.feature.credentialOffer.mock.MockCredentialOffer.CR
 import ch.admin.foitt.wallet.feature.credentialOffer.mock.MockCredentialOffer.ISSUER
 import ch.admin.foitt.wallet.feature.credentialOffer.mock.MockCredentialOffer.credentialOffer
 import ch.admin.foitt.wallet.feature.credentialOffer.mock.MockCredentialOffer.credentialOffer2
-import ch.admin.foitt.wallet.platform.actorMetadata.domain.usecase.FetchAndCacheIssuerDisplayData
 import ch.admin.foitt.wallet.platform.credential.domain.model.CredentialError
 import ch.admin.foitt.wallet.platform.credential.domain.usecase.MapToCredentialDisplayData
 import ch.admin.foitt.wallet.platform.credentialCluster.domain.usercase.MapToCredentialClaimCluster
@@ -27,8 +26,6 @@ import com.github.michaelbull.result.Ok
 import io.mockk.MockKAnnotations
 import io.mockk.coEvery
 import io.mockk.impl.annotations.MockK
-import io.mockk.just
-import io.mockk.runs
 import io.mockk.unmockkAll
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
@@ -53,9 +50,6 @@ class GetCredentialOfferFlowImplTest {
     lateinit var mockMapToCredentialClaimCluster: MapToCredentialClaimCluster
 
     @MockK
-    lateinit var mockFetchAndCacheIssuerDisplayData: FetchAndCacheIssuerDisplayData
-
-    @MockK
     lateinit var mockCredential: Credential
 
     @MockK
@@ -74,7 +68,6 @@ class GetCredentialOfferFlowImplTest {
             mockCredentialWithDisplaysAndClustersRepository,
             mockMapToCredentialDisplayData,
             mockMapToCredentialClaimCluster,
-            mockFetchAndCacheIssuerDisplayData,
         )
 
         setupDefaultMocks()
@@ -147,7 +140,6 @@ class GetCredentialOfferFlowImplTest {
 
     private fun setupDefaultMocks() {
         coEvery { mockCredential.issuer } returns ISSUER
-        coEvery { mockFetchAndCacheIssuerDisplayData(CREDENTIAL_ID, ISSUER) } just runs
         coEvery { mockCredentialWithDisplaysAndClusters.credential } returns mockCredential
         coEvery { mockCredentialWithDisplaysAndClusters.credentialDisplays } returns MockCredentialDetail.credentialDisplays
         coEvery { mockCredentialWithDisplaysAndClusters.clusters } returns listOf(

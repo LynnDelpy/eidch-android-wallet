@@ -40,7 +40,7 @@ class MapToCredentialClaimDataImpl @Inject constructor(
                     ValueType.STRING -> CredentialClaimText(
                         localizedLabel = display.name,
                         order = claim.order,
-                        value = display.value ?: claim.value
+                        value = display.value ?: claim.value?.let { truncateClaimValue(claimValue = it) }
                     )
 
                     ValueType.DATETIME -> CredentialClaimText(
@@ -80,6 +80,12 @@ class MapToCredentialClaimDataImpl @Inject constructor(
         }.mapError { throwable ->
             throwable.toMapToCredentialClaimDataError("MapToCredentialClaimData error")
         }
+
+    private fun truncateClaimValue(claimValue: String) = if (claimValue.length > MAX_CLAIM_LENGTH) {
+        claimValue.take(MAX_CLAIM_LENGTH) + "…"
+    } else {
+        claimValue
+    }
 
     private fun localizeDateTime(value: String, pattern: String?, locale: Locale): String = runSuspendCatching {
         when (val dateTimePattern = DateTimePattern.getPatternFor(pattern)) {
@@ -154,5 +160,8 @@ class MapToCredentialClaimDataImpl @Inject constructor(
         // group 3: optional decimal part (dot followed by an integer)
         // group 4: optional exponent part (e/E followed by optional plus/minus followed by an integer)
         val numberRegex = Regex("""^(-?)(\d+)(?:\.(\d+))?([eE][+-]?\d+)?$""")
+
+        // Claim values can be long texts (or misconfigured images that are shown as text), which can cause an ANR
+        const val MAX_CLAIM_LENGTH = 1800
     }
 }

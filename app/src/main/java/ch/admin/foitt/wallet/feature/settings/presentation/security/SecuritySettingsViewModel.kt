@@ -43,7 +43,7 @@ class SecuritySettingsViewModel @Inject constructor(
     setTopBarState: SetTopBarState,
 ) : ScreenViewModel(setTopBarState) {
 
-    override val topBarState = TopBarState.Details(navManager::navigateUp, R.string.securitySettings_title)
+    override val topBarState = TopBarState.Details(navManager::navigateUp, R.string.tk_settings_securityPrivacy_title)
 
     val biometricsHardwareIsAvailable: Flow<Boolean> = flow {
         emit(
@@ -104,7 +104,7 @@ class SecuritySettingsViewModel @Inject constructor(
         navManager.navigateTo(AuthWithPassphraseScreenDestination(navArgs = AuthWithPassphraseNavArg(enableBiometrics = false)))
     }
 
-    fun onDataProtection() = appContext.openLink(R.string.securitySettings_dataProtectionLink)
+    fun onDataProtection() = appContext.openLink(R.string.tk_settings_securityPrivacy_dataProtection_privacyPolicy_link_value)
 
     fun onChangePassphrase() = navManager.navigateTo(EnterCurrentPassphraseScreenDestination)
 

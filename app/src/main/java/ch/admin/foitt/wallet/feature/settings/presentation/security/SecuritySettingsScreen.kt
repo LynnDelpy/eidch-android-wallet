@@ -1,29 +1,26 @@
 package ch.admin.foitt.wallet.feature.settings.presentation.security
 
-import androidx.annotation.DrawableRes
-import androidx.annotation.StringRes
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ch.admin.foitt.wallet.R
+import ch.admin.foitt.wallet.feature.settings.presentation.composables.ClickableTextSettingsItem
+import ch.admin.foitt.wallet.feature.settings.presentation.composables.LinkSettingsItem
+import ch.admin.foitt.wallet.feature.settings.presentation.composables.SettingsDivider
+import ch.admin.foitt.wallet.feature.settings.presentation.composables.SettingsSection
+import ch.admin.foitt.wallet.feature.settings.presentation.composables.SwitchSettingsItem
 import ch.admin.foitt.wallet.platform.composables.ToastAnimated
 import ch.admin.foitt.wallet.platform.composables.presentation.addTopScaffoldPadding
 import ch.admin.foitt.wallet.platform.composables.presentation.bottomSafeDrawing
@@ -31,9 +28,7 @@ import ch.admin.foitt.wallet.platform.composables.presentation.horizontalSafeDra
 import ch.admin.foitt.wallet.platform.preview.WalletAllScreenPreview
 import ch.admin.foitt.wallet.platform.utils.OnPauseEventHandler
 import ch.admin.foitt.wallet.theme.Sizes
-import ch.admin.foitt.wallet.theme.WalletIcons
 import ch.admin.foitt.wallet.theme.WalletListItems
-import ch.admin.foitt.wallet.theme.WalletTexts
 import ch.admin.foitt.wallet.theme.WalletTheme
 import com.ramcosta.composedestinations.annotation.Destination
 
@@ -73,7 +68,9 @@ private fun SecuritySettingsScreenContent(
     onShareAnalysisChange: (Boolean) -> Unit,
     onDataAnalysis: () -> Unit,
 ) = Box(
-    modifier = Modifier.fillMaxSize()
+    modifier = Modifier
+        .fillMaxSize()
+        .background(WalletTheme.colorScheme.surfaceContainerLow)
 ) {
     Column(
         modifier = Modifier
@@ -83,18 +80,17 @@ private fun SecuritySettingsScreenContent(
             .horizontalSafeDrawing()
             .bottomSafeDrawing()
             .padding(
-                top = Sizes.s05,
-                bottom = Sizes.s05,
+                bottom = Sizes.s04,
             )
     ) {
-        LoginSection(
+        SecuritySection(
             biometricsAvailableThroughDeviceSettings = biometricsHardwareIsAvailable,
             biometricsEnabled = biometricsEnabled,
             showPassphraseDeletionMessage = showPassphraseDeletionMessage,
             onChangePin = onChangePin,
             onChangeBiometrics = onChangeBiometrics,
         )
-        Spacer(modifier = Modifier.height(Sizes.s10))
+        Spacer(modifier = Modifier.height(Sizes.s06))
         AnalysisSection(
             shareAnalysisEnabled = shareAnalysisEnabled,
             onDataProtection = onDataProtection,
@@ -111,101 +107,65 @@ private fun SecuritySettingsScreenContent(
 }
 
 @Composable
-private fun LoginSection(
+private fun SecuritySection(
     biometricsAvailableThroughDeviceSettings: Boolean,
     biometricsEnabled: Boolean,
     showPassphraseDeletionMessage: Boolean,
     onChangePin: () -> Unit,
     onChangeBiometrics: () -> Unit
+) = SettingsSection(
+    title = stringResource(R.string.tk_settings_securityPrivacy_security_sectionTitle)
 ) {
-    SectionHeader(
-        icon = R.drawable.pilot_ic_settings_hand,
-        title = R.string.securitySettings_loginTitle,
+    WalletListItems.ClickableTextSettingsItem(
+        title = stringResource(R.string.tk_settings_securityPrivacy_security_changePassword),
+        onClick = onChangePin,
     )
-    Spacer(modifier = Modifier.height(Sizes.s04))
-    WalletListItems.SimpleListItem(
-        title = stringResource(id = R.string.securitySettings_changePin),
-        onItemClick = onChangePin,
-        trailingIcon = R.drawable.pilot_ic_settings_next,
-    )
-    WalletListItems.SwitchListItem(
-        title = stringResource(id = R.string.securitySettings_biometrics),
-        description = biometricsDescription(biometricsAvailableThroughDeviceSettings, showPassphraseDeletionMessage),
+    WalletListItems.SettingsDivider()
+    WalletListItems.SwitchSettingsItem(
+        title = stringResource(R.string.tk_settings_securityPrivacy_security_unlock),
+        subtitle = biometricsDescription(biometricsAvailableThroughDeviceSettings, showPassphraseDeletionMessage),
         isSwitchEnabled = biometricsAvailableThroughDeviceSettings,
         isSwitchChecked = biometricsEnabled,
         onSwitchChange = { onChangeBiometrics() },
-        showDivider = false,
     )
 }
 
 @Composable
 fun AnalysisSection(
-    onDataProtection: () -> Unit,
     shareAnalysisEnabled: Boolean,
     onShareAnalysisChange: (Boolean) -> Unit,
-    onDataAnalysis: () -> Unit
+    onDataAnalysis: () -> Unit,
+    onDataProtection: () -> Unit,
+) = SettingsSection(
+    title = stringResource(R.string.tk_settings_securityPrivacy_dataProtection_sectionTitle)
 ) {
-    SectionHeader(
-        icon = R.drawable.pilot_ic_analysis,
-        title = R.string.securitySettings_analysisTitle,
-    )
-    Spacer(modifier = Modifier.height(Sizes.s04))
-    WalletListItems.SimpleListItem(
-        title = stringResource(id = R.string.securitySettings_dataProtection),
-        onItemClick = onDataProtection,
-        trailingIcon = R.drawable.pilot_ic_settings_link,
-    )
-    WalletListItems.SwitchListItem(
-        title = stringResource(id = R.string.securitySettings_shareAnalysis),
-        description = shareAnalysisDescription(),
+    WalletListItems.SwitchSettingsItem(
+        title = stringResource(id = R.string.tk_settings_securityPrivacy_dataProtection_shareData_primary),
+        subtitle = stringResource(R.string.tk_settings_securityPrivacy_dataProtection_shareData_secondary),
         isSwitchChecked = shareAnalysisEnabled,
         onSwitchChange = onShareAnalysisChange,
     )
-    WalletListItems.SimpleListItem(
-        title = stringResource(id = R.string.securitySettings_dataAnalysis),
-        onItemClick = onDataAnalysis,
-        trailingIcon = R.drawable.pilot_ic_settings_next,
-        showDivider = false,
+    WalletListItems.SettingsDivider()
+    WalletListItems.ClickableTextSettingsItem(
+        title = stringResource(id = R.string.tk_settings_securityPrivacy_dataProtection_diagnosticData),
+        onClick = onDataAnalysis,
+    )
+    WalletListItems.SettingsDivider()
+    WalletListItems.LinkSettingsItem(
+        title = stringResource(id = R.string.tk_settings_securityPrivacy_dataProtection_privacyPolicy_link_text),
+        onClick = onDataProtection,
+        leadingIcon = R.drawable.wallet_ic_shield_person_small,
     )
 }
 
 @Composable
-private fun SectionHeader(@DrawableRes icon: Int, @StringRes title: Int) {
-    Row(
-        modifier = Modifier.padding(start = Sizes.s04, end = Sizes.s04),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        WalletIcons.IconWithBackground(
-            icon = painterResource(id = icon)
-        )
-        Spacer(modifier = Modifier.width(Sizes.s04))
-        WalletTexts.TitleSmall(text = stringResource(id = title))
-    }
-}
-
-@Composable
-private fun shareAnalysisDescription(): AnnotatedString {
-    val boldText = stringResource(id = R.string.securitySettings_shareAnalysis_text)
-    val description = stringResource(id = R.string.securitySettings_shareAnalysis_text, boldText)
-    val start = description.indexOf(boldText)
-    val spanStyles = listOf(
-        AnnotatedString.Range(
-            SpanStyle(fontWeight = FontWeight.Bold),
-            start = start,
-            end = start + boldText.length,
-        )
-    )
-    return AnnotatedString(text = description, spanStyles = spanStyles)
-}
-
-@Composable
-private fun biometricsDescription(biometricHardwareAvailable: Boolean, showPassphraseDeletionMessage: Boolean): AnnotatedString? {
+private fun biometricsDescription(biometricHardwareAvailable: Boolean, showPassphraseDeletionMessage: Boolean): String? {
     val stringId = when {
-        !biometricHardwareAvailable -> R.string.securitySettings_biometrics_noHardware
-        showPassphraseDeletionMessage -> R.string.securitySettings_biometrics_pinChanged
+        !biometricHardwareAvailable -> R.string.tk_settings_securityPrivacy_biometrics_noHardware
+        showPassphraseDeletionMessage -> R.string.tk_settings_securityPrivacy_biometrics_pinChanged
         else -> null
     }
-    return stringId?.let { AnnotatedString(stringResource(id = stringId)) }
+    return stringId?.let { stringResource(id = it) }
 }
 
 private class SecuritySettingsPreviewParams : PreviewParameterProvider<Pair<Boolean, Boolean>> {

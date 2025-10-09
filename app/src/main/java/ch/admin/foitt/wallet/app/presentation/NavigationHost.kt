@@ -19,6 +19,7 @@ import ch.admin.foitt.wallet.feature.credentialOffer.presentation.CredentialOffe
 import ch.admin.foitt.wallet.feature.credentialOffer.presentation.DeclineCredentialOfferScreen
 import ch.admin.foitt.wallet.feature.credentialOffer.presentation.DeclineCredentialOfferViewModel
 import ch.admin.foitt.wallet.feature.eIdApplicationProcess.presentation.eIdApplicationProcessDestinations
+import ch.admin.foitt.wallet.feature.eIdRequestVerification.presentation.eIdRequestVerificationDestinations
 import ch.admin.foitt.wallet.feature.home.presentation.BetaIdScreen
 import ch.admin.foitt.wallet.feature.home.presentation.BetaIdViewModel
 import ch.admin.foitt.wallet.feature.home.presentation.HomeScreen
@@ -33,14 +34,6 @@ import ch.admin.foitt.wallet.feature.login.presentation.PassphraseLoginScreen
 import ch.admin.foitt.wallet.feature.login.presentation.PassphraseLoginViewModel
 import ch.admin.foitt.wallet.feature.login.presentation.UnsecuredDeviceScreen
 import ch.admin.foitt.wallet.feature.login.presentation.UnsecuredDeviceViewModel
-import ch.admin.foitt.wallet.feature.mrzScan.presentation.MrzChooserScreen
-import ch.admin.foitt.wallet.feature.mrzScan.presentation.MrzChooserViewModel
-import ch.admin.foitt.wallet.feature.mrzScan.presentation.MrzScanPermissionScreen
-import ch.admin.foitt.wallet.feature.mrzScan.presentation.MrzScanPermissionViewModel
-import ch.admin.foitt.wallet.feature.mrzScan.presentation.MrzSubmissionScreen
-import ch.admin.foitt.wallet.feature.mrzScan.presentation.MrzSubmissionViewModel
-import ch.admin.foitt.wallet.feature.mrzScan.presentation.SDKScannerScreen
-import ch.admin.foitt.wallet.feature.mrzScan.presentation.SDKScannerViewModel
 import ch.admin.foitt.wallet.feature.onboarding.presentation.OnboardingConfirmPassphraseScreen
 import ch.admin.foitt.wallet.feature.onboarding.presentation.OnboardingConfirmPassphraseViewModel
 import ch.admin.foitt.wallet.feature.onboarding.presentation.OnboardingErrorScreen
@@ -137,9 +130,6 @@ import ch.admin.foitt.walletcomposedestinations.destinations.LanguageScreenDesti
 import ch.admin.foitt.walletcomposedestinations.destinations.LicencesScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.LockScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.LockoutScreenDestination
-import ch.admin.foitt.walletcomposedestinations.destinations.MrzChooserScreenDestination
-import ch.admin.foitt.walletcomposedestinations.destinations.MrzScanPermissionScreenDestination
-import ch.admin.foitt.walletcomposedestinations.destinations.MrzSubmissionScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.OnboardingConfirmPassphraseScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.OnboardingErrorScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.OnboardingIntroScreenDestination
@@ -162,7 +152,6 @@ import ch.admin.foitt.walletcomposedestinations.destinations.QrScanPermissionScr
 import ch.admin.foitt.walletcomposedestinations.destinations.QrScannerScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.RegisterBiometricsScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.ReportWrongDataScreenDestination
-import ch.admin.foitt.walletcomposedestinations.destinations.SDKScannerScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.SecuritySettingsScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.SettingsScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.StartScreenDestination
@@ -389,19 +378,6 @@ fun NavigationHost(
 
         eIdApplicationProcessDestinations()
 
-        screenDestination(MrzScanPermissionScreenDestination) { viewModel: MrzScanPermissionViewModel ->
-            MrzScanPermissionScreen(viewModel)
-        }
-        screenDestination(MrzChooserScreenDestination) { viewModel: MrzChooserViewModel ->
-            MrzChooserScreen(viewModel)
-        }
-
-        screenDestination(SDKScannerScreenDestination) { viewModel: SDKScannerViewModel ->
-            SDKScannerScreen(viewModel)
-        }
-
-        screenDestination(MrzSubmissionScreenDestination) { viewModel: MrzSubmissionViewModel ->
-            MrzSubmissionScreen(viewModel)
-        }
+        eIdRequestVerificationDestinations()
     }
 }

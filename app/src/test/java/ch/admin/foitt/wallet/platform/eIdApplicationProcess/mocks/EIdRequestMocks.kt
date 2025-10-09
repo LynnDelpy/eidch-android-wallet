@@ -4,6 +4,7 @@ import ch.admin.foitt.wallet.platform.database.domain.model.EIdRequestCase
 import ch.admin.foitt.wallet.platform.database.domain.model.EIdRequestState
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.EIdRequestCaseWithState
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.EIdRequestQueueState
+import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.IdentityType
 import java.time.Instant
 
 object EIdRequestMocks {
@@ -17,6 +18,7 @@ object EIdRequestMocks {
         id = CASE_ID,
         rawMrz = RAW_MRZ,
         documentNumber = DOCUMENT_NUMBER,
+        selectedDocumentType = IdentityType.SWISS_IDK,
         firstName = FIRST_NAME,
         lastName = LAST_NAME,
     )

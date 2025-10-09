@@ -14,6 +14,10 @@ interface CurrentClientAttestationRepository {
         keyPairAlias: String = ClientAttestation.KEY_ALIAS,
     ): Flow<ClientAttestation?>
 
+    suspend fun get(
+        keyPairAlias: String = ClientAttestation.KEY_ALIAS,
+    ): Result<ClientAttestation, ClientAttestationRepositoryError>
+
     suspend fun delete(
         keypairAlias: String = ClientAttestation.KEY_ALIAS
     ): Result<Unit, ClientAttestationRepositoryError>

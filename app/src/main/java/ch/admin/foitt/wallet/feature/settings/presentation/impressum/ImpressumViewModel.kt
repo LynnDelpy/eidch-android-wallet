@@ -17,11 +17,11 @@ class ImpressumViewModel @Inject constructor(
     @param:ApplicationContext private val appContext: Context,
     setTopBarState: SetTopBarState,
 ) : ScreenViewModel(setTopBarState) {
-    override val topBarState = TopBarState.Details(navManager::popBackStack, R.string.impressum_title)
+    override val topBarState = TopBarState.Details(navManager::popBackStack, R.string.tk_settings_imprint_title)
 
-    fun onGithub() = appContext.openLink(R.string.impressum_github_link)
+    fun onGithub() = appContext.openLink(R.string.tk_settings_imprint_appInformation_github_link_value)
 
-    fun onMoreInformation() = appContext.openLink(R.string.impressum_more_information_link)
+    fun onMoreInformation() = appContext.openLink(R.string.tk_settings_imprint_publisher_link_value)
 
-    fun onLegals() = appContext.openLink(R.string.impressum_legals_link)
+    fun onLegals() = appContext.openLink(R.string.tk_settings_imprint_legal_termsOfUse_link_value)
 }

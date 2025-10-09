@@ -19,22 +19,34 @@ class GenerateOcaCredentialDataImpl @Inject constructor() : GenerateOcaCredentia
         rootCaptureBase: CaptureBase,
         overlays: List<Overlay>
     ): List<OcaCredentialData> {
-        val localizedBranding = getBrandingPerLocale(rootCaptureBase, overlays)
+        val localizedBrandings = getBrandingsPerLocale(rootCaptureBase, overlays)
         val localizedMeta = getMetaPerLocale(rootCaptureBase, overlays)
 
-        val locales = localizedBranding.keys + localizedMeta.keys
-        return locales.map { locale ->
+        val locales = localizedBrandings.keys + localizedMeta.keys
+        return locales.flatMap { locale ->
             val meta = localizedMeta[locale]
-            val branding = localizedBranding[locale]
+            val brandings = localizedBrandings[locale]
 
-            OcaCredentialData(
-                captureBaseDigest = rootCaptureBase.digest,
-                locale = locale,
-                theme = branding?.theme,
-                name = meta?.name,
-                description = branding?.primaryField ?: meta?.description,
-                logoData = branding?.logoData,
-                backgroundColor = branding?.backgroundColor
+            brandings?.map { branding ->
+                OcaCredentialData(
+                    captureBaseDigest = rootCaptureBase.digest,
+                    locale = locale,
+                    theme = branding.theme,
+                    name = meta?.name,
+                    description = branding.primaryField ?: meta?.description,
+                    logoData = branding.logoData,
+                    backgroundColor = branding.backgroundColor
+                )
+            } ?: listOf(
+                OcaCredentialData(
+                    captureBaseDigest = rootCaptureBase.digest,
+                    locale = locale,
+                    theme = null,
+                    name = meta?.name,
+                    description = meta?.description,
+                    logoData = null,
+                    backgroundColor = null
+                )
             )
         }
     }
@@ -50,18 +62,22 @@ class GenerateOcaCredentialDataImpl @Inject constructor() : GenerateOcaCredentia
         }
     }
 
-    private fun getBrandingPerLocale(rootCaptureBase: CaptureBase, overlays: List<Overlay>): Map<Locale, BrandingData> {
+    private fun getBrandingsPerLocale(rootCaptureBase: CaptureBase, overlays: List<Overlay>): Map<Locale, List<BrandingData>> {
         val brandingOverlays = getLatestOverlaysOfType<BrandingOverlay>(overlays, rootCaptureBase.digest)
-        return brandingOverlays.associate { brandingOverlay ->
-            val brandingData = when (brandingOverlay) {
-                is BrandingOverlay1x1 -> BrandingData(
-                    theme = brandingOverlay.theme,
-                    primaryField = brandingOverlay.primaryField,
-                    logoData = brandingOverlay.logo,
-                    backgroundColor = brandingOverlay.primaryBackgroundColor
-                )
+
+        return brandingOverlays.groupBy { brandingOverlay ->
+            brandingOverlay.language
+        }.mapValues { (_, overlays) ->
+            overlays.map { brandingOverlay ->
+                when (brandingOverlay) {
+                    is BrandingOverlay1x1 -> BrandingData(
+                        theme = brandingOverlay.theme,
+                        primaryField = brandingOverlay.primaryField,
+                        logoData = brandingOverlay.logo,
+                        backgroundColor = brandingOverlay.primaryBackgroundColor
+                    )
+                }
             }
-            brandingOverlay.language to brandingData
         }
     }
 }

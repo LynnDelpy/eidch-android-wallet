@@ -17,12 +17,14 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
@@ -45,6 +47,7 @@ import ch.admin.foitt.wallet.platform.credential.presentation.model.CredentialCa
 import ch.admin.foitt.wallet.platform.navArgs.domain.model.PresentationCredentialListNavArg
 import ch.admin.foitt.wallet.platform.preview.WalletAllScreenPreview
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.TrustStatus
+import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.VcSchemaTrustStatus
 import ch.admin.foitt.wallet.theme.Sizes
 import ch.admin.foitt.wallet.theme.WalletTexts
 import ch.admin.foitt.wallet.theme.WalletTheme
@@ -55,8 +58,13 @@ import com.ramcosta.composedestinations.annotation.Destination
 )
 @Composable
 fun PresentationCredentialListScreen(viewModel: PresentationCredentialListViewModel) {
-    val presentationCredentialListUiState = viewModel.presentationCredentialListUiState.collectAsStateWithLifecycle().value
+    val presentationCredentialListUiState = viewModel.presentationCredentialListUiState.stateFlow.collectAsStateWithLifecycle().value
     val verifierUiState = viewModel.verifierUiState.collectAsStateWithLifecycle().value
+
+    val uiMode = LocalConfiguration.current.uiMode
+    LaunchedEffect(uiMode) {
+        viewModel.presentationCredentialListUiState.refreshData()
+    }
 
     PresentationCredentialListScreenContent(
         verifierUiState = verifierUiState,
@@ -78,7 +86,9 @@ private fun PresentationCredentialListScreenContent(
     val bottomHeightDp = remember { mutableStateOf(0.dp) }
 
     ConstraintLayout(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            .background(WalletTheme.colorScheme.surfaceContainerLow)
     ) {
         val (
             mainContentRef,
@@ -117,13 +127,11 @@ private fun PresentationCredentialListScreenContent(
 
 @Composable
 private fun ListHeader(verifierUiState: ActorUiState) {
-    Spacer(modifier = Modifier.height(Sizes.s06))
     InvitationHeader(
-        modifier = Modifier
-            .padding(start = Sizes.s04, end = Sizes.s04),
         inviterName = verifierUiState.name,
         inviterImage = verifierUiState.painter,
         trustStatus = verifierUiState.trustStatus,
+        vcSchemaTrustStatus = verifierUiState.vcSchemaTrustStatus,
         actorType = verifierUiState.actorType,
     )
     Spacer(modifier = Modifier.height(Sizes.s04))
@@ -146,6 +154,7 @@ private fun CompactCredentialList(
     WalletLayouts.LazyColumn(
         modifier = modifier
             .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),
+        useTopInsets = false,
         contentPadding = contentPadding,
     ) {
         item {
@@ -156,6 +165,7 @@ private fun CompactCredentialList(
                 onClick = { onCredentialSelected(state.credentialId) },
                 credentialState = state,
                 showDivider = index != credentialStates.lastIndex,
+                backgroundColor = WalletTheme.colorScheme.listItemBackground
             )
         }
     }
@@ -197,6 +207,7 @@ private fun PresentationCredentialListScreenPreview() {
                 name = "My verifier name",
                 painter = painterResource(R.drawable.ic_swiss_cross_small),
                 trustStatus = TrustStatus.TRUSTED,
+                vcSchemaTrustStatus = VcSchemaTrustStatus.TRUSTED,
                 actorType = ActorType.VERIFIER,
             ),
             credentialCardStates = CredentialMocks.cardStates.toList().map { it.value() },

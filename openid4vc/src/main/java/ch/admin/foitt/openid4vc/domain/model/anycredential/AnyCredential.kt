@@ -15,6 +15,7 @@ interface AnyCredential {
     val issuer: String?
     val validFromInstant: Instant?
     val validUntilInstant: Instant?
+    val vcSchemaId: String
 
     fun getClaimsToSave(): JsonElement
     fun getClaimsForPresentation(): JsonElement

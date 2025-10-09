@@ -10,6 +10,7 @@ import ch.admin.foitt.wallet.platform.credential.presentation.CredentialActionFe
 import ch.admin.foitt.wallet.platform.navArgs.domain.model.PresentationSuccessNavArg
 import ch.admin.foitt.wallet.platform.preview.WalletAllScreenPreview
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.TrustStatus
+import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.VcSchemaTrustStatus
 import ch.admin.foitt.wallet.theme.WalletTheme
 import com.ramcosta.composedestinations.annotation.Destination
 
@@ -53,6 +54,7 @@ private fun PresentationSuccessPreview() {
                 name = "My Verfifier Name",
                 painter = painterResource(id = R.drawable.ic_swiss_cross_small),
                 trustStatus = TrustStatus.TRUSTED,
+                vcSchemaTrustStatus = VcSchemaTrustStatus.TRUSTED,
                 actorType = ActorType.VERIFIER,
             ),
             fields = listOf("name", "firstname", "country", "age", "employment"),

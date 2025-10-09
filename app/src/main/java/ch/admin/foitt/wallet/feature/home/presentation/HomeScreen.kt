@@ -35,8 +35,10 @@ import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -75,43 +77,44 @@ import com.ramcosta.composedestinations.annotation.Destination
 fun HomeScreen(
     viewModel: HomeViewModel,
 ) {
+    val uiMode = LocalConfiguration.current.uiMode
+    LaunchedEffect(uiMode) {
+        viewModel.screenState.refreshData()
+    }
+
     HomeScreenContent(
-        screenState = viewModel.screenState.collectAsStateWithLifecycle().value,
+        screenState = viewModel.screenState.stateFlow.collectAsStateWithLifecycle().value,
+        containerState = viewModel.homeContainerState.collectAsStateWithLifecycle().value,
         isRefreshing = viewModel.isRefreshing.collectAsStateWithLifecycle().value,
+        eventMessage = viewModel.eventMessage.collectAsStateWithLifecycle().value,
+        onMenu = viewModel::onMenu,
         onStartOnlineIdentification = viewModel::onStartOnlineIdentification,
         onCloseEId = viewModel::onCloseEId,
-        eventMessage = viewModel.eventMessage.collectAsStateWithLifecycle().value,
         onCloseToast = viewModel::onCloseToast,
-        onQrScan = viewModel::onQrScan,
-        onMenu = viewModel::onMenu,
         onRefresh = viewModel::onRefresh,
         onRefreshSIds = viewModel::onRefreshSIdStatuses,
         onObtainConsent = viewModel::onObtainConsent,
-        onGetBetaId = viewModel::onGetBetaId,
-        onGetEId = viewModel::onGetEId,
     )
 }
 
 @Composable
 private fun HomeScreenContent(
     screenState: HomeScreenState,
+    containerState: HomeContainerState,
     isRefreshing: Boolean,
-    onStartOnlineIdentification: () -> Unit,
+    onMenu: (Boolean) -> Unit,
+    onStartOnlineIdentification: (caseId: String) -> Unit,
     onCloseEId: (caseId: String) -> Unit,
-    @StringRes eventMessage: Int?,
     onCloseToast: () -> Unit,
-    onQrScan: () -> Unit,
-    onMenu: () -> Unit,
     onRefresh: () -> Unit,
     onRefreshSIds: () -> Unit,
     onObtainConsent: (caseId: String) -> Unit,
-    onGetBetaId: () -> Unit,
-    onGetEId: () -> Unit,
+    @StringRes eventMessage: Int?,
     windowWidthClass: WindowWidthSizeClass = currentWindowAdaptiveInfo().windowSizeClass.windowWidthSizeClass,
 ) = WalletLayouts.HomeContainer(
-    onMenu = onMenu,
-    onScan = onQrScan,
     windowWidthClass = windowWidthClass,
+    containerState = containerState,
+    onMenu = onMenu,
 ) { stickyBottomHeightDp ->
 
     when (screenState) {
@@ -139,10 +142,10 @@ private fun HomeScreenContent(
             ongoingEIdRequests = screenState.eIdRequests,
             onStartOnlineIdentification = onStartOnlineIdentification,
             onCloseEId = onCloseEId,
-            showBetaIdRequestButton = screenState.showBetaIdRequestButton,
-            showEIdRequestButton = screenState.showEIdRequestButton,
-            onRequestBetaId = onGetBetaId,
-            onRequestEId = onGetEId,
+            showBetaIdRequestButton = containerState.showBetaIdRequestButton,
+            showEIdRequestButton = containerState.showEIdRequestButton,
+            onRequestBetaId = containerState.onGetBetaId,
+            onRequestEId = containerState.onGetEId,
             onRefresh = onRefresh,
             onRefreshSIds = onRefreshSIds,
             onObtainConsent = onObtainConsent,
@@ -155,7 +158,7 @@ private fun BoxScope.NoCredentialContent(
     contentBottomPadding: Dp,
     isRefreshing: Boolean,
     ongoingEIdRequests: List<SIdRequestDisplayData>,
-    onStartOnlineIdentification: () -> Unit,
+    onStartOnlineIdentification: (caseId: String) -> Unit,
     onCloseEId: (caseId: String) -> Unit,
     showEIdRequestButton: Boolean,
     showBetaIdRequestButton: Boolean,
@@ -197,7 +200,7 @@ fun WalletEmptyWithEIdRequestsContainer(
     contentBottomPadding: Dp,
     isRefreshing: Boolean,
     ongoingEIdRequests: List<SIdRequestDisplayData>,
-    onStartOnlineIdentification: () -> Unit,
+    onStartOnlineIdentification: (caseId: String) -> Unit,
     onCloseEId: (caseId: String) -> Unit,
     showEIdRequestButton: Boolean,
     showBetaIdRequestButton: Boolean,
@@ -232,7 +235,7 @@ fun WalletEmptyWithEIdRequestsContainer(
             Box(modifier = Modifier.padding(horizontal = Sizes.s03)) {
                 EIdRequestCard(
                     eIdRequest = eIdRequest,
-                    onStartOnlineIdentification = onStartOnlineIdentification,
+                    onStartOnlineIdentification = { onStartOnlineIdentification(eIdRequest.caseId) },
                     onRefresh = onRefreshSIds,
                     onObtainConsent = { onObtainConsent(eIdRequest.caseId) },
                     onCloseClick = { onCloseEId(eIdRequest.caseId) }
@@ -350,7 +353,7 @@ private fun Credentials(
     onCloseToast: () -> Unit,
     contentBottomPadding: Dp,
     ongoingEIdRequests: List<SIdRequestDisplayData>,
-    onStartOnlineIdentification: () -> Unit,
+    onStartOnlineIdentification: (caseId: String) -> Unit,
     onCloseEId: (id: String) -> Unit,
     onCredentialClick: (id: Long) -> Unit,
     onRefresh: () -> Unit,
@@ -379,7 +382,7 @@ private fun Credentials(
                 Box(modifier = Modifier.padding(horizontal = Sizes.s03)) {
                     EIdRequestCard(
                         eIdRequest = eIdRequest,
-                        onStartOnlineIdentification = onStartOnlineIdentification,
+                        onStartOnlineIdentification = { onStartOnlineIdentification(eIdRequest.caseId) },
                         onRefresh = onRefreshSIds,
                         onObtainConsent = { onObtainConsent(eIdRequest.caseId) },
                         onCloseClick = { onCloseEId(eIdRequest.caseId) }
@@ -471,8 +474,6 @@ private class HomePreviewParams : PreviewParameterProvider<ComposableWrapper<Hom
         ComposableWrapper {
             HomeScreenState.NoCredential(
                 eIdRequests = emptyList(),
-                showBetaIdRequestButton = true,
-                showEIdRequestButton = true
             )
         },
         ComposableWrapper {
@@ -492,8 +493,6 @@ private class HomePreviewParams : PreviewParameterProvider<ComposableWrapper<Hom
                         caseId = "2"
                     )
                 ),
-                showBetaIdRequestButton = true,
-                showEIdRequestButton = true
             )
         },
     )
@@ -512,19 +511,17 @@ private fun HomeScreenCompactPreview(
     WalletTheme {
         HomeScreenContent(
             screenState = state.value(),
+            containerState = HomeContainerState.EMPTY,
             windowWidthClass = WindowWidthSizeClass.COMPACT,
             isRefreshing = true,
+            eventMessage = null,
+            onMenu = {},
             onStartOnlineIdentification = {},
             onCloseEId = {},
-            onQrScan = {},
-            onMenu = {},
             onRefresh = {},
             onRefreshSIds = {},
             onObtainConsent = {},
-            onGetBetaId = {},
-            onGetEId = {},
             onCloseToast = {},
-            eventMessage = null,
         )
     }
 }
@@ -537,19 +534,17 @@ private fun HomeScreenLargePreview(
     WalletTheme {
         HomeScreenContent(
             screenState = state.value(),
+            containerState = HomeContainerState.EMPTY,
             windowWidthClass = WindowWidthSizeClass.EXPANDED,
+            isRefreshing = false,
+            eventMessage = null,
+            onMenu = {},
             onStartOnlineIdentification = {},
             onCloseEId = {},
-            isRefreshing = false,
-            onQrScan = {},
-            onMenu = {},
             onRefresh = {},
             onRefreshSIds = {},
             onObtainConsent = {},
-            onGetBetaId = {},
-            onGetEId = {},
             onCloseToast = {},
-            eventMessage = null,
         )
     }
 }

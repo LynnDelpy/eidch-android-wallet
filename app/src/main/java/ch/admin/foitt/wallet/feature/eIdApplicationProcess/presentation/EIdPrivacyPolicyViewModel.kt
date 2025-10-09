@@ -7,6 +7,7 @@ import ch.admin.foitt.avwrapper.AVBeam
 import ch.admin.foitt.avwrapper.AVBeamInitConfig
 import ch.admin.foitt.avwrapper.config.AVBeamConfigLogLevel
 import ch.admin.foitt.wallet.R
+import ch.admin.foitt.wallet.platform.environmentSetup.domain.repository.EnvironmentSetupRepository
 import ch.admin.foitt.wallet.platform.navigation.NavigationManager
 import ch.admin.foitt.wallet.platform.scaffold.domain.model.TopBarState
 import ch.admin.foitt.wallet.platform.scaffold.domain.usecase.SetTopBarState
@@ -26,6 +27,7 @@ class EIdPrivacyPolicyViewModel @Inject constructor(
     private val avBeam: AVBeam,
     @param:ApplicationContext private val context: Context,
     private val navManager: NavigationManager,
+    private val environmentSetupRepository: EnvironmentSetupRepository,
     setTopBarState: SetTopBarState,
 ) : ScreenViewModel(setTopBarState) {
     override val topBarState = TopBarState.DetailsWithCloseButton(
@@ -39,7 +41,12 @@ class EIdPrivacyPolicyViewModel @Inject constructor(
     fun onNext(activity: AppCompatActivity) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                avBeam.init(AVBeamInitConfig(AVBeamConfigLogLevel.INFORMATION), activity)
+                val logLevel = if (environmentSetupRepository.avBeamLoggingEnabled) {
+                    AVBeamConfigLogLevel.DEBUG
+                } else {
+                    AVBeamConfigLogLevel.NONE
+                }
+                avBeam.init(AVBeamInitConfig(logLevel), activity)
             }
         }
 

@@ -1,7 +1,5 @@
 package ch.admin.foitt.wallet.platform.composables.presentation
 
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
@@ -20,17 +18,6 @@ fun ClaimClusterCard(
     colors = CardDefaults.cardColors().copy(containerColor = WalletTheme.colorScheme.listItemBackground),
 ) {
     content()
-}
-
-@Composable
-fun SurroundingClusterCard(
-    content: @Composable () -> Unit,
-) = ClusterCard(
-    shape = RoundedCornerShape(Sizes.s09),
-    colors = CardDefaults.cardColors().copy(containerColor = WalletTheme.colorScheme.surfaceContainerLow),
-) {
-    content()
-    Spacer(modifier = Modifier.height(Sizes.s06))
 }
 
 @Composable

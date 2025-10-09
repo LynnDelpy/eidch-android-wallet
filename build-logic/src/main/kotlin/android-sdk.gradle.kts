@@ -1,6 +1,5 @@
 plugins {
     id("android-common")
-    id("jacoco-android-sdk")
     id("com.android.library")
 }
 
@@ -34,10 +33,10 @@ android {
         lintConfig = file("$rootDir/config/lint/custom-lint.xml")
         quiet = false
         abortOnError = properties.getOrDefault("abortOnLintError", "true") == "true"
+        ignoreTestSources = true
 
         // Warnings
         ignoreWarnings = false
-        checkAllWarnings = true
         warningsAsErrors = false
 
         // If true, running lint on the app module will also run it on all the

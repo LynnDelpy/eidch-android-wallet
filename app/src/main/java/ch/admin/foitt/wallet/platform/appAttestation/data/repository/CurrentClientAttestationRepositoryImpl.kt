@@ -2,12 +2,14 @@ package ch.admin.foitt.wallet.platform.appAttestation.data.repository
 
 import ch.admin.foitt.openid4vc.domain.model.jwt.Jwt
 import ch.admin.foitt.wallet.platform.appAttestation.domain.model.ClientAttestation
+import ch.admin.foitt.wallet.platform.appAttestation.domain.model.ClientAttestationRepositoryError
 import ch.admin.foitt.wallet.platform.appAttestation.domain.model.toClientAttestationRepositoryError
 import ch.admin.foitt.wallet.platform.appAttestation.domain.repository.CurrentClientAttestationRepository
 import ch.admin.foitt.wallet.platform.database.data.dao.ClientAttestationDao
 import ch.admin.foitt.wallet.platform.database.data.dao.DaoProvider
 import ch.admin.foitt.wallet.platform.di.IoDispatcher
 import ch.admin.foitt.wallet.platform.utils.suspendUntilNonNull
+import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.coroutines.runSuspendCatching
 import com.github.michaelbull.result.mapError
 import kotlinx.coroutines.CoroutineDispatcher
@@ -39,6 +41,19 @@ class CurrentClientAttestationRepositoryImpl @Inject constructor(
         }
     }.mapError { throwable ->
         throwable.toClientAttestationRepositoryError("Save client attestation failed")
+    }
+
+    override suspend fun get(
+        keyPairAlias: String,
+    ): Result<ClientAttestation, ClientAttestationRepositoryError> = runSuspendCatching {
+        dao().getById(keyPairAlias).let { dbClientAttestation ->
+            ClientAttestation(
+                keyStoreAlias = dbClientAttestation.id,
+                attestation = Jwt(dbClientAttestation.attestation),
+            )
+        }
+    }.mapError { throwable ->
+        throwable.toClientAttestationRepositoryError("Get client attestation failed")
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)

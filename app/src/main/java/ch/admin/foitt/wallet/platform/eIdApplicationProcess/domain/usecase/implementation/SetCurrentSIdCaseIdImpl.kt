@@ -12,7 +12,7 @@ class SetCurrentSIdCaseIdImpl @Inject constructor(
     override operator fun invoke(caseId: String) {
         val repository = destinationScopedComponentManager.getEntryPoint(
             entryPointClass = EidApplicationProcessEntryPoint::class.java,
-            componentScope = ComponentScope.EidSIdCase,
+            componentScope = ComponentScope.EidCurrentSIdCase,
         ).eidCurrentCaseRepository()
 
         repository.setCaseId(caseId)

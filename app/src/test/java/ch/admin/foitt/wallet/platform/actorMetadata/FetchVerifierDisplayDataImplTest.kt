@@ -2,7 +2,11 @@ package ch.admin.foitt.wallet.platform.actorMetadata
 
 import ch.admin.foitt.openid4vc.domain.model.presentationRequest.ClientMetaData
 import ch.admin.foitt.openid4vc.domain.model.presentationRequest.ClientName
+import ch.admin.foitt.openid4vc.domain.model.presentationRequest.Field
+import ch.admin.foitt.openid4vc.domain.model.presentationRequest.InputDescriptor
+import ch.admin.foitt.openid4vc.domain.model.presentationRequest.InputDescriptorFormat
 import ch.admin.foitt.openid4vc.domain.model.presentationRequest.LogoUri
+import ch.admin.foitt.openid4vc.domain.model.presentationRequest.PresentationDefinition
 import ch.admin.foitt.openid4vc.domain.model.presentationRequest.PresentationRequest
 import ch.admin.foitt.wallet.platform.actorMetadata.domain.model.ActorDisplayData
 import ch.admin.foitt.wallet.platform.actorMetadata.domain.model.ActorField
@@ -10,17 +14,24 @@ import ch.admin.foitt.wallet.platform.actorMetadata.domain.model.ActorType
 import ch.admin.foitt.wallet.platform.actorMetadata.domain.usecase.FetchAndCacheVerifierDisplayData
 import ch.admin.foitt.wallet.platform.actorMetadata.domain.usecase.InitializeActorForScope
 import ch.admin.foitt.wallet.platform.actorMetadata.domain.usecase.implementation.FetchAndCacheVerifierDisplayDataImpl
+import ch.admin.foitt.wallet.platform.environmentSetup.domain.repository.EnvironmentSetupRepository
 import ch.admin.foitt.wallet.platform.navigation.domain.model.ComponentScope
+import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.IdentityV1TrustStatement
+import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.MetadataV1TrustStatement
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.TrustRegistryError
-import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.TrustStatement
+import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.TrustStatementActor
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.TrustStatus
-import ch.admin.foitt.wallet.platform.trustRegistry.domain.usecase.FetchTrustStatementFromDid
+import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.VcSchemaTrustStatus
+import ch.admin.foitt.wallet.platform.trustRegistry.domain.usecase.FetchVcSchemaTrustStatus
+import ch.admin.foitt.wallet.platform.trustRegistry.domain.usecase.ProcessIdentityV1TrustStatement
+import ch.admin.foitt.wallet.platform.trustRegistry.domain.usecase.ProcessMetadataV1TrustStatement
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
 import io.mockk.MockKAnnotations
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.coVerifyOrder
+import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.just
 import io.mockk.runs
@@ -33,18 +44,41 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class FetchVerifierDisplayDataImplTest {
+    @MockK
+    private lateinit var mockEnvironmentSetupRepository: EnvironmentSetupRepository
 
     @MockK
-    private lateinit var mockFetchTrustStatementFromDid: FetchTrustStatementFromDid
+    private lateinit var mockProcessMetadataV1TrustStatement: ProcessMetadataV1TrustStatement
+
+    @MockK
+    private lateinit var mockProcessIdentityV1TrustStatement: ProcessIdentityV1TrustStatement
+
+    @MockK
+    private lateinit var mockFetchVcSchemaTrustStatus: FetchVcSchemaTrustStatus
+
+    @MockK
+    private lateinit var mockInitializeActorForScope: InitializeActorForScope
 
     @MockK
     private lateinit var mockPresentationRequest: PresentationRequest
 
     @MockK
-    private lateinit var mockTrustStatement01: TrustStatement
+    private lateinit var mockIdentityTrustStatement: IdentityV1TrustStatement
 
     @MockK
-    private lateinit var mockInitializeActorForScope: InitializeActorForScope
+    private lateinit var mockMetadataTrustStatement: MetadataV1TrustStatement
+
+    @MockK
+    private lateinit var mockPresentationDefinition: PresentationDefinition
+
+    @MockK
+    private lateinit var mockInputDescriptor: InputDescriptor
+
+    @MockK
+    private lateinit var mockInputDescriptorFormat: InputDescriptorFormat
+
+    @MockK
+    private lateinit var mockField: Field
 
     private lateinit var useCase: FetchAndCacheVerifierDisplayData
 
@@ -52,18 +86,14 @@ class FetchVerifierDisplayDataImplTest {
     fun setup() {
         MockKAnnotations.init(this)
         useCase = FetchAndCacheVerifierDisplayDataImpl(
-            fetchTrustStatementFromDid = mockFetchTrustStatementFromDid,
+            environmentSetupRepository = mockEnvironmentSetupRepository,
+            processMetadataV1TrustStatement = mockProcessMetadataV1TrustStatement,
+            processIdentityV1TrustStatement = mockProcessIdentityV1TrustStatement,
+            fetchVcSchemaTrustStatus = mockFetchVcSchemaTrustStatus,
             initializeActorForScope = mockInitializeActorForScope,
         )
 
-        coEvery { mockTrustStatement01.orgName } returns mockTrustedNames
-        coEvery { mockTrustStatement01.prefLang } returns mockPreferredLanguage
-
-        coEvery { mockFetchTrustStatementFromDid.invoke(did = any()) } returns Ok(mockTrustStatement01)
-        coEvery {
-            mockInitializeActorForScope.invoke(any(), componentScope = ComponentScope.Verifier)
-        } just runs
-        defaultPresentationRequestMocks()
+        setupDefaultMocks()
     }
 
     @AfterEach
@@ -72,27 +102,49 @@ class FetchVerifierDisplayDataImplTest {
     }
 
     @Test
-    fun `Fetching the verifier display data is following specific steps`(): Unit = runTest {
+    fun `Fetching and caching the verifier display data is following specific steps`(): Unit = runTest {
         useCase(
             presentationRequest = mockPresentationRequest,
             shouldFetchTrustStatement = true,
         )
 
+        val expectedActorDisplayData = ActorDisplayData(
+            name = mockTrustedNamesDisplay,
+            image = mockMetadataLogoDisplays,
+            trustStatus = TrustStatus.TRUSTED,
+            vcSchemaTrustStatus = VcSchemaTrustStatus.TRUSTED,
+            preferredLanguage = null,
+            actorType = ActorType.VERIFIER,
+        )
+
         coVerifyOrder {
-            mockFetchTrustStatementFromDid.invoke(did = any())
-            mockInitializeActorForScope.invoke(any(), componentScope = ComponentScope.Verifier)
+            mockProcessIdentityV1TrustStatement(clientId)
+            mockFetchVcSchemaTrustStatus(TrustStatementActor.VERIFIER, clientId, vcSchemaId)
+            mockInitializeActorForScope(expectedActorDisplayData, componentScope = ComponentScope.Verifier)
         }
     }
 
     @Test
-    fun `A trust statement is fetched using the presentation request client id`(): Unit = runTest {
+    fun `Fetching the verifier display data with metadata trust statement is following specific steps`(): Unit = runTest {
+        coEvery { mockEnvironmentSetupRepository.useMetadataV1TrustStatement } returns true
+
         useCase(
             presentationRequest = mockPresentationRequest,
             shouldFetchTrustStatement = true,
         )
 
+        val expectedActorDisplayData = ActorDisplayData(
+            name = mockTrustedNamesDisplay,
+            image = mockMetadataLogoDisplays,
+            trustStatus = TrustStatus.TRUSTED,
+            vcSchemaTrustStatus = VcSchemaTrustStatus.UNPROTECTED,
+            preferredLanguage = mockPreferredLanguage,
+            actorType = ActorType.VERIFIER,
+        )
+
         coVerifyOrder {
-            mockFetchTrustStatementFromDid.invoke(did = clientId)
+            mockProcessMetadataV1TrustStatement(clientId)
+            mockInitializeActorForScope(expectedActorDisplayData, componentScope = ComponentScope.Verifier)
         }
     }
 
@@ -105,7 +157,7 @@ class FetchVerifierDisplayDataImplTest {
 
         val capturedDisplayData = slot<ActorDisplayData>()
         coVerifyOrder {
-            mockInitializeActorForScope.invoke(actorDisplayData = capture(capturedDisplayData), any())
+            mockInitializeActorForScope.invoke(actorDisplayData = capture(capturedDisplayData), componentScope = ComponentScope.Verifier)
         }
 
         assertEquals(TrustStatus.TRUSTED, capturedDisplayData.captured.trustStatus)
@@ -113,7 +165,8 @@ class FetchVerifierDisplayDataImplTest {
 
     @Test
     fun `An invalid trust statement will display as not trusted`(): Unit = runTest {
-        coEvery { mockFetchTrustStatementFromDid.invoke(did = any()) } returns trustRegistryError
+        coEvery { mockProcessIdentityV1TrustStatement(clientId) } returns trustRegistryError
+
         useCase(
             presentationRequest = mockPresentationRequest,
             shouldFetchTrustStatement = true,
@@ -121,10 +174,69 @@ class FetchVerifierDisplayDataImplTest {
 
         val capturedDisplayData = slot<ActorDisplayData>()
         coVerifyOrder {
-            mockInitializeActorForScope.invoke(actorDisplayData = capture(capturedDisplayData), any())
+            mockInitializeActorForScope.invoke(actorDisplayData = capture(capturedDisplayData), componentScope = ComponentScope.Verifier)
         }
 
         assertEquals(TrustStatus.NOT_TRUSTED, capturedDisplayData.captured.trustStatus)
+    }
+
+    @Test
+    fun `A non-trusted vcSchema will display as not trusted`(): Unit = runTest {
+        coEvery {
+            mockFetchVcSchemaTrustStatus(TrustStatementActor.VERIFIER, clientId, vcSchemaId)
+        } returns Ok(VcSchemaTrustStatus.NOT_TRUSTED)
+
+        useCase(
+            presentationRequest = mockPresentationRequest,
+            shouldFetchTrustStatement = true,
+        )
+
+        val capturedDisplayData = slot<ActorDisplayData>()
+        coVerify {
+            mockInitializeActorForScope.invoke(actorDisplayData = capture(capturedDisplayData), componentScope = ComponentScope.Verifier)
+        }
+
+        assertEquals(VcSchemaTrustStatus.NOT_TRUSTED, capturedDisplayData.captured.vcSchemaTrustStatus)
+    }
+
+    @Test
+    fun `A unprotected vcSchema will display as unprotected`(): Unit = runTest {
+        coEvery {
+            mockFetchVcSchemaTrustStatus(TrustStatementActor.VERIFIER, clientId, vcSchemaId)
+        } returns Ok(VcSchemaTrustStatus.UNPROTECTED)
+
+        useCase(
+            presentationRequest = mockPresentationRequest,
+            shouldFetchTrustStatement = true,
+        )
+
+        val capturedDisplayData = slot<ActorDisplayData>()
+        coVerify {
+            mockInitializeActorForScope.invoke(actorDisplayData = capture(capturedDisplayData), componentScope = ComponentScope.Verifier)
+        }
+
+        assertEquals(VcSchemaTrustStatus.UNPROTECTED, capturedDisplayData.captured.vcSchemaTrustStatus)
+    }
+
+    @Test
+    fun `VcSchema trust only fetched when the schemaId is available`() = runTest {
+        every { mockField.path } returns listOf("other path")
+
+        useCase(
+            presentationRequest = mockPresentationRequest,
+            shouldFetchTrustStatement = true,
+        )
+
+        val capturedDisplayData = slot<ActorDisplayData>()
+        coVerify {
+            mockInitializeActorForScope.invoke(actorDisplayData = capture(capturedDisplayData), componentScope = ComponentScope.Verifier)
+        }
+
+        coVerify(exactly = 0) {
+            mockFetchVcSchemaTrustStatus(any(), any(), any())
+        }
+
+        assertEquals(VcSchemaTrustStatus.UNPROTECTED, capturedDisplayData.captured.vcSchemaTrustStatus)
     }
 
     @Test
@@ -135,7 +247,9 @@ class FetchVerifierDisplayDataImplTest {
         )
 
         coVerify(exactly = 0) {
-            mockFetchTrustStatementFromDid.invoke(did = any())
+            mockProcessMetadataV1TrustStatement(any())
+            mockProcessIdentityV1TrustStatement(any())
+            mockFetchVcSchemaTrustStatus(any(), any(), any())
         }
     }
 
@@ -148,7 +262,7 @@ class FetchVerifierDisplayDataImplTest {
 
         val capturedDisplayData = slot<ActorDisplayData>()
         coVerifyOrder {
-            mockInitializeActorForScope.invoke(actorDisplayData = capture(capturedDisplayData), any())
+            mockInitializeActorForScope.invoke(actorDisplayData = capture(capturedDisplayData), ComponentScope.Verifier)
         }
 
         assertEquals(mockTrustedNamesDisplay, capturedDisplayData.captured.name)
@@ -158,7 +272,7 @@ class FetchVerifierDisplayDataImplTest {
 
     @Test
     fun `In case of invalid trust statement, falls back to the presentation request metadata`(): Unit = runTest {
-        coEvery { mockFetchTrustStatementFromDid.invoke(did = any()) } returns trustRegistryError
+        coEvery { mockProcessIdentityV1TrustStatement.invoke(did = any()) } returns trustRegistryError
         useCase(
             presentationRequest = mockPresentationRequest,
             shouldFetchTrustStatement = true,
@@ -174,9 +288,17 @@ class FetchVerifierDisplayDataImplTest {
     }
 
     @Test
-    fun `Missing both client metadata and trust statement leads to empty display data`(): Unit = runTest {
-        coEvery { mockFetchTrustStatementFromDid.invoke(did = any()) } returns trustRegistryError
-        coEvery { mockPresentationRequest.clientMetaData } returns null
+    fun `Fetching and caching verifier display data fetches identity and verification trust independently`() = runTest {
+        setupDefaultMocks()
+
+        val exception = IllegalStateException("fetching trust failed")
+        coEvery {
+            mockProcessIdentityV1TrustStatement(clientId)
+        } returns Err(TrustRegistryError.Unexpected(exception))
+
+        coEvery {
+            mockFetchVcSchemaTrustStatus(TrustStatementActor.VERIFIER, clientId, vcSchemaId)
+        } returns Ok(VcSchemaTrustStatus.TRUSTED)
 
         useCase(
             presentationRequest = mockPresentationRequest,
@@ -188,16 +310,45 @@ class FetchVerifierDisplayDataImplTest {
             mockInitializeActorForScope.invoke(actorDisplayData = capture(capturedDisplayData), any())
         }
 
-        assertEquals(emptyActorDisplayData, capturedDisplayData.captured)
+        assertEquals(TrustStatus.NOT_TRUSTED, capturedDisplayData.captured.trustStatus)
+        assertEquals(VcSchemaTrustStatus.TRUSTED, capturedDisplayData.captured.vcSchemaTrustStatus)
     }
 
-    private fun defaultPresentationRequestMocks() {
-        coEvery { mockPresentationRequest.clientId } returns clientId
-        coEvery { mockPresentationRequest.clientMetaData } returns mockClientMetadata
+    private fun setupDefaultMocks() {
+        every { mockPresentationRequest.clientId } returns clientId
+        every { mockPresentationRequest.clientMetaData } returns mockClientMetadata
+        every { mockPresentationRequest.presentationDefinition } returns mockPresentationDefinition
+
+        every { mockPresentationDefinition.inputDescriptors } returns listOf(mockInputDescriptor)
+
+        every { mockInputDescriptor.formats } returns listOf(mockInputDescriptorFormat)
+        every { mockInputDescriptor.constraints.fields } returns listOf(mockField)
+
+        every { mockField.path } returns listOf("$.vct")
+        every { mockField.filter?.const } returns vcSchemaId
+
+        every { mockMetadataTrustStatement.orgName } returns mockTrustedNames
+        every { mockMetadataTrustStatement.preferredLanguage } returns mockPreferredLanguage
+
+        every { mockIdentityTrustStatement.entityName } returns mockTrustedNames
+
+        coEvery { mockEnvironmentSetupRepository.useMetadataV1TrustStatement } returns false
+
+        coEvery { mockProcessMetadataV1TrustStatement(clientId) } returns Ok(mockMetadataTrustStatement)
+        coEvery { mockProcessIdentityV1TrustStatement(clientId) } returns Ok(mockIdentityTrustStatement)
+
+        coEvery {
+            mockFetchVcSchemaTrustStatus(TrustStatementActor.VERIFIER, clientId, vcSchemaId)
+        } returns Ok(VcSchemaTrustStatus.TRUSTED)
+
+        coEvery {
+            mockInitializeActorForScope.invoke(any(), componentScope = ComponentScope.Verifier)
+        } just runs
     }
     //region mock data
 
     private val clientId = "clientId1"
+    private val vcSchemaId = "vcSchemaId"
 
     private val trustRegistryError = Err(TrustRegistryError.Unexpected(IllegalStateException("error")))
 
@@ -233,13 +384,5 @@ class FetchVerifierDisplayDataImplTest {
             locale = entry.locale,
         )
     }
-
-    private val emptyActorDisplayData = ActorDisplayData(
-        name = null,
-        image = null,
-        preferredLanguage = null,
-        trustStatus = TrustStatus.NOT_TRUSTED,
-        actorType = ActorType.VERIFIER,
-    )
     //endregion
 }

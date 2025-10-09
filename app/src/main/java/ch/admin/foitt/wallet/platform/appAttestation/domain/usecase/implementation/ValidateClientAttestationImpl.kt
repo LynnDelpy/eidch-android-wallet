@@ -72,8 +72,8 @@ class ValidateClientAttestationImpl @Inject constructor(
             "attestation nbf is missing"
         }
 
-        check(attestation.payloadJson[KEY_WALLET_NAME]?.jsonPrimitive?.content == VALUE_WALLET_NAME) {
-            "wallet name is not $VALUE_WALLET_NAME"
+        check(attestation.payloadJson[KEY_WALLET_NAME]?.jsonPrimitive?.content == environmentSetupRepo.appId) {
+            "wallet name is not ${environmentSetupRepo.appId}"
         }
 
         val attestedJwkValue = checkNotNull(attestation.payloadJson[KEY_CONFIRMATION]?.jsonObject?.get(KEY_JWK)) {
@@ -114,7 +114,6 @@ class ValidateClientAttestationImpl @Inject constructor(
     companion object {
         private const val SUPPORTED_ATTESTATION_TYPE = "oauth-client-attestation+jwt"
         private const val KEY_WALLET_NAME = "wallet_name"
-        private const val VALUE_WALLET_NAME = "swiyu"
         private const val KEY_CONFIRMATION = "cnf"
         private const val KEY_JWK = "jwk"
     }

@@ -15,6 +15,7 @@ import ch.admin.foitt.wallet.platform.database.data.dao.CredentialWithKeyBinding
 import ch.admin.foitt.wallet.platform.database.data.dao.DaoProvider
 import ch.admin.foitt.wallet.platform.database.data.dao.EIdRequestCaseDao
 import ch.admin.foitt.wallet.platform.database.data.dao.EIdRequestCaseWithStateDao
+import ch.admin.foitt.wallet.platform.database.data.dao.EIdRequestFileDao
 import ch.admin.foitt.wallet.platform.database.data.dao.EIdRequestStateDao
 import ch.admin.foitt.wallet.platform.database.data.dao.RawCredentialDataDao
 import ch.admin.foitt.wallet.platform.database.domain.model.ChangeDatabasePassphraseError
@@ -179,6 +180,7 @@ internal class DatabaseWrapper @Inject constructor(
     override val eIdRequestCaseWithStateDaoFlow: StateFlow<EIdRequestCaseWithStateDao?> = getDaoFlow {
         it?.eIdRequestCaseWithStateDao()
     }
+    override val eIdRequestFileDaoFlow: StateFlow<EIdRequestFileDao?> = getDaoFlow { it?.eIdRequestFileDao() }
     override val rawCredentialDataDao: StateFlow<RawCredentialDataDao?> = getDaoFlow { it?.rawCredentialDataDao() }
     override val clientAttestationDaoFlow: StateFlow<ClientAttestationDao?> = getDaoFlow { it?.clientAttestationDao() }
     //endregion

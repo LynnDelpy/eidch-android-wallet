@@ -1,5 +1,6 @@
 package ch.admin.foitt.wallet.platform.eIdApplicationProcess.data.repository
 
+import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.EIdDocumentType
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.repository.EidApplicationProcessRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -11,5 +12,12 @@ class EidApplicationProcessRepositoryImpl @Inject constructor() : EidApplication
 
     override fun setHasLegalGuardian(hasLegalGuardian: Boolean) {
         _hasLegalGuardian.value = hasLegalGuardian
+    }
+
+    private val _documentType = MutableStateFlow(EIdDocumentType.IDENTITY_CARD)
+    override val documentType = _documentType.asStateFlow()
+
+    override fun setDocumentType(eIdDocumentType: EIdDocumentType) {
+        _documentType.value = eIdDocumentType
     }
 }

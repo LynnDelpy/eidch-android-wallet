@@ -10,6 +10,7 @@ import ch.admin.foitt.wallet.platform.credential.presentation.CredentialActionFe
 import ch.admin.foitt.wallet.platform.navArgs.domain.model.PresentationInvalidCredentialErrorNavArg
 import ch.admin.foitt.wallet.platform.preview.WalletAllScreenPreview
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.TrustStatus
+import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.VcSchemaTrustStatus
 import ch.admin.foitt.wallet.theme.WalletTheme
 import com.ramcosta.composedestinations.annotation.Destination
 
@@ -60,6 +61,7 @@ private fun PresentationInvalidCredentialErrorPreview() {
                 name = "My Verifier Name",
                 painter = painterResource(R.drawable.wallet_ic_error_general),
                 trustStatus = TrustStatus.TRUSTED,
+                vcSchemaTrustStatus = VcSchemaTrustStatus.TRUSTED,
                 actorType = ActorType.VERIFIER,
             ),
             sentFields = listOf("this field 01", "that field 02", "that other field 03"),

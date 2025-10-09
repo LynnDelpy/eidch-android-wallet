@@ -25,11 +25,11 @@ import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ch.admin.foitt.wallet.R
-import ch.admin.foitt.wallet.platform.composables.presentation.nonFocusableAccessibilityAnchor
 import ch.admin.foitt.wallet.platform.composables.presentation.spaceBarKeyClickable
 import ch.admin.foitt.wallet.platform.preview.WalletComponentPreview
 import ch.admin.foitt.wallet.platform.scaffold.domain.model.TopBarState
 import ch.admin.foitt.wallet.platform.utils.TestTags
+import ch.admin.foitt.wallet.platform.utils.TraversalIndex
 import ch.admin.foitt.wallet.theme.WalletTexts
 import ch.admin.foitt.wallet.theme.WalletTheme
 import ch.admin.foitt.wallet.theme.WalletTopBarColors
@@ -103,12 +103,12 @@ private fun TopBarEmpty() = TopAppBar(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun TopBarBackArrow(
-    @StringRes titleId: Int?,
-    onUp: () -> Unit,
-    actionButton: @Composable () -> Unit,
     modifier: Modifier = Modifier,
+    @StringRes titleId: Int?,
     showButtonBackground: Boolean = false,
     colors: TopAppBarColors = WalletTopBarColors.transparent(),
+    onUp: () -> Unit,
+    actionButton: @Composable () -> Unit,
 ) {
     TopAppBar(
         title = {
@@ -118,7 +118,7 @@ internal fun TopBarBackArrow(
                     color = colors.titleContentColor,
                     modifier = Modifier.semantics {
                         heading()
-                        traversalIndex = -1f
+                        traversalIndex = TraversalIndex.HIGH2.value
                     }
                 )
             }
@@ -130,7 +130,7 @@ internal fun TopBarBackArrow(
                 iconTint = colors.navigationIconContentColor,
                 modifier = Modifier
                     .semantics {
-                        traversalIndex = 1f
+                        traversalIndex = TraversalIndex.HIGH1.value
                     }
                     .testTag(TestTags.BACK_BUTTON.name)
             )
@@ -151,7 +151,6 @@ private fun TopAppBarOnGradient(
     title = {
         WalletTexts.TitleTopBar(
             modifier = Modifier
-                .nonFocusableAccessibilityAnchor()
                 .testTag(TestTags.TOP_BAR_TITLE.name),
             text = stringResource(id = titleId),
             color = WalletTheme.colorScheme.onGradientFixed,
@@ -168,6 +167,24 @@ private fun TopAppBarOnGradient(
 )
 
 @Composable
+internal fun TopBarTitleOnly(
+    @StringRes titleId: Int,
+    colors: TopAppBarColors = WalletTopBarColors.transparent(),
+) = TopAppBar(
+    title = {
+        WalletTexts.TitleTopBar(
+            text = stringResource(id = titleId),
+            color = colors.titleContentColor,
+            modifier = Modifier.semantics {
+                heading()
+                traversalIndex = -1f
+            }
+        )
+    },
+    colors = colors,
+)
+
+@Composable
 private fun BackButton(
     modifier: Modifier = Modifier,
     iconTint: Color = WalletTheme.colorScheme.onSecondaryContainer,
@@ -177,7 +194,7 @@ private fun BackButton(
     onClick = onUp,
     icon = R.drawable.pilot_ic_back_navigation,
     iconTint = iconTint,
-    contentDescription = stringResource(id = R.string.global_back),
+    contentDescription = stringResource(id = R.string.tk_global_back_alt),
     modifier = modifier,
     buttonBackground = if (showButtonBackground) {
         WalletTheme.colorScheme.outline.copy(alpha = 0.24f)
@@ -231,7 +248,7 @@ fun TopBarButton(
 private class TopBarPreviewParamsProvider : PreviewParameterProvider<TopBarState> {
     override val values = sequenceOf(
         TopBarState.DetailsWithCloseButton(onUp = {}, titleId = R.string.tk_present_result_success_primary, onClose = {}),
-        TopBarState.Details(onUp = {}, titleId = R.string.settings_title),
+        TopBarState.Details(onUp = {}, titleId = R.string.tk_settings_imprint_title),
         TopBarState.None
     )
 }

@@ -7,8 +7,8 @@ sealed interface PresentationRequestContainer : Invitation {
     val clientId: String?
 
     class Json(
+        override val clientId: String? = null,
         val json: JsonElement,
-        override val clientId: String? = null
     ) : PresentationRequestContainer
 
     class Jwt(

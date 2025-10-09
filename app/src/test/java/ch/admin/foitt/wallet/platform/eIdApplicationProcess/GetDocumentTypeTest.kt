@@ -2,7 +2,7 @@ package ch.admin.foitt.wallet.platform.eIdApplicationProcess
 
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.di.EidApplicationProcessEntryPoint
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.EIdDocumentType
-import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.repository.EidDocumentTypeRepository
+import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.repository.EidApplicationProcessRepository
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.usecase.implementation.GetDocumentTypeImpl
 import ch.admin.foitt.wallet.platform.navigation.DestinationScopedComponentManager
 import io.mockk.MockKAnnotations
@@ -23,7 +23,7 @@ class GetDocumentTypeTest {
     private lateinit var mockDestinationScopedComponentManager: DestinationScopedComponentManager
 
     @MockK
-    private lateinit var mockEidDocumentTypeRepository: EidDocumentTypeRepository
+    private lateinit var mockEidApplicationProcessRepository: EidApplicationProcessRepository
 
     @MockK
     private lateinit var mockEidApplicationProcessEntryPoint: EidApplicationProcessEntryPoint
@@ -49,11 +49,11 @@ class GetDocumentTypeTest {
         } returns mockEidApplicationProcessEntryPoint
 
         coEvery {
-            mockEidApplicationProcessEntryPoint.eidDocumentTypeRepository()
-        } returns mockEidDocumentTypeRepository
+            mockEidApplicationProcessEntryPoint.eidApplicationProcessRepository()
+        } returns mockEidApplicationProcessRepository
 
         coEvery {
-            mockEidDocumentTypeRepository.documentType
+            mockEidApplicationProcessRepository.documentType
         } returns mockFlow
     }
 
@@ -77,8 +77,8 @@ class GetDocumentTypeTest {
                     EidApplicationProcessEntryPoint::class.java,
                     any()
                 )
-                mockEidApplicationProcessEntryPoint.eidDocumentTypeRepository()
-                mockEidDocumentTypeRepository.documentType
+                mockEidApplicationProcessEntryPoint.eidApplicationProcessRepository()
+                mockEidApplicationProcessRepository.documentType
             }
         }
 }

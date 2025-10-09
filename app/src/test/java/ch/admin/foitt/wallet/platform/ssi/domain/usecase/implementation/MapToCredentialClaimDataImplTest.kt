@@ -10,6 +10,7 @@ import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialClaimText
 import ch.admin.foitt.wallet.platform.ssi.domain.model.MapToCredentialClaimDataError
 import ch.admin.foitt.wallet.platform.ssi.domain.model.ValueType
 import ch.admin.foitt.wallet.platform.ssi.domain.usecase.MapToCredentialClaimData
+import ch.admin.foitt.wallet.platform.ssi.domain.usecase.implementation.mock.MockCredentialClaim
 import ch.admin.foitt.wallet.platform.ssi.domain.usecase.implementation.mock.MockCredentialClaim.CLAIM_ID
 import ch.admin.foitt.wallet.platform.ssi.domain.usecase.implementation.mock.MockCredentialClaim.buildClaimWithDisplays
 import ch.admin.foitt.wallet.platform.ssi.domain.usecase.implementation.mock.MockCredentialClaim.credentialClaimDisplay
@@ -220,6 +221,17 @@ class MapToCredentialClaimDataImplTest {
 
         mapToCredentialClaimData(claimWithDisplays)
             .assertErrorType(MapToCredentialClaimDataError::class)
+    }
+
+    @Test
+    fun `Claim with long value is truncated`() = runTest {
+        val claimWithDisplays =
+            buildClaimWithDisplays(valueType = "string", value = MockCredentialClaim.LONG_CLAIM_VALUE)
+
+        val data = mapToCredentialClaimData(claimWithDisplays).assertOk()
+        val expected = MockCredentialClaim.LONG_CLAIM_VALUE.substring(0, 1800) + "…"
+        assertTrue(data is CredentialClaimText)
+        assertEquals(expected, (data as CredentialClaimText).value)
     }
 
     companion object {

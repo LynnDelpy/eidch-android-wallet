@@ -1,5 +1,6 @@
 package ch.admin.foitt.wallet.feature.eIdApplicationProcess.presentation
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
@@ -22,6 +23,10 @@ import com.ramcosta.composedestinations.annotation.Destination
 fun EIdGuardianshipScreen(
     viewModel: EIdGuardianshipViewModel,
 ) {
+    BackHandler {
+        viewModel.shutDownLibraryAndGoBack()
+    }
+
     EIdGuardianshipScreenContent(
         onDeclareGuardianship = viewModel::onDeclareGuardianship,
     )

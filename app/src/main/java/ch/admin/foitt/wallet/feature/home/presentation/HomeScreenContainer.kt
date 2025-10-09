@@ -1,9 +1,9 @@
 package ch.admin.foitt.wallet.feature.home.presentation
 
-import androidx.compose.foundation.layout.Arrangement
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -17,6 +17,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.constraintlayout.compose.Dimension
 import androidx.window.core.layout.WindowWidthSizeClass
 import ch.admin.foitt.wallet.feature.home.presentation.composables.HomeBarHorizontal
 import ch.admin.foitt.wallet.feature.home.presentation.composables.HomeBarVertical
@@ -32,97 +34,195 @@ import ch.admin.foitt.wallet.theme.Sizes
 
 @Composable
 fun WalletLayouts.HomeContainer(
-    onMenu: () -> Unit,
-    onScan: () -> Unit,
     windowWidthClass: WindowWidthSizeClass,
+    containerState: HomeContainerState,
+    onMenu: (Boolean) -> Unit,
     content: @Composable BoxScope.(stickyBottomHeightDp: Dp) -> Unit,
 ) = when (windowWidthClass) {
     WindowWidthSizeClass.COMPACT -> HomeCompactContainer(
-        onScan = onScan,
+        containerState = containerState,
         onMenu = onMenu,
         content = content,
     )
+
     else -> HomeLargeContainer(
-        onScan = onScan,
+        containerState = containerState,
         onMenu = onMenu,
         content = content,
     )
 }
 
+@SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 private fun HomeCompactContainer(
-    onScan: () -> Unit,
-    onMenu: () -> Unit,
     modifier: Modifier = Modifier,
+    containerState: HomeContainerState,
+    onMenu: (Boolean) -> Unit,
     content: @Composable BoxScope.(stickyBottomHeightDp: Dp) -> Unit,
-) = Box(
+) = ConstraintLayout(
     modifier = modifier.fillMaxSize()
 ) {
+    val (
+        contentRef,
+        homeBarRef,
+        menuRef
+    ) = createRefs()
+
     var reportedBlockHeight by remember {
         mutableStateOf(0.dp)
     }
 
-    content(reportedBlockHeight)
+    var usesBigScanButton by remember {
+        mutableStateOf(true)
+    }
+
+    Box(
+        modifier = Modifier.constrainAs(contentRef) {
+            top.linkTo(parent.top)
+            start.linkTo(parent.start)
+            end.linkTo(parent.end)
+            bottom.linkTo(parent.bottom)
+        }
+    ) {
+        content(reportedBlockHeight)
+    }
 
     HomeCompactStickyBottom(
+        modifier = Modifier.constrainAs(homeBarRef) {
+            bottom.linkTo(parent.bottom)
+            start.linkTo(anchor = parent.start, margin = Sizes.s14)
+            end.linkTo(anchor = parent.end, margin = Sizes.s14)
+            width = Dimension.fillToConstraints
+        },
         onContentHeightMeasured = { height -> reportedBlockHeight = height },
-        onScan = onScan,
+        usesBigScanButton = { bigButton -> usesBigScanButton = bigButton },
         onMenu = onMenu,
-        modifier = Modifier
-            .align(Alignment.BottomCenter)
+        onScan = containerState.onScan,
     )
-}
 
-@Composable
-private fun HomeCompactStickyBottom(
-    onContentHeightMeasured: (stickyBottomHeight: Dp) -> Unit,
-    onScan: () -> Unit,
-    onMenu: () -> Unit,
-    modifier: Modifier,
-) = HeightReportingLayout(
-    modifier = modifier,
-    onContentHeightMeasured = onContentHeightMeasured,
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .wrapContentHeight()
-            .padding(bottom = Sizes.s06)
-            .bottomSafeDrawing(),
-        contentAlignment = Alignment.BottomCenter,
-    ) {
-        HomeBarHorizontal(
-            onScan = onScan,
-            onMenu = onMenu,
-            modifier = Modifier.setIsTraversalGroup(index = TraversalIndex.HIGH3)
-        )
+    if (containerState.showMenu) {
+        BoxWithConstraints(
+            modifier = Modifier
+                .constrainAs(menuRef) {
+                    bottom.linkTo(homeBarRef.top)
+                    start.linkTo(homeBarRef.start)
+                    if (usesBigScanButton) {
+                        end.linkTo(homeBarRef.end, margin = Sizes.s08)
+                    } else {
+                        end.linkTo(parent.end, margin = Sizes.s04)
+                    }
+                    width = Dimension.fillToConstraints
+                }
+        ) {
+            HomeCompactMenu(
+                preferredWidth = maxWidth,
+                showEIdRequestButton = containerState.showEIdRequestButton,
+                showBetaIdRequestButton = containerState.showBetaIdRequestButton,
+                onMenu = onMenu,
+                onGetEId = containerState.onGetEId,
+                onGetBetaId = containerState.onGetBetaId,
+                onSettings = containerState.onSettings,
+                onHelp = containerState.onHelp,
+            )
+        }
     }
 }
 
 @Composable
-private fun HomeLargeContainer(
+private fun HomeCompactStickyBottom(
+    modifier: Modifier,
+    onContentHeightMeasured: (stickyBottomHeight: Dp) -> Unit,
+    usesBigScanButton: (Boolean) -> Unit,
+    onMenu: (Boolean) -> Unit,
     onScan: () -> Unit,
-    onMenu: () -> Unit,
+) {
+    HeightReportingLayout(
+        modifier = modifier,
+        onContentHeightMeasured = onContentHeightMeasured,
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentHeight()
+                .padding(bottom = Sizes.s06)
+                .bottomSafeDrawing(),
+            contentAlignment = Alignment.BottomCenter,
+        ) {
+            HomeBarHorizontal(
+                onScan = onScan,
+                onMenu = { onMenu(true) },
+                usesBigScanButton = usesBigScanButton,
+                modifier = Modifier.setIsTraversalGroup(index = TraversalIndex.HIGH3)
+            )
+        }
+    }
+}
+
+@SuppressLint("UnusedBoxWithConstraintsScope")
+@Composable
+private fun HomeLargeContainer(
+    containerState: HomeContainerState,
+    onMenu: (Boolean) -> Unit,
     content: @Composable BoxScope.(stickyBottomHeightDp: Dp) -> Unit,
-) = Row(
-    verticalAlignment = Alignment.CenterVertically,
-    horizontalArrangement = Arrangement.Center,
+) = ConstraintLayout(
     modifier = Modifier.fillMaxSize()
 ) {
+    val (
+        contentRef,
+        homeBarRef,
+        menuRef
+    ) = createRefs()
+
     HomeBarVertical(
-        onScan = onScan,
-        onMenu = onMenu,
         modifier = Modifier
+            .constrainAs(homeBarRef) {
+                start.linkTo(parent.start)
+                top.linkTo(parent.top, margin = Sizes.s10)
+                bottom.linkTo(parent.bottom, margin = Sizes.s10)
+            }
             .setIsTraversalGroup(index = TraversalIndex.HIGH3)
             .padding(horizontal = Sizes.s02)
             .verticalSafeDrawing()
-            .startSafeDrawing()
+            .startSafeDrawing(),
+        onScan = containerState.onScan,
+        onMenu = { onMenu(true) },
     )
+
     Box(
         modifier = Modifier
-            .weight(1f)
+            .constrainAs(contentRef) {
+                start.linkTo(homeBarRef.end)
+                end.linkTo(parent.end)
+                top.linkTo(parent.top)
+                bottom.linkTo(parent.bottom)
+                width = Dimension.fillToConstraints
+                height = Dimension.fillToConstraints
+            }
             .endSafeDrawing()
     ) {
         content(0.dp)
+    }
+
+    if (containerState.showMenu) {
+        BoxWithConstraints(
+            modifier = Modifier
+                .constrainAs(menuRef) {
+                    start.linkTo(homeBarRef.end)
+                    top.linkTo(homeBarRef.top)
+                    bottom.linkTo(parent.bottom)
+                    height = Dimension.fillToConstraints
+                }
+        ) {
+            HomeLargeMenu(
+                preferredWidth = maxWidth * 0.4f,
+                showEIdRequestButton = containerState.showEIdRequestButton,
+                showBetaIdRequestButton = containerState.showBetaIdRequestButton,
+                onMenu = onMenu,
+                onGetEId = containerState.onGetEId,
+                onGetBetaId = containerState.onGetBetaId,
+                onSettings = containerState.onSettings,
+                onHelp = containerState.onHelp,
+            )
+        }
     }
 }

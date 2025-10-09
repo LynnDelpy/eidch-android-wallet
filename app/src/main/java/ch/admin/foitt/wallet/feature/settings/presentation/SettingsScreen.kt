@@ -1,5 +1,7 @@
 package ch.admin.foitt.wallet.feature.settings.presentation
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,6 +13,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import ch.admin.foitt.wallet.R
+import ch.admin.foitt.wallet.feature.settings.presentation.composables.ClickableTextSettingsItem
+import ch.admin.foitt.wallet.feature.settings.presentation.composables.LinkSettingsItem
+import ch.admin.foitt.wallet.feature.settings.presentation.composables.SettingsDivider
+import ch.admin.foitt.wallet.feature.settings.presentation.composables.SettingsSection
 import ch.admin.foitt.wallet.platform.composables.presentation.addTopScaffoldPadding
 import ch.admin.foitt.wallet.platform.composables.presentation.bottomSafeDrawing
 import ch.admin.foitt.wallet.platform.composables.presentation.horizontalSafeDrawing
@@ -26,33 +32,27 @@ fun SettingsScreen(
     viewModel: SettingsViewModel
 ) {
     SettingsScreenContent(
-        showEIdRequestButton = viewModel.showEIdRequestButton,
-        showBetaIdRequestButton = viewModel.showBetaIdRequestButton,
-        onRequestEId = viewModel::onRequestEId,
-        onRequestBetaId = viewModel::onRequestBetaId,
-        onSecurityScreen = viewModel::onSecurityScreen,
-        onLanguageScreen = viewModel::onLanguageScreen,
+        onSecurityAndPrivacy = viewModel::onSecurityAndPrivacy,
+        onLanguage = viewModel::onLanguage,
         onHelp = viewModel::onHelp,
-        onContact = viewModel::onContact,
         onFeedback = viewModel::onFeedback,
-        onImpressumScreen = viewModel::onImpressumScreen,
-        onLicencesScreen = viewModel::onLicencesScreen,
+        onLicences = viewModel::onLicenses,
+        onImprint = viewModel::onImprint,
     )
 }
 
 @Composable
 private fun SettingsScreenContent(
-    showEIdRequestButton: Boolean,
-    showBetaIdRequestButton: Boolean,
-    onRequestEId: () -> Unit,
-    onRequestBetaId: () -> Unit,
-    onSecurityScreen: () -> Unit,
-    onLanguageScreen: () -> Unit,
+    onSecurityAndPrivacy: () -> Unit,
+    onLanguage: () -> Unit,
     onHelp: () -> Unit,
-    onContact: () -> Unit,
     onFeedback: () -> Unit,
-    onImpressumScreen: () -> Unit,
-    onLicencesScreen: () -> Unit,
+    onLicences: () -> Unit,
+    onImprint: () -> Unit,
+) = Box(
+    modifier = Modifier
+        .fillMaxSize()
+        .background(WalletTheme.colorScheme.surfaceContainerLow)
 ) {
     Column(
         modifier = Modifier
@@ -62,108 +62,74 @@ private fun SettingsScreenContent(
             .horizontalSafeDrawing()
             .bottomSafeDrawing()
             .padding(
-                top = Sizes.s04,
                 bottom = Sizes.s04,
             )
     ) {
-        SettingsSection(
-            showEIdRequestButton = showEIdRequestButton,
-            showBetaIdRequestButton = showBetaIdRequestButton,
-            onRequestEId = onRequestEId,
-            onRequestBetaId = onRequestBetaId,
-            onSecurityScreen = onSecurityScreen,
-            onLanguageScreen = onLanguageScreen,
+        WalletSection(
+            onSecurityAndPrivacy = onSecurityAndPrivacy,
+            onLanguage = onLanguage,
         )
-        Spacer(modifier = Modifier.height(Sizes.s10))
-
-        SupportSection(onHelp, onContact, onFeedback)
-        Spacer(modifier = Modifier.height(Sizes.s10))
-
-        InfoSection(onImpressumScreen, onLicencesScreen)
+        Spacer(modifier = Modifier.height(Sizes.s06))
+        GeneralSection(
+            onHelp = onHelp,
+            onFeedback = onFeedback,
+            onLicenses = onLicences,
+            onImprint = onImprint,
+        )
     }
 }
 
 @Composable
-private fun SettingsSection(
-    showEIdRequestButton: Boolean,
-    showBetaIdRequestButton: Boolean,
-    onRequestEId: () -> Unit,
-    onRequestBetaId: () -> Unit,
-    onSecurityScreen: () -> Unit,
-    onLanguageScreen: () -> Unit,
+private fun WalletSection(
+    onSecurityAndPrivacy: () -> Unit,
+    onLanguage: () -> Unit,
+) = SettingsSection(
+    title = stringResource(R.string.tk_settings_wallet_sectionTitle)
 ) {
-    if (showEIdRequestButton) {
-        WalletListItems.SimpleListItem(
-            leadingIcon = R.drawable.wallet_ic_settings_credential,
-            title = stringResource(id = R.string.tk_menu_homeList_orderEid),
-            onItemClick = onRequestEId,
-            trailingIcon = R.drawable.pilot_ic_settings_next,
-        )
-    }
-    if (showBetaIdRequestButton) {
-        WalletListItems.SimpleListItem(
-            leadingIcon = R.drawable.wallet_ic_settings_credential,
-            title = stringResource(id = R.string.tk_menu_homeList_menu_add),
-            onItemClick = onRequestBetaId,
-            trailingIcon = R.drawable.pilot_ic_settings_next,
-        )
-    }
-    WalletListItems.SimpleListItem(
-        leadingIcon = R.drawable.pilot_ic_security,
-        title = stringResource(id = R.string.settings_security),
-        onItemClick = onSecurityScreen,
-        trailingIcon = R.drawable.pilot_ic_settings_next,
+    WalletListItems.ClickableTextSettingsItem(
+        title = stringResource(R.string.tk_settings_wallet_securityPrivacy),
+        leadingIcon = R.drawable.wallet_ic_lock_small,
+        onClick = onSecurityAndPrivacy,
     )
-    WalletListItems.SimpleListItem(
-        leadingIcon = R.drawable.pilot_ic_language,
-        title = stringResource(id = R.string.settings_language),
-        onItemClick = onLanguageScreen,
-        trailingIcon = R.drawable.pilot_ic_settings_next,
-        showDivider = false,
+    WalletListItems.SettingsDivider()
+    WalletListItems.ClickableTextSettingsItem(
+        title = stringResource(R.string.tk_settings_wallet_language),
+        leadingIcon = R.drawable.wallet_ic_globe,
+        onClick = onLanguage,
     )
 }
 
 @Composable
-private fun SupportSection(
+private fun GeneralSection(
     onHelp: () -> Unit,
-    onContact: () -> Unit,
     onFeedback: () -> Unit,
+    onLicenses: () -> Unit,
+    onImprint: () -> Unit,
+) = SettingsSection(
+    title = stringResource(R.string.tk_settings_general_sectionTitle)
 ) {
-    WalletListItems.SimpleListItem(
-        leadingIcon = R.drawable.pilot_ic_help,
-        title = stringResource(id = R.string.settings_help),
-        onItemClick = onHelp,
-        trailingIcon = R.drawable.pilot_ic_settings_link,
+    WalletListItems.LinkSettingsItem(
+        title = stringResource(R.string.tk_settings_general_help_link_text),
+        leadingIcon = R.drawable.wallet_ic_questionmark,
+        onClick = onHelp,
     )
-    WalletListItems.SimpleListItem(
-        leadingIcon = R.drawable.pilot_ic_contact,
-        title = stringResource(id = R.string.settings_contact),
-        onItemClick = onContact,
-        trailingIcon = R.drawable.pilot_ic_settings_link,
-    )
-    WalletListItems.SimpleListItem(
+    WalletListItems.SettingsDivider()
+    WalletListItems.LinkSettingsItem(
+        title = stringResource(R.string.tk_settings_general_feedback_link_text),
         leadingIcon = R.drawable.wallet_ic_feedback,
-        title = stringResource(id = R.string.tk_menu_setting_wallet_feedback),
-        onItemClick = onFeedback,
-        trailingIcon = R.drawable.pilot_ic_settings_link,
-        showDivider = false,
+        onClick = onFeedback,
     )
-}
-
-@Composable
-private fun InfoSection(onImpressumScreen: () -> Unit, onLicencesScreen: () -> Unit) {
-    WalletListItems.SimpleListItem(
-        leadingIcon = R.drawable.pilot_ic_impressum,
-        title = stringResource(id = R.string.settings_impressum),
-        onItemClick = onImpressumScreen,
-        trailingIcon = R.drawable.pilot_ic_settings_next,
+    WalletListItems.SettingsDivider()
+    WalletListItems.ClickableTextSettingsItem(
+        title = stringResource(R.string.tk_settings_general_licences),
+        leadingIcon = R.drawable.wallet_ic_licenses,
+        onClick = onLicenses,
     )
-    WalletListItems.SimpleListItem(
-        leadingIcon = R.drawable.pilot_ic_document,
-        title = stringResource(id = R.string.settings_licences),
-        onItemClick = onLicencesScreen,
-        trailingIcon = R.drawable.pilot_ic_settings_next,
-        showDivider = false,
+    WalletListItems.SettingsDivider()
+    WalletListItems.ClickableTextSettingsItem(
+        title = stringResource(R.string.tk_settings_general_imprint),
+        leadingIcon = R.drawable.wallet_ic_info,
+        onClick = onImprint,
     )
 }
 
@@ -172,17 +138,12 @@ private fun InfoSection(onImpressumScreen: () -> Unit, onLicencesScreen: () -> U
 fun SettingsScreenPreview() {
     WalletTheme {
         SettingsScreenContent(
-            showEIdRequestButton = true,
-            showBetaIdRequestButton = true,
-            onRequestEId = {},
-            onRequestBetaId = {},
-            onSecurityScreen = {},
-            onLanguageScreen = {},
+            onSecurityAndPrivacy = {},
+            onLanguage = {},
             onHelp = {},
-            onContact = {},
             onFeedback = {},
-            onImpressumScreen = {},
-            onLicencesScreen = {},
+            onLicences = {},
+            onImprint = {},
         )
     }
 }

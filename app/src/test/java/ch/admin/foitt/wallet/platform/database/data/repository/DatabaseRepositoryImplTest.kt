@@ -125,5 +125,6 @@ class DatabaseRepositoryImplTest {
         every { mockAppDatabase.eIdRequestCaseWithStateDao() } returns mockk()
         every { mockAppDatabase.rawCredentialDataDao() } returns mockk()
         every { mockAppDatabase.clientAttestationDao() } returns mockk()
+        every { mockAppDatabase.eIdRequestFileDao() } returns mockk()
     }
 }

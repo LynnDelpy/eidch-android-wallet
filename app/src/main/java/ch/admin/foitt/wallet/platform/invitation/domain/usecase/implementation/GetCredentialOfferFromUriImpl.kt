@@ -13,7 +13,6 @@ import com.github.michaelbull.result.coroutines.runSuspendCatching
 import com.github.michaelbull.result.mapError
 import com.github.michaelbull.result.toErrorIf
 import java.net.URI
-import java.net.URLDecoder
 import javax.inject.Inject
 
 internal class GetCredentialOfferFromUriImpl @Inject constructor(
@@ -21,7 +20,7 @@ internal class GetCredentialOfferFromUriImpl @Inject constructor(
 ) : GetCredentialOfferFromUri {
     override fun invoke(uri: URI): Result<CredentialOffer, GetCredentialOfferError> = binding {
         val jsonString = runSuspendCatching {
-            URLDecoder.decode(uri.query.split("=").last(), "UTF-8")
+            uri.query.split("=").last()
         }.mapError { throwable ->
             throwable.toGetCredentialOfferError("GetCredentialOfferFromUri error")
         }.bind()

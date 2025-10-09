@@ -54,17 +54,23 @@ object WalletTexts {
             when (depth) {
                 0 -> HeadlineMedium(
                     text = text,
-                    modifier = Modifier.padding(paddingValues)
+                    modifier = Modifier
+                        .padding(paddingValues)
+                        .semantics { heading() }
                 )
 
                 1 -> TitleLarge(
                     text = text,
-                    modifier = Modifier.padding(paddingValues).background(WalletTheme.colorScheme.listItemBackground),
+                    modifier = Modifier
+                        .padding(paddingValues)
+                        .background(WalletTheme.colorScheme.listItemBackground),
                 )
 
                 else -> TitleMedium(
                     text = text,
-                    modifier = Modifier.padding(paddingValues).background(WalletTheme.colorScheme.listItemBackground),
+                    modifier = Modifier
+                        .padding(paddingValues)
+                        .background(WalletTheme.colorScheme.listItemBackground),
                 )
             }
         } else {
@@ -293,6 +299,22 @@ object WalletTexts {
         text = text,
         color = color,
         style = WalletTheme.typography.bodyLarge,
+        textAlign = textAlign,
+        overflow = TextOverflow.Ellipsis,
+        maxLines = Int.MAX_VALUE,
+        modifier = modifier,
+    )
+
+    @Composable
+    fun BodyMedium(
+        text: String,
+        modifier: Modifier = Modifier,
+        textAlign: TextAlign = TextAlign.Start,
+        color: Color = WalletTheme.colorScheme.secondary
+    ) = Text(
+        text = text,
+        color = color,
+        style = WalletTheme.typography.bodyMedium,
         textAlign = textAlign,
         overflow = TextOverflow.Ellipsis,
         maxLines = Int.MAX_VALUE,

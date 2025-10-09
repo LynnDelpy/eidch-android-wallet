@@ -26,6 +26,7 @@ internal class GetActorUiStateImpl @Inject constructor(
             name = actorName,
             painter = actorDataLogo,
             trustStatus = actorDisplayData.trustStatus,
+            vcSchemaTrustStatus = actorDisplayData.vcSchemaTrustStatus,
             actorType = actorDisplayData.actorType,
         )
     }

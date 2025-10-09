@@ -4,7 +4,7 @@ plugins {
 }
 
 dependencies {
-    implementation("org.jacoco:org.jacoco.core:0.8.11")
+    implementation("org.jacoco:org.jacoco.core:0.8.13")
 }
 
 project.afterEvaluate {
@@ -14,6 +14,11 @@ project.afterEvaluate {
     if (productFlavors.isEmpty()) {
         productFlavors = productFlavors + ""
     }
+
+    // Whitelist by namespace + name pattern
+    val includes = setOf(
+        "**/domain/usecase/**/*Impl.class",
+    )
 
     productFlavors.forEach { flavorName ->
         buildTypes.forEach { buildTypeName ->
@@ -30,48 +35,31 @@ project.afterEvaluate {
                 testTaskName = testTaskName,
                 sourceName = sourceName,
                 flavorName = flavorName,
-                buildTypeName = buildTypeName
+                buildTypeName = buildTypeName,
+                includes = includes
             )
         }
     }
 }
 
-val excludes = setOf(
-    "**/R.class",
-    "**/R$*.class",
-    "**/*\$ViewInjector*.*",
-    "**/*\$ViewBinder*.*",
-    "**/BuildConfig.*",
-    "**/Manifest*.*",
-    "**/*Factory*",
-    "**/*_MembersInjector*",
-    "**/*Module*",
-    "**/*Component*",
-    "**android**",
-    "**/BR.class",
-    // Hilt
-    "**/dagger**/**",
-    "**/hilt**/**",
-)
-
 fun Project.registerCodeCoverageTask(
     testTaskName: String,
     sourceName: String,
     flavorName: String,
-    buildTypeName: String
+    buildTypeName: String,
+    includes: Set<String>
 ) {
     tasks.register<JacocoReport>("${testTaskName}Coverage") {
         dependsOn(testTaskName)
         group = "Reporting"
         description = "Generate Jacoco coverage reports on the $sourceName build."
 
-        val javaDirectories = fileTree(
-            layout.buildDirectory.dir("intermediates/javac/$sourceName")
-        ) { exclude(excludes) }
-
-        val kotlinDirectories = fileTree(
-            layout.buildDirectory.dir("tmp/kotlin-classes/$sourceName")
-        ) { exclude(excludes) }
+        val javaClasses = fileTree(layout.buildDirectory.dir("intermediates/javac/$sourceName")) {
+            include(includes)
+        }
+        val kotlinClasses = fileTree(layout.buildDirectory.dir("tmp/kotlin-classes/$sourceName")) {
+            include(includes)
+        }
 
         val coverageSrcDirectories = listOf(
             "src/main/java",
@@ -82,7 +70,7 @@ fun Project.registerCodeCoverageTask(
             "src/$buildTypeName/kotlin"
         )
 
-        classDirectories.setFrom(files(javaDirectories, kotlinDirectories))
+        classDirectories.setFrom(files(javaClasses, kotlinClasses))
         additionalClassDirs.setFrom(files(coverageSrcDirectories))
         sourceDirectories.setFrom(files(coverageSrcDirectories))
         executionData.setFrom(

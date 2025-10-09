@@ -12,6 +12,7 @@ interface GenerateAnyDisplays {
     suspend operator fun invoke(
         anyCredential: AnyCredential,
         issuerInfo: IssuerCredentialInfo,
+        trustIssuerNames: Map<String, String>? = null,
         metadata: AnyCredentialConfiguration,
         ocaBundle: OcaBundle?,
     ): Result<AnyDisplays, GenerateCredentialDisplaysError>

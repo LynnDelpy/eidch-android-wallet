@@ -11,10 +11,10 @@ import ch.admin.foitt.walletcomposedestinations.destinations.EIdGuardianSelectio
 import ch.admin.foitt.walletcomposedestinations.destinations.EIdGuardianshipScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.EIdIntroScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.EIdPrivacyPolicyScreenDestination
+import ch.admin.foitt.walletcomposedestinations.destinations.EIdProcessDataScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.EIdQueueScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.EIdReadyForAvScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.EIdStartAvSessionScreenDestination
-import ch.admin.foitt.walletcomposedestinations.destinations.EIdStartDocumentRecordingScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.EIdStartSelfieVideoScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.EIdWalletPairingScreenDestination
 import com.ramcosta.composedestinations.manualcomposablecalls.ManualComposableCallsBuilder
@@ -64,15 +64,15 @@ fun ManualComposableCallsBuilder.eIdApplicationProcessDestinations() {
         EIdStartAvSessionScreen(viewModel)
     }
 
-    screenDestination(EIdStartDocumentRecordingScreenDestination) { viewModel: EIdStartDocumentRecordingViewModel ->
-        EIdStartDocumentRecordingScreen(viewModel)
-    }
-
     screenDestination(EIdDocumentSelectionScreenDestination) { viewModel: EIdDocumentSelectionViewModel ->
         EIdDocumentSelectionScreen(viewModel)
     }
 
     screenDestination(EIdStartSelfieVideoScreenDestination) { viewModel: EIdStartSelfieVideoViewModel ->
         EIdStartSelfieVideoScreen(viewModel)
+    }
+
+    screenDestination(EIdProcessDataScreenDestination) { viewModel: EIdProcessDataViewModel ->
+        EIdProcessDataScreen(viewModel)
     }
 }

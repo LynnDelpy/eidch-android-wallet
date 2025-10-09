@@ -40,13 +40,14 @@ class GenerateAnyDisplaysImpl @Inject constructor(
     override suspend fun invoke(
         anyCredential: AnyCredential,
         issuerInfo: IssuerCredentialInfo,
+        trustIssuerNames: Map<String, String>?,
         metadata: AnyCredentialConfiguration,
         ocaBundle: OcaBundle?
     ): Result<AnyDisplays, GenerateCredentialDisplaysError> = coroutineBinding {
         val localizedIssuerDisplays: List<AnyIssuerDisplay> = issuerInfo.display?.map { oidIssuerDisplay ->
             AnyIssuerDisplay(
                 locale = oidIssuerDisplay.locale,
-                name = oidIssuerDisplay.name,
+                name = trustIssuerNames?.get(oidIssuerDisplay.locale) ?: oidIssuerDisplay.name,
                 logo = oidIssuerDisplay.logo?.uri,
                 logoAltText = oidIssuerDisplay.logo?.altText,
             )

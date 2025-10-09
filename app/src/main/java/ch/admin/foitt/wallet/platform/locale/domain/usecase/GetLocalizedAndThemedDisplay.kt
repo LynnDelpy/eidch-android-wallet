@@ -7,6 +7,6 @@ interface GetLocalizedAndThemedDisplay {
     operator fun invoke(
         credentialDisplays: List<CredentialDisplay>,
         preferredLocale: String? = null,
-        preferredTheme: String = Theme.LIGHT.value,
+        preferredTheme: Theme = Theme.LIGHT,
     ): CredentialDisplay?
 }

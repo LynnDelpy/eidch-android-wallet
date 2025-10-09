@@ -5,8 +5,11 @@ import ch.admin.foitt.wallet.platform.appAttestation.domain.model.ClientAttestat
 import ch.admin.foitt.wallet.platform.appAttestation.domain.model.KeyAttestation
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.ApplyRequest
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.AttestationsValidationRequest
+import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.AutoVerificationResponse
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.CaseResponse
+import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.EIdStartAutoVerificationType
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.GuardianVerificationResponse
+import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.PairWalletResponse
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.SIdChallengeResponse
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.SIdRepositoryError
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.StateResponse
@@ -22,6 +25,7 @@ import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
+import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
@@ -97,6 +101,50 @@ class SIdRepositoryImpl @Inject constructor(
     }.mapError { throwable ->
         throwable.toSIdRepositoryError("fetchChallenge error")
     }
+
+    override suspend fun startOnlineSession(
+        caseId: String,
+        clientAttestation: ClientAttestation,
+        clientAttestationPoP: ClientAttestationPoP,
+    ) = runSuspendCatching<Unit> {
+        httpClient.put(environmentSetupRepo.sidBackendUrl + REST_API + "eid/$caseId/start-online-session") {
+            header(ClientAttestation.REQUEST_HEADER, clientAttestation.attestation.rawJwt)
+            header(ClientAttestationPoP.REQUEST_HEADER, clientAttestationPoP.value)
+        }.body()
+    }.mapError { throwable ->
+        throwable.toSIdRepositoryError("startOnlineSession error")
+    }
+
+    override suspend fun pairWallet(
+        caseId: String,
+        clientAttestation: ClientAttestation,
+        clientAttestationPoP: ClientAttestationPoP,
+    ) = runSuspendCatching<PairWalletResponse> {
+        httpClient.put(environmentSetupRepo.sidBackendUrl + REST_API + "eid/$caseId/pair-wallet") {
+            header(ClientAttestation.REQUEST_HEADER, clientAttestation.attestation.rawJwt)
+            header(ClientAttestationPoP.REQUEST_HEADER, clientAttestationPoP.value)
+        }.body()
+    }.mapError { throwable ->
+        throwable.toSIdRepositoryError("pairWallet error")
+    }
+
+    override suspend fun startAutoVerification(
+        caseId: String,
+        autoVerificationType: EIdStartAutoVerificationType,
+        clientAttestation: ClientAttestation,
+        clientAttestationPoP: ClientAttestationPoP
+    ): Result<AutoVerificationResponse, SIdRepositoryError> =
+        runSuspendCatching<AutoVerificationResponse> {
+            httpClient.put(
+                environmentSetupRepo.sidBackendUrl + REST_API +
+                    "eid/$caseId/start-auto-verification/$autoVerificationType"
+            ) {
+                header(ClientAttestation.REQUEST_HEADER, clientAttestation.attestation.rawJwt)
+                header(ClientAttestationPoP.REQUEST_HEADER, clientAttestationPoP.value)
+            }.body()
+        }.mapError { throwable ->
+            throwable.toSIdRepositoryError("startAutoVerification error")
+        }
 
     companion object {
         private const val REST_API = "api/rest/"

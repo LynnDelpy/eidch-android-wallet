@@ -4,6 +4,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import ch.admin.foitt.wallet.platform.theme.domain.model.Theme
 
 @Entity(
     foreignKeys = [
@@ -29,5 +30,5 @@ data class CredentialDisplay(
     val logoUri: String? = null,
     val logoAltText: String? = null,
     val backgroundColor: String? = null,
-    val theme: String? = null,
+    val theme: String? = Theme.LIGHT.value
 ) : LocalizedDisplay

@@ -15,6 +15,7 @@ import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialClaimCluster
 import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialClaimText
 import ch.admin.foitt.wallet.platform.ssi.domain.usecase.implementation.mock.MockCredentialDetail
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.TrustStatus
+import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.VcSchemaTrustStatus
 
 object MockCredentialOffer {
 
@@ -137,6 +138,7 @@ object MockCredentialOffer {
         image = null,
         preferredLanguage = "de",
         trustStatus = TrustStatus.TRUSTED,
+        vcSchemaTrustStatus = VcSchemaTrustStatus.TRUSTED,
         actorType = ActorType.ISSUER,
     )
 

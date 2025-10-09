@@ -1,5 +1,6 @@
 plugins {
     id("android-sdk")
+    id("jacoco-android-sdk")
     alias(libs.plugins.devtools.ksp)
     alias(libs.plugins.junit5)
 }

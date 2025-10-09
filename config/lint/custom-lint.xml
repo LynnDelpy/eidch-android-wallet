@@ -16,17 +16,19 @@
     <!-- Even if all orientations are supported in general, it can be okay to lock the orientation on a single activity -->
     <issue id="LockedOrientationActivity" severity="ignore" />
 
-
     <!-- These are currently not real word problems -->
     <issue id="SyntheticAccessor" severity="ignore" />
     <issue id="MediaCapabilities" severity="ignore" />
 
-    <!-- This produces too many false positives -->
+    <!-- Ignore non-critical tests -->
     <issue id="Typos" severity="ignore" />
-
-    <!-- Unused ids and resources are not a real problem and can be removed in the build process. -->
+    <issue id="MissingTranslation" severity="ignore" />
+    <issue id="VectorPath" severity="ignore" />
+    <issue id="VectorRaster" severity="ignore" />
     <issue id="UnusedIds" severity="ignore" />
     <issue id="UnusedResources" severity="ignore" />
+    <issue id="IconMissingDensityFolder" severity="ignore"/>
+    <issue id="Typography" severity="ignore"/>
 
     <!-- This error is a hint that there could be a problem in the linting process itself.  -->
     <!-- Reduced the severity from error to warning. -->

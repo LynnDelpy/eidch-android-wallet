@@ -27,7 +27,9 @@ internal class DestinationScopedComponentManagerImpl @Inject constructor(
         // Runtime exception in case of coding error
         val currentDestination = navManager.currentDestination
         require(currentDestination in componentScope.destinations) {
-            "the current destination is not in the scope"
+            val msg = "the current destination $currentDestination is not in the scope ${componentScope.destinations}"
+            Timber.e(msg)
+            msg
         }
 
         val component = scopedComponents.getOrPut(componentScope) {

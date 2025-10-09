@@ -29,6 +29,8 @@ class VcSdJwtCredential(
 
     override val validUntilInstant: Instant? = validUntil?.let { Instant.ofEpochSecond(it) } ?: expInstant
 
+    override val vcSchemaId: String = vct
+
     /**
      * @returns all claims that we want to save in the database (i. e. only the disclosable claims)
      */

@@ -24,16 +24,17 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -46,7 +47,6 @@ import ch.admin.foitt.wallet.platform.actorMetadata.presentation.InvitationHeade
 import ch.admin.foitt.wallet.platform.actorMetadata.presentation.model.ActorUiState
 import ch.admin.foitt.wallet.platform.composables.Buttons
 import ch.admin.foitt.wallet.platform.composables.LoadingOverlay
-import ch.admin.foitt.wallet.platform.composables.presentation.SurroundingClusterCard
 import ch.admin.foitt.wallet.platform.composables.presentation.horizontalSafeDrawing
 import ch.admin.foitt.wallet.platform.composables.presentation.layout.LazyColumn
 import ch.admin.foitt.wallet.platform.composables.presentation.layout.WalletLayouts
@@ -59,6 +59,7 @@ import ch.admin.foitt.wallet.platform.navArgs.domain.model.PresentationRequestNa
 import ch.admin.foitt.wallet.platform.preview.WalletAllScreenPreview
 import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialClaimCluster
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.TrustStatus
+import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.VcSchemaTrustStatus
 import ch.admin.foitt.wallet.platform.utils.TestTags
 import ch.admin.foitt.wallet.theme.Sizes
 import ch.admin.foitt.wallet.theme.WalletTexts
@@ -72,7 +73,12 @@ import com.ramcosta.composedestinations.annotation.Destination
 fun PresentationRequestScreen(viewModel: PresentationRequestViewModel) {
     BackHandler(onBack = viewModel::onDecline)
 
-    val presentationRequestUiState = viewModel.presentationRequestUiState.collectAsStateWithLifecycle().value
+    val uiMode = LocalConfiguration.current.uiMode
+    LaunchedEffect(uiMode) {
+        viewModel.presentationRequestUiState.refreshData()
+    }
+
+    val presentationRequestUiState = viewModel.presentationRequestUiState.stateFlow.collectAsStateWithLifecycle().value
     val verifierUiState = viewModel.verifierUiState.collectAsStateWithLifecycle().value
 
     PresentationRequestContent(
@@ -106,7 +112,7 @@ private fun PresentationRequestContent(
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
-            .background(color = WalletTheme.colorScheme.background)
+            .background(color = WalletTheme.colorScheme.surfaceContainerLow)
     ) {
         when (windowSizeClass) {
             WindowWidthSizeClass.COMPACT -> CompactContent(
@@ -171,11 +177,7 @@ private fun IsSubmittingCompact(
     showDelayReason: Boolean,
 ) {
     Column {
-        Spacer(Modifier.windowInsetsTopHeight(WindowInsets.safeDrawing))
-        InvitationHeader(
-            verifierUiState = verifierUiState,
-            modifier = Modifier.padding(bottom = Sizes.s06),
-        )
+        InvitationHeader(verifierUiState = verifierUiState)
         Box(
             modifier = Modifier
                 .clip(
@@ -232,7 +234,7 @@ private fun CompactList(
 ) = WalletLayouts.LazyColumn(
     modifier = Modifier.fillMaxWidth(),
     state = rememberLazyListState(),
-    useTopInsets = true,
+    useTopInsets = false,
     useBottomInsets = false,
     contentPadding = PaddingValues(
         bottom = Sizes.s06
@@ -248,11 +250,9 @@ private fun CompactList(
         )
     }
     item {
-        SurroundingClusterCard {
-            MediumCredentialBox(
-                credentialCardState = credentialCardState,
-            )
-        }
+        MediumCredentialBox(
+            credentialCardState = credentialCardState,
+        )
         Spacer(modifier = Modifier.height(Sizes.s04))
     }
     item {
@@ -263,7 +263,6 @@ private fun CompactList(
         Spacer(modifier = Modifier.height(Sizes.s02))
     }
     credentialClaimItems(
-        useSurroundingCard = true,
         claimItems = requestedClaims,
         onWrongData = onWrongData,
     )
@@ -330,7 +329,9 @@ private fun LargeList(
     onWrongData: () -> Unit,
     onSubmit: () -> Unit,
     onDecline: () -> Unit,
-) = WalletLayouts.LazyColumn {
+) = WalletLayouts.LazyColumn(
+    useTopInsets = false
+) {
     item {
         InvitationHeader(
             verifierUiState = verifierUiState,
@@ -345,7 +346,6 @@ private fun LargeList(
         Spacer(modifier = Modifier.height(Sizes.s02))
     }
     credentialClaimItems(
-        useSurroundingCard = true,
         claimItems = requestedClaims,
         onWrongData = onWrongData,
     )
@@ -358,13 +358,12 @@ private fun LargeList(
 }
 
 @Composable
-private fun InvitationHeader(modifier: Modifier = Modifier, verifierUiState: ActorUiState) {
+private fun InvitationHeader(verifierUiState: ActorUiState) {
     InvitationHeader(
-        modifier = modifier
-            .padding(start = Sizes.s04, top = Sizes.s06, end = Sizes.s04, bottom = Sizes.s02),
         inviterName = verifierUiState.name,
         inviterImage = verifierUiState.painter,
         trustStatus = verifierUiState.trustStatus,
+        vcSchemaTrustStatus = verifierUiState.vcSchemaTrustStatus,
         actorType = verifierUiState.actorType,
     )
     Spacer(modifier = Modifier.height(Sizes.s02))
@@ -435,6 +434,7 @@ private fun PresentationRequestScreenPreview() {
                 name = "My Verfifier Name",
                 painter = painterResource(id = R.drawable.ic_swiss_cross_small),
                 trustStatus = TrustStatus.TRUSTED,
+                vcSchemaTrustStatus = VcSchemaTrustStatus.TRUSTED,
                 actorType = ActorType.VERIFIER,
             ),
             requestedClaims = CredentialMocks.clusterList,

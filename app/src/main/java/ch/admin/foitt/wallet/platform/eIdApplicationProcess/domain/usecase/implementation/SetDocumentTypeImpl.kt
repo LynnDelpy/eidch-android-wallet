@@ -13,8 +13,8 @@ class SetDocumentTypeImpl @Inject constructor(
     override operator fun invoke(eIdDocumentType: EIdDocumentType) {
         val repository = destinationScopedComponentManager.getEntryPoint(
             entryPointClass = EidApplicationProcessEntryPoint::class.java,
-            componentScope = ComponentScope.EidDocumentType,
-        ).eidDocumentTypeRepository()
+            componentScope = ComponentScope.EidApplicationProcess,
+        ).eidApplicationProcessRepository()
 
         repository.setDocumentType(eIdDocumentType)
     }

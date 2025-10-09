@@ -19,6 +19,7 @@ import ch.admin.foitt.wallet.platform.navigation.NavigationManager
 import ch.admin.foitt.wallet.platform.navigation.domain.model.ComponentScope
 import ch.admin.foitt.wallet.platform.scaffold.domain.model.TopBarState
 import ch.admin.foitt.wallet.platform.scaffold.domain.usecase.SetTopBarState
+import ch.admin.foitt.wallet.platform.scaffold.extension.refreshableStateFlow
 import ch.admin.foitt.wallet.platform.scaffold.presentation.ScreenViewModel
 import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialClaimCluster
 import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialClaimImage
@@ -40,7 +41,6 @@ import com.github.michaelbull.result.onFailure
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
@@ -75,7 +75,7 @@ class PresentationRequestViewModel @Inject constructor(
         )
     }.toStateFlow(ActorUiState.EMPTY, 0)
 
-    val presentationRequestUiState: StateFlow<PresentationRequestUiState> =
+    val presentationRequestUiState = refreshableStateFlow(PresentationRequestUiState.EMPTY) {
         getPresentationRequestFlow(
             id = compatibleCredential.credentialId,
             requestedFields = compatibleCredential.requestedFields,
@@ -91,7 +91,7 @@ class PresentationRequestViewModel @Inject constructor(
                 },
             )
         }.filterNotNull()
-            .toStateFlow(PresentationRequestUiState.EMPTY)
+    }
 
     private val _isLoading = MutableStateFlow(true)
     val isLoading = _isLoading.asStateFlow()
@@ -151,10 +151,12 @@ class PresentationRequestViewModel @Inject constructor(
     }
 
     private suspend fun updateVerifierDisplayData() {
-        fetchAndCacheVerifierDisplayData(
-            navArgs.presentationRequest,
-            navArgs.shouldFetchTrustStatement,
-        )
+        if (navArgs.shouldFetchTrustStatement) {
+            fetchAndCacheVerifierDisplayData(
+                navArgs.presentationRequest,
+                true,
+            )
+        }
     }
 
     private fun navigateToSuccess() {
@@ -185,7 +187,7 @@ class PresentationRequestViewModel @Inject constructor(
         )
     }
 
-    private fun getSentFields() = presentationRequestUiState.value.requestedClaims.flatMap { item ->
+    private fun getSentFields() = presentationRequestUiState.stateFlow.value.requestedClaims.flatMap { item ->
         getClusterFields(item.items)
     }.toTypedArray()
 
