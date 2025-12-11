@@ -6,6 +6,7 @@ import android.os.LocaleList
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 import ch.admin.foitt.wallet.platform.database.domain.model.DisplayLanguage
+import ch.admin.foitt.wallet.platform.locale.LocaleCompat
 import ch.admin.foitt.wallet.platform.locale.domain.usecase.GetCurrentAppLocale
 import ch.admin.foitt.wallet.platform.locale.domain.usecase.GetSupportedAppLocales
 import io.mockk.MockKAnnotations
@@ -20,7 +21,6 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.util.Locale
 
 class GetCurrentAppLocaleImplTest {
 
@@ -54,49 +54,49 @@ class GetCurrentAppLocaleImplTest {
     fun `using device locale, both locales supported returns the first`() = runTest {
         every { mockAppLocales.isEmpty } returns true
 
-        every { mockLocales[0] } returns Locale("de", "CH")
-        every { mockLocales[1] } returns Locale("de", "DE")
+        every { mockLocales[0] } returns LocaleCompat.of("de", "CH")
+        every { mockLocales[1] } returns LocaleCompat.of("de", "DE")
         every { mockLocales.size() } returns 2
 
         val result = useCase()
 
-        assertEquals(Locale("de", "CH"), result)
+        assertEquals(LocaleCompat.of("de", "CH"), result)
     }
 
     @Test
     fun `using device locale, one locale not supported, one supported returns the supported`() = runTest {
         every { mockAppLocales.isEmpty } returns true
 
-        every { mockLocales[0] } returns Locale("es", "ES")
-        every { mockLocales[1] } returns Locale("de", "CH")
+        every { mockLocales[0] } returns LocaleCompat.of("es", "ES")
+        every { mockLocales[1] } returns LocaleCompat.of("de", "CH")
         every { mockLocales.size() } returns 2
 
         val result = useCase()
 
-        assertEquals(Locale("de", "CH"), result)
+        assertEquals(LocaleCompat.of("de", "CH"), result)
     }
 
     @Test
     fun `using device locale, no locale supported returns the default locale`() = runTest {
         every { mockAppLocales.isEmpty } returns true
 
-        every { mockLocales[0] } returns Locale("es", "ES")
+        every { mockLocales[0] } returns LocaleCompat.of("es", "ES")
         every { mockLocales.size() } returns 1
 
         val result = useCase()
 
-        assertEquals(Locale(DisplayLanguage.DEFAULT), result)
+        assertEquals(LocaleCompat.of(DisplayLanguage.DEFAULT, DisplayLanguage.DEFAULT_COUNTRY), result)
     }
 
     @Test
     fun `using app specific locale, returns the first locale`() = runTest {
         every { mockAppLocales.isEmpty } returns false
         every { mockAppLocales.size() } returns 1
-        every { mockAppLocales[0] } returns Locale("de", "CH")
+        every { mockAppLocales[0] } returns LocaleCompat.of("de", "CH")
 
         val result = useCase()
 
-        assertEquals(Locale("de", "CH"), result)
+        assertEquals(LocaleCompat.of("de", "CH"), result)
     }
 
     @Test
@@ -107,13 +107,13 @@ class GetCurrentAppLocaleImplTest {
 
         val result = useCase()
 
-        assertEquals(Locale(DisplayLanguage.DEFAULT), result)
+        assertEquals(LocaleCompat.of(DisplayLanguage.DEFAULT, DisplayLanguage.DEFAULT_COUNTRY), result)
     }
 
     private fun setupDefaultMocks() {
         coEvery {
             mockGetSupportedAppLocales()
-        } returns listOf(Locale("de"), Locale("en"), Locale("fr"), Locale("it"), Locale("rm"))
+        } returns listOf(LocaleCompat.of("de"), LocaleCompat.of("en"), LocaleCompat.of("fr"), LocaleCompat.of("it"), LocaleCompat.of("rm"))
 
         mockkStatic(AppCompatDelegate::class)
         every { AppCompatDelegate.getApplicationLocales() } returns mockAppLocales

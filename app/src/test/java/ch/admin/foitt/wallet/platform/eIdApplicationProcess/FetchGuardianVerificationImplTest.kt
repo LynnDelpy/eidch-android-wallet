@@ -1,7 +1,8 @@
 package ch.admin.foitt.wallet.platform.eIdApplicationProcess
 
+import ch.admin.foitt.wallet.platform.appAttestation.domain.model.AttestationError
 import ch.admin.foitt.wallet.platform.appAttestation.domain.model.ClientAttestation
-import ch.admin.foitt.wallet.platform.appAttestation.domain.repository.CurrentClientAttestationRepository
+import ch.admin.foitt.wallet.platform.appAttestation.domain.usecase.RequestClientAttestation
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.EIdRequestError
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.GuardianVerificationResponse
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.repository.SIdRepository
@@ -14,8 +15,6 @@ import io.mockk.MockKAnnotations
 import io.mockk.coEvery
 import io.mockk.impl.annotations.MockK
 import io.mockk.unmockkAll
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -27,15 +26,13 @@ class FetchGuardianVerificationImplTest {
     private lateinit var mockSIdRepository: SIdRepository
 
     @MockK
-    private lateinit var mockClientAttestationRepository: CurrentClientAttestationRepository
+    private lateinit var mockRequestClientAttestation: RequestClientAttestation
 
     @MockK
     private lateinit var mockGuardianVerificationResponse: GuardianVerificationResponse
 
     @MockK
     private lateinit var mockClientAttestation: ClientAttestation
-
-    private lateinit var testAttestationFlow: Flow<ClientAttestation?>
 
     private lateinit var useCase: FetchGuardianVerificationImpl
 
@@ -45,13 +42,11 @@ class FetchGuardianVerificationImplTest {
 
         useCase = FetchGuardianVerificationImpl(
             sIdRepository = mockSIdRepository,
-            currentClientAttestationRepository = mockClientAttestationRepository,
+            requestClientAttestation = mockRequestClientAttestation,
         )
 
-        testAttestationFlow = flowOf(mockClientAttestation)
-
         coEvery { mockSIdRepository.fetchSIdGuardianVerification(any(), any()) } returns Ok(mockGuardianVerificationResponse)
-        coEvery { mockClientAttestationRepository.getFlow() } returns testAttestationFlow
+        coEvery { mockRequestClientAttestation(any(), any()) } returns Ok(mockClientAttestation)
     }
 
     @AfterEach
@@ -67,11 +62,13 @@ class FetchGuardianVerificationImplTest {
     }
 
     @Test
-    fun `A missing client attestation results in an error`() = runTest {
-        coEvery { mockClientAttestationRepository.getFlow() } returns flowOf(null)
+    fun `A client attestation error is propagated`() = runTest {
+        val exception = Exception("testException")
+        coEvery { mockRequestClientAttestation(any(), any()) } returns Err(AttestationError.Unexpected(exception))
 
         val result = useCase("caseId")
-        result.assertErrorType(EIdRequestError.Unexpected::class)
+        val error = result.assertErrorType(EIdRequestError.Unexpected::class)
+        assertEquals(exception, error.cause)
     }
 
     @Test

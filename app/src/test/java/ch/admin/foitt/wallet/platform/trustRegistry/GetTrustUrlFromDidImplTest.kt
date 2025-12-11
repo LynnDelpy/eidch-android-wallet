@@ -1,15 +1,17 @@
 package ch.admin.foitt.wallet.platform.trustRegistry
 
-import ch.admin.foitt.wallet.platform.environmentSetup.domain.repository.EnvironmentSetupRepository
-import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.GetTrustUrlFromDidError
+import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.TrustRegistryError
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.TrustStatementType
+import ch.admin.foitt.wallet.platform.trustRegistry.domain.usecase.GetTrustDomainFromDid
+import ch.admin.foitt.wallet.platform.trustRegistry.domain.usecase.GetTrustUrlFromDid
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.usecase.implementation.GetTrustUrlFromDidImpl
 import ch.admin.foitt.wallet.util.assertErrorType
 import ch.admin.foitt.wallet.util.assertOk
+import com.github.michaelbull.result.Err
+import com.github.michaelbull.result.Ok
 import io.ktor.utils.io.charsets.name
 import io.mockk.MockKAnnotations
 import io.mockk.coEvery
-import io.mockk.coVerify
 import io.mockk.impl.annotations.MockK
 import io.mockk.unmockkAll
 import kotlinx.coroutines.test.runTest
@@ -22,20 +24,16 @@ import java.net.URLEncoder
 class GetTrustUrlFromDidImplTest {
 
     @MockK
-    private lateinit var mockEnvironmentSetup: EnvironmentSetupRepository
+    private lateinit var mockGetTrustDomainFromDid: GetTrustDomainFromDid
 
-    private lateinit var useCase: GetTrustUrlFromDidImpl
+    private lateinit var useCase: GetTrustUrlFromDid
 
     @BeforeEach
     fun setup() {
         MockKAnnotations.init(this)
-        useCase = GetTrustUrlFromDidImpl(mockEnvironmentSetup)
+        useCase = GetTrustUrlFromDidImpl(mockGetTrustDomainFromDid)
 
-        coEvery { mockEnvironmentSetup.trustRegistryMapping } returns trustRegistryMappings
-        coEvery { mockEnvironmentSetup.baseTrustDomainRegex } returns Regex(
-            "^did:tdw:[^:]+:([^:]+\\.swiyu(-int)?\\.admin\\.ch):[^:]+",
-            setOf(RegexOption.MULTILINE)
-        )
+        coEvery { mockGetTrustDomainFromDid(inputWithDomain01) } returns Ok(trustDomain)
     }
 
     @AfterEach
@@ -102,94 +100,21 @@ class GetTrustUrlFromDidImplTest {
     }
 
     @Test
-    fun `A Did with supported base domain returns a valid Url`() {
+    fun `Getting the trust url maps errors from getting the trust domain`() = runTest {
+        coEvery {
+            mockGetTrustDomainFromDid(any())
+        } returns Err(TrustRegistryError.Unexpected(IllegalStateException("error when getting trust domain")))
+
         useCase(
-            trustStatementType = TrustStatementType.METADATA,
+            trustStatementType = TrustStatementType.VERIFICATION,
             actorDid = inputWithDomain01,
-            vcSchemaId = null
-        ).assertOk()
-    }
-
-    @Test
-    fun `A Did with supported base domain returns the right mapping`() {
-        val result = useCase(
-            trustStatementType = TrustStatementType.METADATA,
-            actorDid = inputWithDomain02,
-            vcSchemaId = null
-        ).assertOk()
-        assert(result.host == trustRegistryMappings[domain02])
-    }
-
-    @Test
-    fun `A call uses the provided trust registry mapping`() {
-        useCase(
-            trustStatementType = TrustStatementType.METADATA,
-            actorDid = inputWithDomain02,
-            vcSchemaId = null
-        )
-
-        coVerify(exactly = 1) {
-            mockEnvironmentSetup.trustRegistryMapping
-        }
-    }
-
-    @Test
-    fun `A Did with unsupported base domain returns an error`() {
-        useCase(
-            trustStatementType = TrustStatementType.METADATA,
-            actorDid = inputDidWithUnsupportedDomain,
-            vcSchemaId = null
-        ).assertErrorType(GetTrustUrlFromDidError.NoTrustRegistryMapping::class)
-    }
-
-    @Test
-    fun `An random string input returns an error`() {
-        useCase(
-            trustStatementType = TrustStatementType.METADATA,
-            actorDid = inputRandom,
-            vcSchemaId = null
-        ).assertErrorType(GetTrustUrlFromDidError.NoTrustRegistryMapping::class)
-    }
-
-    @Test
-    fun `A non-did twd input returns an error`() {
-        useCase(
-            trustStatementType = TrustStatementType.METADATA,
-            actorDid = inputNonDid,
-            vcSchemaId = null
-        ).assertErrorType(GetTrustUrlFromDidError.NoTrustRegistryMapping::class)
-    }
-
-    @Test
-    fun `A did input with unsupported method returns an error`() {
-        useCase(
-            trustStatementType = TrustStatementType.METADATA,
-            actorDid = inputDidWithUnsupportedMethod,
-            vcSchemaId = null
-        ).assertErrorType(GetTrustUrlFromDidError.NoTrustRegistryMapping::class)
-    }
-
-    @Test
-    fun `An empty input returns an error`() {
-        useCase(
-            trustStatementType = TrustStatementType.METADATA,
-            actorDid = " ",
-            vcSchemaId = null
-        ).assertErrorType(GetTrustUrlFromDidError.NoTrustRegistryMapping::class)
+            vcSchemaId = "vcSchemaId",
+        ).assertErrorType(TrustRegistryError.Unexpected::class)
     }
 
     private val domain01 = "some.domain.swiyu.admin.ch"
-    private val domain02 = "dev.other.domain.swiyu.admin.ch"
 
     private val inputWithDomain01 = "did:tdw:randomid=:$domain01:api:v1:did:randomuuid"
-    private val inputWithDomain02 = "did:tdw:randomid=:$domain02:api:v1:did:randomuuid2"
-    private val inputDidWithUnsupportedDomain = "did:tdw:randomid=:wrong.domain.admin.ch:api:v1:did:randomuuid"
-    private val inputDidWithUnsupportedMethod = "did:web:randomid=:some.domain.bit.admin.ch:api:v1:did:randomuuid"
-    private val inputNonDid = "https//twd:randomid=:some.domain.bit.admin.ch:api:v1:did:randomuuid"
-    private val inputRandom = "1e4ddcb5e7670:9e8ae97e6e8/fd7df"
 
-    private val trustRegistryMappings = mapOf(
-        domain01 to "example.org",
-        domain02 to "dev.org",
-    )
+    private val trustDomain = "example.org"
 }

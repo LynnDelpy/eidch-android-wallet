@@ -51,6 +51,7 @@ private fun WalletTopAppBarContent(
     when (topBarState) {
         is TopBarState.DetailsWithCloseButton -> TopBarBackArrow(
             titleId = topBarState.titleId,
+            colors = if (topBarState.useTransparentBackground) WalletTopBarColors.transparent() else WalletTopBarColors.clusterScreen(),
             onUp = topBarState.onUp,
             actionButton = {
                 CloseButton(
@@ -61,6 +62,7 @@ private fun WalletTopAppBarContent(
 
         is TopBarState.Details -> TopBarBackArrow(
             titleId = topBarState.titleId,
+            colors = if (topBarState.useTransparentBackground) WalletTopBarColors.transparent() else WalletTopBarColors.clusterScreen(),
             onUp = topBarState.onUp,
             actionButton = {},
         )

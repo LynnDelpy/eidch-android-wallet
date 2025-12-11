@@ -189,37 +189,49 @@ object ClusterMocks {
     )
 
     val credentialClaimItemMinus1 = CredentialClaimText(
+        id = -1L,
         localizedLabel = "key",
         order = -1,
-        value = NAME_MINUS_1
+        value = NAME_MINUS_1,
+        isSensitive = false
     )
 
     val credentialClaimItem1 = CredentialClaimText(
+        id = 1L,
         localizedLabel = "key",
         order = 1,
-        value = NAME_1
+        value = NAME_1,
+        isSensitive = false
     )
 
     val credentialClaimItem2 = CredentialClaimText(
+        id = 2L,
         localizedLabel = "key",
         order = 2,
-        value = NAME_2
+        value = NAME_2,
+        isSensitive = false
     )
 
     val credentialClaimItem3 = CredentialClaimText(
+        id = 3L,
         localizedLabel = "key",
         order = 3,
-        value = NAME_3
+        value = NAME_3,
+        isSensitive = false
     )
     val credentialClaimItem4 = CredentialClaimText(
+        id = 4L,
         localizedLabel = "key",
         order = 4,
-        value = NAME_4
+        value = NAME_4,
+        isSensitive = false
     )
     val credentialClaimItem5 = CredentialClaimText(
+        id = 5L,
         localizedLabel = "key",
         order = 5,
-        value = NAME_5
+        value = NAME_5,
+        isSensitive = false
     )
 
     /*
@@ -233,7 +245,7 @@ object ClusterMocks {
             clusterWithDisplays = CredentialClusterWithDisplays(
                 cluster = CredentialClaimClusterEntity(
                     id = CLUSTER_ID_1,
-                    credentialId = CREDENTIAL_ID,
+                    verifiableCredentialId = CREDENTIAL_ID,
                     parentClusterId = null,
                     order = 2
                 ),
@@ -245,7 +257,7 @@ object ClusterMocks {
             clusterWithDisplays = CredentialClusterWithDisplays(
                 cluster = CredentialClaimClusterEntity(
                     id = CLUSTER_ID_2,
-                    credentialId = CREDENTIAL_ID,
+                    verifiableCredentialId = CREDENTIAL_ID,
                     parentClusterId = null,
                     order = 1
                 ),
@@ -268,7 +280,7 @@ object ClusterMocks {
             clusterWithDisplays = CredentialClusterWithDisplays(
                 cluster = CredentialClaimClusterEntity(
                     id = CLUSTER_ID_1,
-                    credentialId = CREDENTIAL_ID,
+                    verifiableCredentialId = CREDENTIAL_ID,
                     parentClusterId = null,
                     order = 2
                 ),
@@ -280,7 +292,7 @@ object ClusterMocks {
             clusterWithDisplays = CredentialClusterWithDisplays(
                 cluster = CredentialClaimClusterEntity(
                     id = CLUSTER_ID_2,
-                    credentialId = CREDENTIAL_ID,
+                    verifiableCredentialId = CREDENTIAL_ID,
                     parentClusterId = null,
                     order = 1
                 ),
@@ -292,7 +304,7 @@ object ClusterMocks {
             clusterWithDisplays = CredentialClusterWithDisplays(
                 cluster = CredentialClaimClusterEntity(
                     id = CLUSTER_ID_3,
-                    credentialId = CREDENTIAL_ID,
+                    verifiableCredentialId = CREDENTIAL_ID,
                     parentClusterId = CLUSTER_ID_2,
                     order = 1
                 ),
@@ -375,7 +387,7 @@ object ClusterMocks {
             clusterWithDisplays = CredentialClusterWithDisplays(
                 cluster = CredentialClaimClusterEntity(
                     id = CLUSTER_ID_1,
-                    credentialId = CREDENTIAL_ID,
+                    verifiableCredentialId = CREDENTIAL_ID,
                     parentClusterId = null,
                     order = 1
                 ),
@@ -387,7 +399,7 @@ object ClusterMocks {
             clusterWithDisplays = CredentialClusterWithDisplays(
                 cluster = CredentialClaimClusterEntity(
                     id = CLUSTER_ID_5,
-                    credentialId = CREDENTIAL_ID,
+                    verifiableCredentialId = CREDENTIAL_ID,
                     parentClusterId = CLUSTER_ID_1,
                     order = -1,
                 ),
@@ -399,7 +411,7 @@ object ClusterMocks {
             clusterWithDisplays = CredentialClusterWithDisplays(
                 cluster = CredentialClaimClusterEntity(
                     id = CLUSTER_ID_3,
-                    credentialId = CREDENTIAL_ID,
+                    verifiableCredentialId = CREDENTIAL_ID,
                     parentClusterId = CLUSTER_ID_2,
                     order = 1
                 ),
@@ -411,7 +423,7 @@ object ClusterMocks {
             clusterWithDisplays = CredentialClusterWithDisplays(
                 cluster = CredentialClaimClusterEntity(
                     id = CLUSTER_ID_4,
-                    credentialId = CREDENTIAL_ID,
+                    verifiableCredentialId = CREDENTIAL_ID,
                     parentClusterId = CLUSTER_ID_2,
                     order = 1
                 ),
@@ -423,7 +435,7 @@ object ClusterMocks {
             clusterWithDisplays = CredentialClusterWithDisplays(
                 cluster = CredentialClaimClusterEntity(
                     id = CLUSTER_ID_2,
-                    credentialId = CREDENTIAL_ID,
+                    verifiableCredentialId = CREDENTIAL_ID,
                     parentClusterId = CLUSTER_ID_1,
                     order = 1
                 ),
@@ -492,7 +504,7 @@ object ClusterMocks {
             clusterWithDisplays = CredentialClusterWithDisplays(
                 cluster = CredentialClaimClusterEntity(
                     id = CLUSTER_ID_1,
-                    credentialId = CREDENTIAL_ID,
+                    verifiableCredentialId = CREDENTIAL_ID,
                     parentClusterId = null,
                     order = 2
                 ),
@@ -504,7 +516,7 @@ object ClusterMocks {
             clusterWithDisplays = CredentialClusterWithDisplays(
                 cluster = CredentialClaimClusterEntity(
                     id = CLUSTER_ID_2,
-                    credentialId = CREDENTIAL_ID,
+                    verifiableCredentialId = CREDENTIAL_ID,
                     parentClusterId = null,
                     order = 1
                 ),
@@ -532,7 +544,7 @@ object ClusterMocks {
             clusterWithDisplays = CredentialClusterWithDisplays(
                 cluster = CredentialClaimClusterEntity(
                     id = CLUSTER_ID_1,
-                    credentialId = CREDENTIAL_ID,
+                    verifiableCredentialId = CREDENTIAL_ID,
                     parentClusterId = null,
                     order = 2
                 ),
@@ -544,7 +556,7 @@ object ClusterMocks {
             clusterWithDisplays = CredentialClusterWithDisplays(
                 cluster = CredentialClaimClusterEntity(
                     id = CLUSTER_ID_2,
-                    credentialId = CREDENTIAL_ID,
+                    verifiableCredentialId = CREDENTIAL_ID,
                     parentClusterId = null,
                     order = 1
                 ),
@@ -556,7 +568,7 @@ object ClusterMocks {
             clusterWithDisplays = CredentialClusterWithDisplays(
                 cluster = CredentialClaimClusterEntity(
                     id = CLUSTER_ID_3,
-                    credentialId = CREDENTIAL_ID,
+                    verifiableCredentialId = CREDENTIAL_ID,
                     parentClusterId = CLUSTER_ID_2,
                     order = 1
                 ),

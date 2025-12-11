@@ -4,5 +4,5 @@ import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.AvUploa
 import com.github.michaelbull.result.Result
 
 interface UploadAllFiles {
-    suspend operator fun invoke(caseId: String): Result<Unit, AvUploadFilesError>
+    suspend operator fun invoke(caseId: String, accessToken: String): Result<Unit, AvUploadFilesError>
 }

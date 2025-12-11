@@ -1,16 +1,12 @@
 package ch.admin.foitt.wallet.platform.actorMetadata
 
 import ch.admin.foitt.wallet.platform.actorMetadata.di.ActorRepositoryEntryPoint
-import ch.admin.foitt.wallet.platform.actorMetadata.domain.model.ActorDisplayData
-import ch.admin.foitt.wallet.platform.actorMetadata.domain.model.ActorField
-import ch.admin.foitt.wallet.platform.actorMetadata.domain.model.ActorType
 import ch.admin.foitt.wallet.platform.actorMetadata.domain.repository.ActorRepository
 import ch.admin.foitt.wallet.platform.actorMetadata.domain.usecase.GetActorForScope
 import ch.admin.foitt.wallet.platform.actorMetadata.domain.usecase.implementation.GetActorForScopeImpl
+import ch.admin.foitt.wallet.platform.actorMetadata.mock.ActorMetadataMocks.mockActorDisplayData01
 import ch.admin.foitt.wallet.platform.navigation.DestinationScopedComponentManager
 import ch.admin.foitt.wallet.platform.navigation.domain.model.ComponentScope
-import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.TrustStatus
-import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.VcSchemaTrustStatus
 import io.mockk.MockKAnnotations
 import io.mockk.coEvery
 import io.mockk.coVerifyOrder
@@ -76,25 +72,4 @@ class GetActorForScopeTest {
             mockActorRepository.actorDisplayData
         }
     }
-
-    //region mock data
-    private val mockActorDisplayData01 = ActorDisplayData(
-        name = listOf(
-            ActorField(
-                value = "test_name",
-                locale = "de"
-            )
-        ),
-        image = listOf(
-            ActorField(
-                value = "test_image",
-                locale = "de"
-            )
-        ),
-        preferredLanguage = "test_de",
-        trustStatus = TrustStatus.TRUSTED,
-        vcSchemaTrustStatus = VcSchemaTrustStatus.TRUSTED,
-        actorType = ActorType.ISSUER,
-    )
-    //endregion
 }

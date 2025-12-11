@@ -7,8 +7,8 @@ import ch.admin.foitt.wallet.feature.credentialOffer.domain.usecase.GetCredentia
 import ch.admin.foitt.wallet.platform.credential.domain.model.MapToCredentialDisplayDataError
 import ch.admin.foitt.wallet.platform.credential.domain.usecase.MapToCredentialDisplayData
 import ch.admin.foitt.wallet.platform.credentialCluster.domain.usercase.MapToCredentialClaimCluster
-import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialWithDisplaysAndClustersRepositoryError
-import ch.admin.foitt.wallet.platform.ssi.domain.repository.CredentialWithDisplaysAndClustersRepository
+import ch.admin.foitt.wallet.platform.ssi.domain.model.VerifiableCredentialWithDisplaysAndClustersRepositoryError
+import ch.admin.foitt.wallet.platform.ssi.domain.repository.VerifiableCredentialWithDisplaysAndClustersRepository
 import ch.admin.foitt.wallet.platform.utils.andThen
 import ch.admin.foitt.wallet.platform.utils.mapError
 import com.github.michaelbull.result.Result
@@ -18,18 +18,18 @@ import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 class GetCredentialOfferFlowImpl @Inject constructor(
-    private val credentialWithDisplaysAndClustersRepository: CredentialWithDisplaysAndClustersRepository,
+    private val verifiableCredentialWithDisplaysAndClustersRepository: VerifiableCredentialWithDisplaysAndClustersRepository,
     private val mapToCredentialDisplayData: MapToCredentialDisplayData,
     private val mapToCredentialClaimCluster: MapToCredentialClaimCluster,
 ) : GetCredentialOfferFlow {
     override fun invoke(credentialId: Long): Flow<Result<CredentialOffer?, GetCredentialOfferFlowError>> =
-        credentialWithDisplaysAndClustersRepository.getNullableCredentialWithDisplaysAndClustersFlowById(credentialId)
-            .mapError(CredentialWithDisplaysAndClustersRepositoryError::toGetCredentialOfferFlowError)
+        verifiableCredentialWithDisplaysAndClustersRepository.getNullableVerifiableCredentialWithDisplaysAndClustersFlowById(credentialId)
+            .mapError(VerifiableCredentialWithDisplaysAndClustersRepositoryError::toGetCredentialOfferFlowError)
             .andThen { credentialWithDisplaysAndClusters ->
                 coroutineBinding {
                     credentialWithDisplaysAndClusters?.let { credentialWithDisplaysAndClusters ->
                         val credentialDisplayData = mapToCredentialDisplayData(
-                            credential = credentialWithDisplaysAndClusters.credential,
+                            verifiableCredential = credentialWithDisplaysAndClusters.verifiableCredential,
                             credentialDisplays = credentialWithDisplaysAndClusters.credentialDisplays,
                             claims = credentialWithDisplaysAndClusters.clusters.flatMap { it.claimsWithDisplays }
                         ).mapError(MapToCredentialDisplayDataError::toGetCredentialOfferFlowError)

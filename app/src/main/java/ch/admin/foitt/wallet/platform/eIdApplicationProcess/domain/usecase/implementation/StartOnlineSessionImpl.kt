@@ -1,10 +1,10 @@
 package ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.usecase.implementation
 
 import ch.admin.foitt.wallet.platform.appAttestation.domain.model.ClientAttestationPoP
-import ch.admin.foitt.wallet.platform.appAttestation.domain.model.ClientAttestationRepositoryError
 import ch.admin.foitt.wallet.platform.appAttestation.domain.model.GenerateProofOfPossessionError
-import ch.admin.foitt.wallet.platform.appAttestation.domain.repository.CurrentClientAttestationRepository
+import ch.admin.foitt.wallet.platform.appAttestation.domain.model.RequestClientAttestationError
 import ch.admin.foitt.wallet.platform.appAttestation.domain.usecase.GenerateProofOfPossession
+import ch.admin.foitt.wallet.platform.appAttestation.domain.usecase.RequestClientAttestation
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.SIdRepositoryError
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.toStartOnlineSessionError
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.repository.SIdRepository
@@ -17,13 +17,13 @@ import javax.inject.Inject
 
 class StartOnlineSessionImpl @Inject constructor(
     private val sIdRepository: SIdRepository,
-    private val currentClientAttestationRepository: CurrentClientAttestationRepository,
+    private val requestClientAttestation: RequestClientAttestation,
     private val generateProofOfPossession: GenerateProofOfPossession,
     private val environmentSetupRepository: EnvironmentSetupRepository,
 ) : StartOnlineSession {
     override suspend operator fun invoke(caseId: String) = coroutineBinding {
-        val clientAttestation = currentClientAttestationRepository.get()
-            .mapError(ClientAttestationRepositoryError::toStartOnlineSessionError).bind()
+        val clientAttestation = requestClientAttestation()
+            .mapError(RequestClientAttestationError::toStartOnlineSessionError).bind()
 
         val challengeResponse = sIdRepository.fetchChallenge()
             .mapError(SIdRepositoryError::toStartOnlineSessionError).bind()

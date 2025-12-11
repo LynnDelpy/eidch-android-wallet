@@ -32,6 +32,12 @@ fun ZonedDateTime.asDayFullMonthYearHoursMinutes(locale: Locale): String {
     return formatPattern(localizedPattern, locale).uppercase(locale)
 }
 
+fun ZonedDateTime.asDayMonthYearHoursMinutesWithPipe(locale: Locale): String {
+    val localizedDatePattern = DateFormat.getBestDateTimePattern(locale, "ddMMyyyy")
+    val localizedTimePattern = DateFormat.getBestDateTimePattern(locale, "HH:mm")
+    return formatPattern("$localizedDatePattern | $localizedTimePattern", locale).uppercase(locale)
+}
+
 fun ZonedDateTime.asBestLocalizedForPattern(locale: Locale, pattern: String): String {
     val localizedPattern = DateFormat.getBestDateTimePattern(locale, pattern)
     return this.formatPattern(localizedPattern, locale)

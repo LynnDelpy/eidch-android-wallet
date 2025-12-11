@@ -1,10 +1,10 @@
 package ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.usecase.implementation
 
 import ch.admin.foitt.wallet.platform.appAttestation.domain.model.ClientAttestationPoP
-import ch.admin.foitt.wallet.platform.appAttestation.domain.model.ClientAttestationRepositoryError
 import ch.admin.foitt.wallet.platform.appAttestation.domain.model.GenerateProofOfPossessionError
-import ch.admin.foitt.wallet.platform.appAttestation.domain.repository.CurrentClientAttestationRepository
+import ch.admin.foitt.wallet.platform.appAttestation.domain.model.RequestClientAttestationError
 import ch.admin.foitt.wallet.platform.appAttestation.domain.usecase.GenerateProofOfPossession
+import ch.admin.foitt.wallet.platform.appAttestation.domain.usecase.RequestClientAttestation
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.EIdStartAutoVerificationType
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.SIdRepositoryError
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.toStartAutoVerificationError
@@ -18,13 +18,13 @@ import javax.inject.Inject
 
 class StartAutoVerificationImpl @Inject constructor(
     private val sIdRepository: SIdRepository,
-    private val currentClientAttestationRepository: CurrentClientAttestationRepository,
+    private val requestClientAttestation: RequestClientAttestation,
     private val generateProofOfPossession: GenerateProofOfPossession,
     private val environmentSetupRepository: EnvironmentSetupRepository,
 ) : StartAutoVerification {
     override suspend operator fun invoke(caseId: String) = coroutineBinding {
-        val clientAttestation = currentClientAttestationRepository.get()
-            .mapError(ClientAttestationRepositoryError::toStartAutoVerificationError).bind()
+        val clientAttestation = requestClientAttestation()
+            .mapError(RequestClientAttestationError::toStartAutoVerificationError).bind()
 
         val challengeResponse = sIdRepository.fetchChallenge()
             .mapError(SIdRepositoryError::toStartAutoVerificationError).bind()

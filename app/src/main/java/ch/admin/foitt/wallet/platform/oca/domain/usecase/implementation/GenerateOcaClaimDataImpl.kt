@@ -21,6 +21,8 @@ import ch.admin.foitt.wallet.platform.oca.domain.model.overlays.LabelOverlay1x0
 import ch.admin.foitt.wallet.platform.oca.domain.model.overlays.OrderOverlay
 import ch.admin.foitt.wallet.platform.oca.domain.model.overlays.OrderOverlay1x0
 import ch.admin.foitt.wallet.platform.oca.domain.model.overlays.Overlay
+import ch.admin.foitt.wallet.platform.oca.domain.model.overlays.SensitiveOverlay
+import ch.admin.foitt.wallet.platform.oca.domain.model.overlays.SensitiveOverlay1x0
 import ch.admin.foitt.wallet.platform.oca.domain.model.overlays.Standard
 import ch.admin.foitt.wallet.platform.oca.domain.model.overlays.StandardOverlay
 import ch.admin.foitt.wallet.platform.oca.domain.model.overlays.StandardOverlay1x0
@@ -43,6 +45,7 @@ class GenerateOcaClaimDataImpl @Inject constructor() : GenerateOcaClaimData {
         val standards = getStandardsForAttributes(overlays, captureBase)
         val order = getOrderForAttributes(overlays, captureBase)
         val entries = getEntryMappingForAttributes(overlays, captureBase)
+        val sensitiveAttributes = getSensitiveAttributes(overlays, captureBase)
         captureBase.attributes.map { attribute ->
             OcaClaimData(
                 attributeType = attribute.value,
@@ -54,7 +57,8 @@ class GenerateOcaClaimDataImpl @Inject constructor() : GenerateOcaClaimData {
                 labels = labelOverlays.getOrDefault(attribute.key, emptyMap()),
                 standard = standards.getOrDefault(attribute.key, null),
                 order = order.getOrDefault(attribute.key, null),
-                entryMappings = entries.getOrDefault(attribute.key, emptyMap())
+                entryMappings = entries.getOrDefault(attribute.key, emptyMap()),
+                isSensitive = sensitiveAttributes.contains(attribute.key)
             )
         }
     }
@@ -78,6 +82,19 @@ class GenerateOcaClaimDataImpl @Inject constructor() : GenerateOcaClaimData {
         }
 
         return labels
+    }
+
+    private fun getSensitiveAttributes(overlays: List<Overlay>, captureBase: CaptureBase): List<AttributeKey> {
+        val sensitiveOverlays =
+            getLatestOverlaysOfType<SensitiveOverlay>(overlays = overlays, digest = captureBase.digest)
+
+        return captureBase.attributes.keys.filter { attribute ->
+            sensitiveOverlays.map { overlay ->
+                when (overlay) {
+                    is SensitiveOverlay1x0 -> overlay.attributes.contains(attribute)
+                }
+            }.any { it }
+        }
     }
 
     private fun getDataSourcesForAttributes(

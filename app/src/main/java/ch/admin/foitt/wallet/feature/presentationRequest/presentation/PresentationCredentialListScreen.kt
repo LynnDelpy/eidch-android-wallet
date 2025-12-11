@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -36,6 +38,8 @@ import ch.admin.foitt.wallet.R
 import ch.admin.foitt.wallet.platform.actorMetadata.domain.model.ActorType
 import ch.admin.foitt.wallet.platform.actorMetadata.presentation.InvitationHeader
 import ch.admin.foitt.wallet.platform.actorMetadata.presentation.model.ActorUiState
+import ch.admin.foitt.wallet.platform.badges.domain.model.BadgeType
+import ch.admin.foitt.wallet.platform.badges.presentation.BadgeBottomSheet
 import ch.admin.foitt.wallet.platform.composables.Buttons
 import ch.admin.foitt.wallet.platform.composables.LoadingOverlay
 import ch.admin.foitt.wallet.platform.composables.presentation.HeightReportingLayout
@@ -45,6 +49,7 @@ import ch.admin.foitt.wallet.platform.credential.presentation.CredentialListRow
 import ch.admin.foitt.wallet.platform.credential.presentation.mock.CredentialMocks
 import ch.admin.foitt.wallet.platform.credential.presentation.model.CredentialCardState
 import ch.admin.foitt.wallet.platform.navArgs.domain.model.PresentationCredentialListNavArg
+import ch.admin.foitt.wallet.platform.nonCompliance.domain.model.NonComplianceState
 import ch.admin.foitt.wallet.platform.preview.WalletAllScreenPreview
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.TrustStatus
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.VcSchemaTrustStatus
@@ -53,6 +58,7 @@ import ch.admin.foitt.wallet.theme.WalletTexts
 import ch.admin.foitt.wallet.theme.WalletTheme
 import com.ramcosta.composedestinations.annotation.Destination
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Destination(
     navArgsDelegate = PresentationCredentialListNavArg::class,
 )
@@ -66,12 +72,23 @@ fun PresentationCredentialListScreen(viewModel: PresentationCredentialListViewMo
         viewModel.presentationCredentialListUiState.refreshData()
     }
 
+    val badgeBottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val badgeBottomSheet = viewModel.badgeBottomSheet.collectAsStateWithLifecycle().value
+    if (badgeBottomSheet != null) {
+        BadgeBottomSheet(
+            sheetState = badgeBottomSheetState,
+            badgeBottomSheetUiState = badgeBottomSheet,
+            onDismiss = viewModel::onDismissBottomSheet
+        )
+    }
+
     PresentationCredentialListScreenContent(
         verifierUiState = verifierUiState,
         credentialCardStates = presentationCredentialListUiState.credentials,
         isLoading = viewModel.isLoading.collectAsStateWithLifecycle().value,
         onCredentialSelected = viewModel::onCredentialSelected,
         onBack = viewModel::onBack,
+        onBadge = viewModel::onBadge,
     )
 }
 
@@ -82,6 +99,7 @@ private fun PresentationCredentialListScreenContent(
     isLoading: Boolean,
     onCredentialSelected: (Long) -> Unit,
     onBack: () -> Unit,
+    onBadge: (BadgeType) -> Unit,
 ) {
     val bottomHeightDp = remember { mutableStateOf(0.dp) }
 
@@ -107,7 +125,10 @@ private fun PresentationCredentialListScreenContent(
             credentialStates = credentialCardStates,
             onCredentialSelected = onCredentialSelected,
             headerContent = {
-                ListHeader(verifierUiState = verifierUiState)
+                ListHeader(
+                    verifierUiState = verifierUiState,
+                    onBadge = onBadge,
+                )
             },
         )
         CancelButton(
@@ -126,13 +147,13 @@ private fun PresentationCredentialListScreenContent(
 }
 
 @Composable
-private fun ListHeader(verifierUiState: ActorUiState) {
+private fun ListHeader(
+    verifierUiState: ActorUiState,
+    onBadge: (BadgeType) -> Unit,
+) {
     InvitationHeader(
-        inviterName = verifierUiState.name,
-        inviterImage = verifierUiState.painter,
-        trustStatus = verifierUiState.trustStatus,
-        vcSchemaTrustStatus = verifierUiState.vcSchemaTrustStatus,
-        actorType = verifierUiState.actorType,
+        actorUiState = verifierUiState,
+        onBadge = onBadge,
     )
     Spacer(modifier = Modifier.height(Sizes.s04))
     WalletTexts.BodyLarge(
@@ -209,11 +230,14 @@ private fun PresentationCredentialListScreenPreview() {
                 trustStatus = TrustStatus.TRUSTED,
                 vcSchemaTrustStatus = VcSchemaTrustStatus.TRUSTED,
                 actorType = ActorType.VERIFIER,
+                nonComplianceState = NonComplianceState.REPORTED,
+                nonComplianceReason = "report reason",
             ),
             credentialCardStates = CredentialMocks.cardStates.toList().map { it.value() },
             isLoading = false,
             onCredentialSelected = {},
             onBack = {},
+            onBadge = {},
         )
     }
 }

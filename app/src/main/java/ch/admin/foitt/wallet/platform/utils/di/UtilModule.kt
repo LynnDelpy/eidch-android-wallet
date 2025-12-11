@@ -1,6 +1,9 @@
 package ch.admin.foitt.wallet.platform.utils.di
 
 import ch.admin.foitt.wallet.platform.utils.SafeJson
+import ch.admin.foitt.wallet.platform.utils.domain.usecase.GetImageDataFromUri
+import ch.admin.foitt.wallet.platform.utils.domain.usecase.implementation.GetImageDataFromUriImpl
+import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -25,4 +28,13 @@ class UtilModule {
 
     @Provides
     fun provideSafeJson(@Named("JsonSerializer") json: Json) = SafeJson(json = json)
+}
+
+@Module
+@InstallIn(ActivityRetainedComponent::class)
+internal interface UtilBindings {
+    @Binds
+    fun bindGetImageDataFromUri(
+        useCase: GetImageDataFromUriImpl
+    ): GetImageDataFromUri
 }

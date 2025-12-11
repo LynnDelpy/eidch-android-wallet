@@ -3,6 +3,7 @@ package ch.admin.foitt.wallet.feature.eIdRequestVerification.presentation
 import ch.admin.foitt.wallet.platform.scaffold.extension.screenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.EIdDocumentRecordingScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.EIdNfcScannerScreenDestination
+import ch.admin.foitt.walletcomposedestinations.destinations.EIdNfcSummaryScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.EIdStartAutoVerificationScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.MrzChooserScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.MrzScanPermissionScreenDestination
@@ -41,5 +42,9 @@ fun ManualComposableCallsBuilder.eIdRequestVerificationDestinations() {
 
     screenDestination(EIdStartAutoVerificationScreenDestination) { viewModel: EIdStartAutoVerificationViewModel ->
         EIdStartAutoVerificationScreen(viewModel)
+    }
+
+    screenDestination(EIdNfcSummaryScreenDestination) { viewModel: EIdNfcSummaryViewModel ->
+        EIdNfcSummaryScreen(viewModel)
     }
 }

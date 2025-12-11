@@ -3,6 +3,7 @@ package ch.admin.foitt.wallet.platform.ssi.domain.usecase.implementation
 import ch.admin.foitt.wallet.platform.database.domain.model.Credential
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialKeyBindingEntity
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialWithKeyBinding
+import ch.admin.foitt.wallet.platform.database.domain.model.VerifiableCredentialEntity
 import ch.admin.foitt.wallet.platform.ssi.domain.model.SsiError
 import ch.admin.foitt.wallet.platform.ssi.domain.repository.CredentialRepo
 import ch.admin.foitt.wallet.platform.ssi.domain.repository.CredentialWithKeyBindingRepository
@@ -34,6 +35,9 @@ class DeleteCredentialImplTest {
     private lateinit var mockCredential: Credential
 
     @MockK
+    private lateinit var mockVerifiableCredential: VerifiableCredentialEntity
+
+    @MockK
     private lateinit var mockKeyBinding: CredentialKeyBindingEntity
 
     private lateinit var useCase: DeleteCredential
@@ -47,8 +51,13 @@ class DeleteCredentialImplTest {
         val credentialWithKeyBinding = CredentialWithKeyBinding(
             credential = mockCredential,
             keyBinding = mockKeyBinding,
+            verifiableCredential = mockVerifiableCredential,
         )
-        coEvery { mockCredentialWithKeyBindingRepository.getByCredentialId(CREDENTIAL_ID) } returns Ok(credentialWithKeyBinding)
+        coEvery {
+            mockCredentialWithKeyBindingRepository.getByCredentialId(
+                CREDENTIAL_ID
+            )
+        } returns Ok(credentialWithKeyBinding)
         coEvery { mockCredentialRepository.deleteById(CREDENTIAL_ID) } returns Ok(Unit)
 
         useCase = DeleteCredentialImpl(

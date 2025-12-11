@@ -39,7 +39,11 @@ class MainEnvironmentSetupRepositoryImpl @Inject constructor() : EnvironmentSetu
 
     override val avBackendUrl: String = "https://av.admin.ch/"
 
+    override val eIdNfcWebSocketUrl: String = "wss://av.admin.ch/nfc/ws1/validate"
+
     override val appId: String = BuildConfig.APPLICATION_ID
 
     override val avBeamLoggingEnabled: Boolean = false
+
+    override val nonComplianceEnabled: Boolean = false
 }

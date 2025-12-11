@@ -19,6 +19,7 @@ import ch.admin.foitt.wallet.platform.composables.presentation.layout.Scrollable
 import ch.admin.foitt.wallet.platform.composables.presentation.layout.WalletLayouts
 import ch.admin.foitt.wallet.platform.navArgs.domain.model.EIdOnlineSessionNavArg
 import ch.admin.foitt.wallet.platform.preview.WalletAllScreenPreview
+import ch.admin.foitt.wallet.theme.FadingVisibility
 import ch.admin.foitt.wallet.theme.Sizes
 import ch.admin.foitt.wallet.theme.WalletTexts
 import ch.admin.foitt.wallet.theme.WalletTheme
@@ -44,7 +45,11 @@ private fun EIdStartAutoVerificationScreenContent(
         onStart = applySubmissionState.onStart,
     )
     is StartAutoVerificationUiState.Loading -> LoadingContent()
-    is StartAutoVerificationUiState.Valid -> LoadingContent()
+    is StartAutoVerificationUiState.Started -> FadingVisibility(true) {
+        Info(
+            onStart = applySubmissionState.onContinue,
+        )
+    }
     is StartAutoVerificationUiState.Unexpected -> UnexpectedErrorContent(
         onClose = applySubmissionState.onClose,
         onRetry = applySubmissionState.onRetry,
@@ -144,7 +149,7 @@ private fun UnexpectedErrorContent(
 
 private class EIdStartAutoVerificationPreviewParams : PreviewParameterProvider<StartAutoVerificationUiState> {
     override val values: Sequence<StartAutoVerificationUiState> = sequenceOf(
-        StartAutoVerificationUiState.Valid,
+        StartAutoVerificationUiState.Started({}),
         StartAutoVerificationUiState.Unexpected({}, {}),
         StartAutoVerificationUiState.NetworkError({}, {}),
     )

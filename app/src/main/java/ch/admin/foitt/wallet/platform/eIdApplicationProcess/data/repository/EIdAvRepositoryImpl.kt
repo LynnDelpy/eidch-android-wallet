@@ -12,7 +12,8 @@ import io.ktor.client.HttpClient
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
-import io.ktor.http.ContentDisposition
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
 import io.ktor.http.contentLength
 import io.ktor.http.contentType
 import javax.inject.Inject
@@ -24,14 +25,25 @@ class EIdAvRepositoryImpl @Inject constructor(
     override suspend fun uploadFileToCase(
         file: UploadFileRequest
     ): Result<Unit, AvRepositoryError> = runSuspendCatching<Unit> {
-        httpClient.post(environmentSetupRepository.avBackendUrl + "cases/v1/$file.caseId/files") {
-            header("Authorization", "BEARER $file.accessToken")
-            header(ContentDisposition.Attachment.disposition, "fileName=$file.fileName")
+        httpClient.post(environmentSetupRepository.avBackendUrl + "cases/v1/${file.caseId}/files") {
+            header(HttpHeaders.Authorization, "Bearer ${file.accessToken}")
+            header(HttpHeaders.ContentDisposition, "attachment; filename=\"${file.fileName}\"")
             contentLength()
-            contentType(file.mime)
+            contentType(ContentType.Application.OctetStream)
             setBody(file.document)
         }
     }.mapError { throwable ->
         throwable.toAvRepositoryError("uploadFileToCase error")
+    }
+
+    override suspend fun submitCase(
+        caseId: String,
+        accessToken: String,
+    ): Result<Unit, AvRepositoryError> = runSuspendCatching<Unit> {
+        httpClient.post(environmentSetupRepository.avBackendUrl + "cases/v1/$caseId/submit") {
+            header(HttpHeaders.Authorization, "Bearer $accessToken")
+        }
+    }.mapError { throwable ->
+        throwable.toAvRepositoryError("submit case error")
     }
 }

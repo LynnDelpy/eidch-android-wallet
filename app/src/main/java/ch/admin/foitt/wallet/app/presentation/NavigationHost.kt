@@ -96,8 +96,16 @@ import ch.admin.foitt.wallet.feature.settings.presentation.security.DataAnalysis
 import ch.admin.foitt.wallet.feature.settings.presentation.security.DataAnalysisViewModel
 import ch.admin.foitt.wallet.feature.settings.presentation.security.SecuritySettingsScreen
 import ch.admin.foitt.wallet.feature.settings.presentation.security.SecuritySettingsViewModel
+import ch.admin.foitt.wallet.platform.activityList.presentation.ActivityDetailScreen
+import ch.admin.foitt.wallet.platform.activityList.presentation.ActivityDetailViewModel
+import ch.admin.foitt.wallet.platform.activityList.presentation.ActivityListScreen
+import ch.admin.foitt.wallet.platform.activityList.presentation.ActivityListViewModel
 import ch.admin.foitt.wallet.platform.invitation.presentation.InvitationFailureScreen
 import ch.admin.foitt.wallet.platform.invitation.presentation.InvitationFailureViewModel
+import ch.admin.foitt.wallet.platform.nonCompliance.presentation.NonComplianceInfoScreen
+import ch.admin.foitt.wallet.platform.nonCompliance.presentation.NonComplianceInfoViewModel
+import ch.admin.foitt.wallet.platform.nonCompliance.presentation.NonComplianceListScreen
+import ch.admin.foitt.wallet.platform.nonCompliance.presentation.NonComplianceListViewModel
 import ch.admin.foitt.wallet.platform.reportWrongData.presentation.ReportWrongDataScreen
 import ch.admin.foitt.wallet.platform.reportWrongData.presentation.ReportWrongDataViewModel
 import ch.admin.foitt.wallet.platform.scaffold.extension.screenDestination
@@ -106,6 +114,8 @@ import ch.admin.foitt.wallet.platform.screens.presentation.ErrorViewModel
 import ch.admin.foitt.wallet.platform.versionEnforcement.presentation.AppVersionBlockedScreen
 import ch.admin.foitt.wallet.platform.versionEnforcement.presentation.AppVersionBlockedViewModel
 import ch.admin.foitt.walletcomposedestinations.NavGraphs
+import ch.admin.foitt.walletcomposedestinations.destinations.ActivityDetailScreenDestination
+import ch.admin.foitt.walletcomposedestinations.destinations.ActivityListScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.AppVersionBlockedScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.AuthWithPassphraseScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.BetaIdScreenDestination
@@ -130,6 +140,8 @@ import ch.admin.foitt.walletcomposedestinations.destinations.LanguageScreenDesti
 import ch.admin.foitt.walletcomposedestinations.destinations.LicencesScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.LockScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.LockoutScreenDestination
+import ch.admin.foitt.walletcomposedestinations.destinations.NonComplianceInfoScreenDestination
+import ch.admin.foitt.walletcomposedestinations.destinations.NonComplianceListScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.OnboardingConfirmPassphraseScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.OnboardingErrorScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.OnboardingIntroScreenDestination
@@ -374,6 +386,22 @@ fun NavigationHost(
 
         screenDestination(BetaIdScreenDestination) { viewModel: BetaIdViewModel ->
             BetaIdScreen(viewModel)
+        }
+
+        screenDestination(ActivityListScreenDestination) { viewModel: ActivityListViewModel ->
+            ActivityListScreen(viewModel)
+        }
+
+        screenDestination(ActivityDetailScreenDestination) { viewModel: ActivityDetailViewModel ->
+            ActivityDetailScreen(viewModel)
+        }
+
+        screenDestination(NonComplianceListScreenDestination) { viewModel: NonComplianceListViewModel ->
+            NonComplianceListScreen(viewModel)
+        }
+
+        screenDestination(NonComplianceInfoScreenDestination) { viewModel: NonComplianceInfoViewModel ->
+            NonComplianceInfoScreen(viewModel)
         }
 
         eIdApplicationProcessDestinations()

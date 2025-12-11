@@ -26,7 +26,7 @@ data class IssuerCredentialInfo(
             credentialIssuer = "",
             credentialResponseEncryption = null,
             credentialConfigurations = emptyList(),
-            display = emptyList()
+            display = emptyList(),
         )
     }
 }
@@ -78,6 +78,7 @@ enum class ProofType(val type: String) {
 
 @Serializable
 data class ProofTypeConfig(
+    @Serializable(with = SigningAlgorithmsSerializer::class)
     @SerialName("proof_signing_alg_values_supported")
     val proofSigningAlgValuesSupported: List<SigningAlgorithm>,
     @SerialName("key_attestations_required")

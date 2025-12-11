@@ -2,6 +2,7 @@ package ch.admin.foitt.wallet.platform.appAttestation.domain.usecase.implementat
 
 import ch.admin.foitt.openid4vc.domain.model.CreateJwkError
 import ch.admin.foitt.openid4vc.domain.model.SigningAlgorithm
+import ch.admin.foitt.openid4vc.domain.model.anycredential.CredentialValidity
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.JWSKeyPair
 import ch.admin.foitt.openid4vc.domain.model.keyBinding.Jwk
 import ch.admin.foitt.openid4vc.domain.model.toSignatureName
@@ -9,6 +10,7 @@ import ch.admin.foitt.openid4vc.domain.usecase.CreateJwk
 import ch.admin.foitt.openid4vc.utils.Constants
 import ch.admin.foitt.wallet.platform.appAttestation.domain.model.AppAttestationRepositoryError
 import ch.admin.foitt.wallet.platform.appAttestation.domain.model.AppIntegrityRepositoryError
+import ch.admin.foitt.wallet.platform.appAttestation.domain.model.ClientAttestation
 import ch.admin.foitt.wallet.platform.appAttestation.domain.model.ClientAttestationRepositoryError
 import ch.admin.foitt.wallet.platform.appAttestation.domain.model.RequestClientAttestationError
 import ch.admin.foitt.wallet.platform.appAttestation.domain.model.ValidateClientAttestationError
@@ -25,6 +27,7 @@ import ch.admin.foitt.wallet.platform.utils.toBase64StringUrlEncodedWithoutPaddi
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.coroutines.coroutineBinding
 import com.github.michaelbull.result.coroutines.runSuspendCatching
+import com.github.michaelbull.result.get
 import com.github.michaelbull.result.mapError
 import java.security.KeyPair
 import java.security.Signature
@@ -41,7 +44,16 @@ class RequestClientAttestationImpl @Inject constructor(
     override suspend operator fun invoke(
         keyAlias: String,
         signingAlgorithm: SigningAlgorithm,
-    ): Result<Unit, RequestClientAttestationError> = coroutineBinding {
+    ): Result<ClientAttestation, RequestClientAttestationError> = coroutineBinding {
+        // Early return for existing valid attestation
+        val currentClientAttestation = currentClientAttestationRepository.get(
+            keyPairAlias = keyAlias
+        ).mapError(ClientAttestationRepositoryError::toRequestClientAttestationError).bind()
+
+        if (currentClientAttestation != null && currentClientAttestation.attestation.jwtValidity !is CredentialValidity.Expired) {
+            return@coroutineBinding currentClientAttestation
+        }
+
         val challengeResponse = appAttestationRepository
             .fetchChallenge()
             .mapError(AppAttestationRepositoryError::toRequestClientAttestationError)
@@ -97,6 +109,8 @@ class RequestClientAttestationImpl @Inject constructor(
 
         currentClientAttestationRepository.save(clientAttestation)
             .mapError(ClientAttestationRepositoryError::toRequestClientAttestationError).bind()
+
+        clientAttestation
     }
 
     private fun signData(

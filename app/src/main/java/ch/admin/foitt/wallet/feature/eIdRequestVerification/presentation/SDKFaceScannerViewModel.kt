@@ -12,6 +12,7 @@ import ch.admin.foitt.avwrapper.config.AVBeamCaptureFaceConfig
 import ch.admin.foitt.avwrapper.config.AVBeamConfigLogLevel
 import ch.admin.foitt.wallet.feature.eIdRequestVerification.domain.usecase.SaveEIdRequestFiles
 import ch.admin.foitt.wallet.feature.eIdRequestVerification.presentation.model.SDKInfoState
+import ch.admin.foitt.wallet.platform.database.domain.model.EIdRequestFileCategory
 import ch.admin.foitt.wallet.platform.environmentSetup.domain.repository.EnvironmentSetupRepository
 import ch.admin.foitt.wallet.platform.navArgs.domain.model.EIdOnlineSessionNavArg
 import ch.admin.foitt.wallet.platform.navigation.NavigationManager
@@ -123,7 +124,8 @@ class SDKFaceScannerViewModel @Inject constructor(
 
                         saveEIdRequestFiles(
                             sIdCaseId = navArgs.caseId,
-                            filesDataList = notif.packageData.files
+                            filesDataList = notif.packageData.files,
+                            filesCategory = EIdRequestFileCategory.FACE_RECORDING,
                         ).onSuccess {
                             Timber.d("Files saved successfully")
                         }
@@ -167,7 +169,7 @@ class SDKFaceScannerViewModel @Inject constructor(
     }
 
     companion object {
-        private const val LIB_DELAY = 10L
-        private const val LIB_CAMERA_DELAY = 500L
+        private const val LIB_DELAY = 20L
+        private const val LIB_CAMERA_DELAY = 700L
     }
 }

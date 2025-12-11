@@ -1,7 +1,8 @@
 package ch.admin.foitt.wallet.platform.eIdApplicationProcess
 
+import ch.admin.foitt.wallet.platform.appAttestation.domain.model.AttestationError
 import ch.admin.foitt.wallet.platform.appAttestation.domain.model.ClientAttestation
-import ch.admin.foitt.wallet.platform.appAttestation.domain.repository.CurrentClientAttestationRepository
+import ch.admin.foitt.wallet.platform.appAttestation.domain.usecase.RequestClientAttestation
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.EIdRequestError
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.EIdRequestQueueState
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.StateResponse
@@ -16,11 +17,9 @@ import io.mockk.MockKAnnotations
 import io.mockk.coEvery
 import io.mockk.impl.annotations.MockK
 import io.mockk.unmockkAll
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
@@ -30,7 +29,7 @@ class FetchSIdStatusImplTest {
     private lateinit var mockEIdRepository: SIdRepository
 
     @MockK
-    private lateinit var mockCurrentClientAttestationRepository: CurrentClientAttestationRepository
+    private lateinit var mockRequestClientAttestation: RequestClientAttestation
 
     @MockK
     private lateinit var mockClientAttestation: ClientAttestation
@@ -42,8 +41,6 @@ class FetchSIdStatusImplTest {
         onlineSessionStartTimeout = null
     )
 
-    private lateinit var testAttestationFlow: Flow<ClientAttestation?>
-
     lateinit var fetchSIdStatus: FetchSIdStatus
 
     @BeforeEach
@@ -51,11 +48,10 @@ class FetchSIdStatusImplTest {
         MockKAnnotations.init(this)
         fetchSIdStatus = FetchSIdStatusImpl(
             sIdRepository = mockEIdRepository,
-            currentClientAttestationRepository = mockCurrentClientAttestationRepository,
+            requestClientAttestation = mockRequestClientAttestation,
         )
 
-        testAttestationFlow = flowOf(mockClientAttestation)
-        coEvery { mockCurrentClientAttestationRepository.getFlow() } returns testAttestationFlow
+        coEvery { mockRequestClientAttestation(any(), any()) } returns Ok(mockClientAttestation)
 
         coEvery {
             mockEIdRepository.fetchSIdState(
@@ -74,7 +70,7 @@ class FetchSIdStatusImplTest {
     fun `Successfully fetch an eID status`() = runTest {
         val response = fetchSIdStatus("caseID").assertOk()
 
-        Assertions.assertEquals(EIdRequestQueueState.IN_QUEUING, response.state)
+        assertEquals(EIdRequestQueueState.IN_QUEUING, response.state)
     }
 
     @Test
@@ -88,9 +84,12 @@ class FetchSIdStatusImplTest {
     }
 
     @Test
-    fun `A missing client attestation results in an error`() = runTest {
-        coEvery { mockCurrentClientAttestationRepository.getFlow() } returns flowOf(null)
+    fun `A client attestation error is propagated`() = runTest {
+        val exception = Exception("testException")
+        coEvery { mockRequestClientAttestation(any(), any()) } returns Err(AttestationError.Unexpected(exception))
 
-        fetchSIdStatus("caseID").assertErrorType(EIdRequestError.Unexpected::class)
+        val result = fetchSIdStatus("caseId")
+        val error = result.assertErrorType(EIdRequestError.Unexpected::class)
+        assertEquals(exception, error.cause)
     }
 }

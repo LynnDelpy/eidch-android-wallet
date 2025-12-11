@@ -3,10 +3,8 @@ package ch.admin.foitt.wallet.feature.eIdRequestVerification
 import ch.admin.foitt.wallet.feature.eIdRequestVerification.domain.usecase.UploadAllFiles
 import ch.admin.foitt.wallet.feature.eIdRequestVerification.domain.usecase.implementation.UploadAllFilesImpl
 import ch.admin.foitt.wallet.platform.database.domain.model.EIdRequestFile
-import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.AutoVerificationResponse
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.EIdRequestError
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.repository.EIdRequestFileRepository
-import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.usecase.GetStartAutoVerificationResult
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.usecase.UploadFileToCase
 import ch.admin.foitt.wallet.util.assertErrorType
 import ch.admin.foitt.wallet.util.assertOk
@@ -33,26 +31,15 @@ class UploadAllFilesImplTest {
     @MockK
     private lateinit var mockUploadFileToCase: UploadFileToCase
 
-    @MockK
-    private lateinit var mockGetStartAutoVerificationResult: GetStartAutoVerificationResult
-
     private val testDispatcher = StandardTestDispatcher()
 
     lateinit var uploadAllFiles: UploadAllFiles
-
-    private val autoVerificationResponse: AutoVerificationResponse = AutoVerificationResponse(
-        jwt = "",
-        useNfc = false,
-        scanDocument = false,
-        recordDocumentVideo = false
-    )
 
     @BeforeEach
     fun setup() {
         MockKAnnotations.init(this)
 
         uploadAllFiles = UploadAllFilesImpl(
-            mockGetStartAutoVerificationResult,
             mockEIdRequestFileRepository,
             mockUploadFileToCase,
             testDispatcher
@@ -69,7 +56,6 @@ class UploadAllFilesImplTest {
         coEvery {
             mockEIdRequestFileRepository.getEIdRequestFileByCaseIdAndFileName(any(), any())
         } returns Ok(mockEIdRequestFile)
-        coEvery { mockGetStartAutoVerificationResult().value } returns (autoVerificationResponse)
         coEvery { mockEIdRequestFile.fileName } returns ("")
         coEvery { mockEIdRequestFile.data } returns (byteArrayOf())
 
@@ -77,27 +63,16 @@ class UploadAllFilesImplTest {
             mockUploadFileToCase.invoke(any())
         } returns Ok(Unit)
 
-        uploadAllFiles(caseId = "").assertOk()
+        uploadAllFiles(caseId = "", accessToken = "").assertOk()
     }
 
     @Test
-    fun `Getting an file maps error from the repo`() = runTest(testDispatcher) {
-        val exception = IllegalStateException("error in db")
-        coEvery { mockGetStartAutoVerificationResult().value } returns (autoVerificationResponse)
+    fun `Error when getting a file from the repository is propagated`() = runTest(testDispatcher) {
+        val exception = Exception("error in db")
         coEvery {
             mockEIdRequestFileRepository.getEIdRequestFileByCaseIdAndFileName(any(), any())
         } returns Err(EIdRequestError.Unexpected(exception))
 
-        uploadAllFiles(caseId = "").assertErrorType(EIdRequestError.Unexpected::class)
-    }
-
-    @Test
-    fun `Getting an file maps error when not finding the file`() = runTest(testDispatcher) {
-        coEvery { mockGetStartAutoVerificationResult().value } returns (autoVerificationResponse)
-        coEvery {
-            mockEIdRequestFileRepository.getEIdRequestFileByCaseIdAndFileName(any(), any())
-        } returns Ok(null)
-
-        uploadAllFiles(caseId = "").assertErrorType(EIdRequestError.FileNotFound::class)
+        uploadAllFiles(caseId = "", accessToken = "").assertErrorType(EIdRequestError.FileNotFound::class)
     }
 }

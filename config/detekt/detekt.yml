@@ -23,6 +23,28 @@ complexity:
     ignoreDeprecated: false
     ignorePrivate: true  # default: false
     ignoreOverridden: false
+    ignoreAnnotatedFunctions: [
+      'Preview',
+      'WalletDefaultPreview',
+      'PhoneSmallScreenPreview',
+      'PhoneMediumScreenPreview',
+      'PhoneLargeScreenPreview',
+      'PhoneSmallLandscapeScreenPreview',
+      'PhoneMediumLandscapeScreenPreview',
+      'PhoneLargeLandscapeScreenPreview',
+      'TabletSmallScreenPreview',
+      'TabletMediumScreenPreview',
+      'TabletLargeScreenPreview',
+      'TabletSmallLandscapeScreenPreview',
+      'TabletMediumLandscapeScreenPreview',
+      'TabletLargeLandscapeScreenPreview',
+      'WalletAllScreenPreview',
+      'AllCompactScreensPreview',
+      'AllLargeScreensPreview',
+      'AllScreensPreview',
+      'PreviewFontScale',
+      'WalletComponentPreview',
+    ]  # ignore Compose Preview functions
     excludes: [ '**/*Module.kt', '**/test/**', '**/androidTest/**' ]  # Dagger/Hilt modules and tests
   LongParameterList:
     functionThreshold: 9
@@ -98,6 +120,7 @@ style:
       'AllCompactScreensPreview',
       'AllLargeScreensPreview',
       'AllScreensPreview',
+      'PreviewFontScale',
       'WalletComponentPreview',
     ]  # see https://detekt.github.io/detekt/compose.html
   ForbiddenComment:

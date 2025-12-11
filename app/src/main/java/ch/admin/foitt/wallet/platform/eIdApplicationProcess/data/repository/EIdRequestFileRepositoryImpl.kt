@@ -52,7 +52,7 @@ class EIdRequestFileRepositoryImpl @Inject constructor(
     override suspend fun getEIdRequestFileByCaseIdAndFileName(
         caseId: String,
         fileName: String
-    ): Result<EIdRequestFile?, EIdRequestFileRepositoryError> = withContext(ioDispatcher) {
+    ): Result<EIdRequestFile, EIdRequestFileRepositoryError> = withContext(ioDispatcher) {
         runSuspendCatching {
             eIdRequestFileDao().getFile(caseId, fileName)
         }.mapError {

@@ -6,5 +6,7 @@ import com.github.michaelbull.result.Result
 
 interface CredentialWithKeyBindingRepository {
     suspend fun getAll(): Result<List<CredentialWithKeyBinding>, CredentialWithKeyBindingRepositoryError>
-    suspend fun getByCredentialId(credentialId: Long): Result<CredentialWithKeyBinding, CredentialWithKeyBindingRepositoryError>
+    suspend fun getByCredentialId(
+        credentialId: Long
+    ): Result<CredentialWithKeyBinding, CredentialWithKeyBindingRepositoryError>
 }

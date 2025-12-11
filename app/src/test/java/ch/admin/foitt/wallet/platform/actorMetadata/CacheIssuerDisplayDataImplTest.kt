@@ -1,11 +1,15 @@
 package ch.admin.foitt.wallet.platform.actorMetadata
 
+import ch.admin.foitt.wallet.platform.actorEnvironment.domain.model.ActorEnvironment
 import ch.admin.foitt.wallet.platform.actorMetadata.domain.model.ActorDisplayData
 import ch.admin.foitt.wallet.platform.actorMetadata.domain.model.ActorField
 import ch.admin.foitt.wallet.platform.actorMetadata.domain.model.ActorType
 import ch.admin.foitt.wallet.platform.actorMetadata.domain.usecase.CacheIssuerDisplayData
 import ch.admin.foitt.wallet.platform.actorMetadata.domain.usecase.InitializeActorForScope
 import ch.admin.foitt.wallet.platform.actorMetadata.domain.usecase.implementation.CacheIssuerDisplayDataImpl
+import ch.admin.foitt.wallet.platform.actorMetadata.mock.ActorMetadataMocks.nonComplianceData
+import ch.admin.foitt.wallet.platform.actorMetadata.mock.ActorMetadataMocks.nonComplianceReasons
+import ch.admin.foitt.wallet.platform.actorMetadata.mock.ActorMetadataMocks.nonComplianceState
 import ch.admin.foitt.wallet.platform.credential.domain.model.AnyIssuerDisplay
 import ch.admin.foitt.wallet.platform.database.domain.model.DisplayLanguage
 import ch.admin.foitt.wallet.platform.navigation.domain.model.ComponentScope
@@ -68,9 +72,10 @@ class CacheIssuerDisplayDataImplTest {
         val trustCheckResult = TrustCheckResult(
             actorTrustStatement = mockIdentityTrustStatement,
             vcSchemaTrustStatus = VcSchemaTrustStatus.TRUSTED,
+            actorEnvironment = ActorEnvironment.PRODUCTION,
         )
 
-        useCase(trustCheckResult, credentialIssuerDisplays)
+        useCase(trustCheckResult, credentialIssuerDisplays, nonComplianceData)
 
         val expectedActorDisplayData = ActorDisplayData(
             name = mockMetadataNameDisplays,
@@ -79,6 +84,8 @@ class CacheIssuerDisplayDataImplTest {
             vcSchemaTrustStatus = VcSchemaTrustStatus.TRUSTED,
             preferredLanguage = null,
             actorType = ActorType.ISSUER,
+            nonComplianceState = nonComplianceState,
+            nonComplianceReason = nonComplianceReasons,
         )
 
         coVerify {
@@ -91,9 +98,10 @@ class CacheIssuerDisplayDataImplTest {
         val trustCheckResult = TrustCheckResult(
             actorTrustStatement = mockIdentityTrustStatement,
             vcSchemaTrustStatus = VcSchemaTrustStatus.TRUSTED,
+            actorEnvironment = ActorEnvironment.PRODUCTION,
         )
 
-        useCase(trustCheckResult, credentialIssuerDisplays)
+        useCase(trustCheckResult, credentialIssuerDisplays, nonComplianceData)
 
         val capturedDisplayData = slot<ActorDisplayData>()
         coVerify {
@@ -105,7 +113,13 @@ class CacheIssuerDisplayDataImplTest {
 
     @Test
     fun `An invalid trust statement will display as not trusted`(): Unit = runTest {
-        useCase(null, credentialIssuerDisplays)
+        val trustCheckResult = TrustCheckResult(
+            actorTrustStatement = null,
+            vcSchemaTrustStatus = VcSchemaTrustStatus.TRUSTED,
+            actorEnvironment = ActorEnvironment.PRODUCTION,
+        )
+
+        useCase(trustCheckResult, credentialIssuerDisplays, nonComplianceData)
 
         val capturedDisplayData = slot<ActorDisplayData>()
         coVerify {
@@ -120,9 +134,10 @@ class CacheIssuerDisplayDataImplTest {
         val trustCheckResult = TrustCheckResult(
             actorTrustStatement = mockIdentityTrustStatement,
             vcSchemaTrustStatus = VcSchemaTrustStatus.NOT_TRUSTED,
+            actorEnvironment = ActorEnvironment.PRODUCTION,
         )
 
-        useCase(trustCheckResult, credentialIssuerDisplays)
+        useCase(trustCheckResult, credentialIssuerDisplays, nonComplianceData)
 
         val capturedDisplayData = slot<ActorDisplayData>()
         coVerify {
@@ -137,9 +152,10 @@ class CacheIssuerDisplayDataImplTest {
         val trustCheckResult = TrustCheckResult(
             actorTrustStatement = mockIdentityTrustStatement,
             vcSchemaTrustStatus = VcSchemaTrustStatus.UNPROTECTED,
+            actorEnvironment = ActorEnvironment.PRODUCTION,
         )
 
-        useCase(trustCheckResult, credentialIssuerDisplays)
+        useCase(trustCheckResult, credentialIssuerDisplays, nonComplianceData)
 
         val capturedDisplayData = slot<ActorDisplayData>()
         coVerify {
@@ -154,9 +170,10 @@ class CacheIssuerDisplayDataImplTest {
         val trustCheckResult = TrustCheckResult(
             actorTrustStatement = mockMetadataTrustStatement,
             vcSchemaTrustStatus = VcSchemaTrustStatus.TRUSTED,
+            actorEnvironment = ActorEnvironment.PRODUCTION,
         )
 
-        useCase(trustCheckResult, credentialIssuerDisplays)
+        useCase(trustCheckResult, credentialIssuerDisplays, nonComplianceData)
 
         val capturedDisplayData = slot<ActorDisplayData>()
         coVerify {
@@ -164,6 +181,114 @@ class CacheIssuerDisplayDataImplTest {
         }
 
         assertEquals(mockPreferredLanguage, capturedDisplayData.captured.preferredLanguage)
+    }
+
+    @Test
+    fun `A trusted statement for an actor in our prod ecosystem is displayed correctly`() = runTest {
+        val trustCheckResult = TrustCheckResult(
+            actorTrustStatement = mockIdentityTrustStatement,
+            vcSchemaTrustStatus = VcSchemaTrustStatus.TRUSTED,
+            actorEnvironment = ActorEnvironment.PRODUCTION,
+        )
+
+        useCase(trustCheckResult, credentialIssuerDisplays, nonComplianceData)
+
+        val capturedDisplayData = slot<ActorDisplayData>()
+        coVerify {
+            mockInitializeActorForScope.invoke(actorDisplayData = capture(capturedDisplayData), any())
+        }
+
+        assertEquals(TrustStatus.TRUSTED, capturedDisplayData.captured.trustStatus)
+    }
+
+    @Test
+    fun `A not trusted statement for an actor in our prod ecosystem is displayed correctly`() = runTest {
+        val trustCheckResult = TrustCheckResult(
+            actorTrustStatement = null,
+            vcSchemaTrustStatus = VcSchemaTrustStatus.TRUSTED,
+            actorEnvironment = ActorEnvironment.PRODUCTION,
+        )
+
+        useCase(trustCheckResult, credentialIssuerDisplays, nonComplianceData)
+
+        val capturedDisplayData = slot<ActorDisplayData>()
+        coVerify {
+            mockInitializeActorForScope.invoke(actorDisplayData = capture(capturedDisplayData), any())
+        }
+
+        assertEquals(TrustStatus.NOT_TRUSTED, capturedDisplayData.captured.trustStatus)
+    }
+
+    @Test
+    fun `A trusted statement for an actor in our beta ecosystem is displayed correctly`() = runTest {
+        val trustCheckResult = TrustCheckResult(
+            actorTrustStatement = mockIdentityTrustStatement,
+            vcSchemaTrustStatus = VcSchemaTrustStatus.TRUSTED,
+            actorEnvironment = ActorEnvironment.BETA,
+        )
+
+        useCase(trustCheckResult, credentialIssuerDisplays, nonComplianceData)
+
+        val capturedDisplayData = slot<ActorDisplayData>()
+        coVerify {
+            mockInitializeActorForScope.invoke(actorDisplayData = capture(capturedDisplayData), any())
+        }
+
+        assertEquals(TrustStatus.TRUSTED, capturedDisplayData.captured.trustStatus)
+    }
+
+    @Test
+    fun `A not trusted statement for an actor in our beta ecosystem is displayed correctly`() = runTest {
+        val trustCheckResult = TrustCheckResult(
+            actorTrustStatement = null,
+            vcSchemaTrustStatus = VcSchemaTrustStatus.TRUSTED,
+            actorEnvironment = ActorEnvironment.BETA,
+        )
+
+        useCase(trustCheckResult, credentialIssuerDisplays, nonComplianceData)
+
+        val capturedDisplayData = slot<ActorDisplayData>()
+        coVerify {
+            mockInitializeActorForScope.invoke(actorDisplayData = capture(capturedDisplayData), any())
+        }
+
+        assertEquals(TrustStatus.NOT_TRUSTED, capturedDisplayData.captured.trustStatus)
+    }
+
+    @Test
+    fun `A trusted statement for an actor not in our ecosystem is displayed correctly`() = runTest {
+        val trustCheckResult = TrustCheckResult(
+            actorTrustStatement = mockIdentityTrustStatement,
+            vcSchemaTrustStatus = VcSchemaTrustStatus.TRUSTED,
+            actorEnvironment = ActorEnvironment.EXTERNAL,
+        )
+
+        useCase(trustCheckResult, credentialIssuerDisplays, nonComplianceData)
+
+        val capturedDisplayData = slot<ActorDisplayData>()
+        coVerify {
+            mockInitializeActorForScope.invoke(actorDisplayData = capture(capturedDisplayData), any())
+        }
+
+        assertEquals(TrustStatus.EXTERNAL, capturedDisplayData.captured.trustStatus)
+    }
+
+    @Test
+    fun `A not trusted statement for an actor not in our ecosystem is displayed correctly`() = runTest {
+        val trustCheckResult = TrustCheckResult(
+            actorTrustStatement = null,
+            vcSchemaTrustStatus = VcSchemaTrustStatus.TRUSTED,
+            actorEnvironment = ActorEnvironment.EXTERNAL,
+        )
+
+        useCase(trustCheckResult, credentialIssuerDisplays, nonComplianceData)
+
+        val capturedDisplayData = slot<ActorDisplayData>()
+        coVerify {
+            mockInitializeActorForScope.invoke(actorDisplayData = capture(capturedDisplayData), any())
+        }
+
+        assertEquals(TrustStatus.EXTERNAL, capturedDisplayData.captured.trustStatus)
     }
 
     //region mock data

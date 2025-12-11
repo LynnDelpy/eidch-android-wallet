@@ -1,6 +1,7 @@
 package ch.admin.foitt.wallet.platform.actorMetadata.domain.model
 
 import ch.admin.foitt.wallet.platform.database.domain.model.LocalizedDisplay
+import ch.admin.foitt.wallet.platform.nonCompliance.domain.model.NonComplianceState
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.TrustStatus
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.VcSchemaTrustStatus
 import kotlinx.serialization.Serializable
@@ -13,6 +14,8 @@ data class ActorDisplayData(
     val trustStatus: TrustStatus,
     val vcSchemaTrustStatus: VcSchemaTrustStatus,
     val actorType: ActorType,
+    val nonComplianceState: NonComplianceState,
+    val nonComplianceReason: List<ActorField<String>>?,
 ) {
     companion object {
         val EMPTY by lazy {
@@ -23,6 +26,8 @@ data class ActorDisplayData(
                 trustStatus = TrustStatus.UNKNOWN,
                 vcSchemaTrustStatus = VcSchemaTrustStatus.UNPROTECTED,
                 actorType = ActorType.UNKNOWN,
+                nonComplianceState = NonComplianceState.UNKNOWN,
+                nonComplianceReason = null,
             )
         }
     }

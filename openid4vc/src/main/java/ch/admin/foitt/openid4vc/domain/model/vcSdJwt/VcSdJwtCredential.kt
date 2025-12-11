@@ -58,7 +58,7 @@ class VcSdJwtCredential(
         private val RESERVED_CLAIM_NAMES = setOf(
             "iss", "nbf", "exp", "sub", "iat", "aud", "jti", // JWT
             "_sd_alg", "_sd", // SD-JWT
-            "cnf", "vct", "vct#integrity", "status", // VcSdJwt
+            "cnf", "vct", "vct#integrity", "vct_metadata_uri", "vct_metadata_uri#integrity", "status", // VcSdJwt
         )
     }
 }

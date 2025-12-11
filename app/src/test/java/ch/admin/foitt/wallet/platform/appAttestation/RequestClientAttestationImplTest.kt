@@ -3,6 +3,7 @@ package ch.admin.foitt.wallet.platform.appAttestation
 import android.annotation.SuppressLint
 import ch.admin.foitt.openid4vc.domain.model.JwkError
 import ch.admin.foitt.openid4vc.domain.model.SigningAlgorithm
+import ch.admin.foitt.openid4vc.domain.model.anycredential.CredentialValidity
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.JWSKeyPair
 import ch.admin.foitt.openid4vc.domain.model.jwt.Jwt
 import ch.admin.foitt.openid4vc.domain.model.keyBinding.KeyBindingType
@@ -44,6 +45,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.security.KeyPair
 import java.security.Signature
+import java.time.Instant
 
 class RequestClientAttestationImplTest {
     private val challengeResponse = AttestationChallengeResponse("challenge")
@@ -54,7 +56,7 @@ class RequestClientAttestationImplTest {
     private val jwk = KeyAttestationMocks.jwkEcP256_02
     private val clientAttestationRawJwt = ClientAttestationMocks.jwtAttestation01
     private val clientAttestationJwt = Jwt(clientAttestationRawJwt)
-    private val clientAttestation = ClientAttestation(keyStoreAlias, clientAttestationJwt)
+    private val mockClientAttestation = ClientAttestation(keyStoreAlias, clientAttestationJwt)
     private val integrityToken = IntegrityToken("integrityToken")
     private val signedChallenge = byteArrayOf(1, 2, 3)
 
@@ -96,6 +98,8 @@ class RequestClientAttestationImplTest {
 
         coEvery { mockClientAttestationRepository.delete(any()) } returns Ok(Unit)
 
+        coEvery { mockClientAttestationRepository.get(any()) } returns Ok(null)
+
         coEvery { mockAppAttestationRepository.fetchChallenge() } returns Ok(challengeResponse)
 
         coEvery { mockCreateJWSKeyPairInHardware(any(), any(), any(), any(), any()) } returns Ok(jwsKeyPair)
@@ -112,8 +116,8 @@ class RequestClientAttestationImplTest {
         )
 
         coEvery { mockAppIntegrityRepository.fetchIntegrityToken(any()) } returns Ok(integrityToken)
-        coEvery { mockValidateClientAttestation(any(), any(), any()) } returns Ok(clientAttestation)
-        coEvery { mockClientAttestationRepository.save(clientAttestation) } returns Ok(0L)
+        coEvery { mockValidateClientAttestation(any(), any(), any()) } returns Ok(mockClientAttestation)
+        coEvery { mockClientAttestationRepository.save(mockClientAttestation) } returns Ok(0L)
         // Mock signature instance
         mockkStatic(Signature::class)
         coEvery { Signature.getInstance(any()) } returns mockSignature
@@ -131,9 +135,12 @@ class RequestClientAttestationImplTest {
     @Test
     fun `A success saves a valid ClientAttestation and follows specific steps`() = runTest {
         val result = useCase(signingAlgorithm = signingAlgorithm)
-        result.assertOk()
+        val clientAttestation = result.assertOk()
+
+        assertEquals(mockClientAttestation, clientAttestation)
 
         coVerifyOrder {
+            mockClientAttestationRepository.get()
             mockAppAttestationRepository.fetchChallenge()
             mockCreateJWSKeyPairInHardware.invoke(any(), any(), any(), any(), any())
             mockClientAttestationRepository.delete(any())
@@ -141,7 +148,60 @@ class RequestClientAttestationImplTest {
             mockAppIntegrityRepository.fetchIntegrityToken(any())
             mockAppAttestationRepository.fetchClientAttestation(integrityToken = integrityToken, any())
             mockValidateClientAttestation.invoke(any(), any(), any())
-            mockClientAttestationRepository.save(clientAttestation)
+            mockClientAttestationRepository.save(mockClientAttestation)
+        }
+    }
+
+    @Test
+    fun `If a valid client attestation already exists, it is directly returned`() = runTest {
+        coEvery { mockClientAttestationRepository.get() } returns Ok(mockClientAttestation)
+
+        val result = useCase(signingAlgorithm = signingAlgorithm)
+        val clientAttestation = result.assertOk()
+
+        assertEquals(mockClientAttestation, clientAttestation)
+
+        coVerify(exactly = 1) {
+            mockClientAttestationRepository.get()
+        }
+
+        coVerify(exactly = 0) {
+            mockAppAttestationRepository.fetchChallenge()
+            mockCreateJWSKeyPairInHardware.invoke(any(), any(), any(), any(), any())
+            mockClientAttestationRepository.delete(any())
+            mockCreateJwk.invoke(keyPair = keyPair, any(), any())
+            mockAppIntegrityRepository.fetchIntegrityToken(any())
+            mockAppAttestationRepository.fetchClientAttestation(integrityToken = integrityToken, any())
+            mockValidateClientAttestation.invoke(any(), any(), any())
+            mockClientAttestationRepository.save(mockClientAttestation)
+        }
+    }
+
+    @Test
+    fun `A client attestation repository failure is propagated`() = runTest {
+        val exception = Exception("myException")
+        coEvery { mockClientAttestationRepository.get() } returns Err(AttestationError.Unexpected(exception))
+
+        val result = useCase()
+        val error = result.assertErrorType(AttestationError.Unexpected::class)
+        assertEquals(exception, error.throwable)
+    }
+
+    @Test
+    fun `An expired client attestation is replaced`() = runTest {
+        val expiredClientAttestationJwt = mockk<Jwt>()
+        val mockExpiredClientAttestation = ClientAttestation(keyStoreAlias, expiredClientAttestationJwt)
+
+        coEvery { expiredClientAttestationJwt.jwtValidity } returns CredentialValidity.Expired(Instant.now())
+        coEvery { mockClientAttestationRepository.get() } returns Ok(mockExpiredClientAttestation)
+
+        val result = useCase()
+        val clientAttestation = result.assertOk()
+
+        assertEquals(mockClientAttestation, clientAttestation)
+
+        coVerify(exactly = 1) {
+            mockClientAttestationRepository.save(mockClientAttestation)
         }
     }
 

@@ -8,16 +8,17 @@ import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.Credential
 import ch.admin.foitt.openid4vc.domain.model.keyBinding.KeyBinding
 import ch.admin.foitt.openid4vc.domain.model.vcSdJwt.VcSdJwtCredential
 import ch.admin.foitt.wallet.platform.credentialStatus.domain.model.CredentialDisplayStatus
-import ch.admin.foitt.wallet.platform.database.domain.model.Credential
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialKeyBindingEntity
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialStatus
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialWithKeyBinding
+import ch.admin.foitt.wallet.platform.database.domain.model.VerifiableCredentialEntity
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.binding
 import com.github.michaelbull.result.coroutines.runSuspendCatching
 import com.github.michaelbull.result.mapError
 
 internal fun CredentialWithKeyBinding.toAnyCredential(): Result<AnyCredential, AnyCredentialError> = binding {
+    val verifiableCredential = this@toAnyCredential.verifiableCredential
     val credential = this@toAnyCredential.credential
     val keyBinding = this@toAnyCredential.keyBinding?.toKeyBinding()
         ?.mapError(KeyBindingError::toAnyCredentialError)
@@ -26,11 +27,11 @@ internal fun CredentialWithKeyBinding.toAnyCredential(): Result<AnyCredential, A
     val anyCredential = runSuspendCatching {
         when (credential.format) {
             CredentialFormat.VC_SD_JWT -> VcSdJwtCredential(
-                id = credential.id,
+                id = verifiableCredential.credentialId,
                 keyBinding = keyBinding,
-                payload = credential.payload,
-                validFrom = credential.validFrom,
-                validUntil = credential.validUntil,
+                payload = verifiableCredential.payload,
+                validFrom = verifiableCredential.validFrom,
+                validUntil = verifiableCredential.validUntil,
             )
 
             CredentialFormat.UNKNOWN -> error("Unsupported credential format")
@@ -58,7 +59,7 @@ fun CredentialKeyBindingEntity.toKeyBinding(): Result<KeyBinding, KeyBindingErro
     )
 }
 
-internal fun Credential.getDisplayStatus(status: CredentialStatus): CredentialDisplayStatus {
+internal fun VerifiableCredentialEntity.getDisplayStatus(status: CredentialStatus): CredentialDisplayStatus {
     val validity = getCredentialValidity(validFrom, validUntil)
     return status.getDisplayStatus(validity)
 }

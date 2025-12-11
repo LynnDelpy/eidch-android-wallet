@@ -15,6 +15,7 @@ import ch.admin.foitt.wallet.platform.database.data.dao.CredentialIssuerDisplayD
 import ch.admin.foitt.wallet.platform.database.data.dao.CredentialKeyBindingEntityDao
 import ch.admin.foitt.wallet.platform.database.data.dao.DaoProvider
 import ch.admin.foitt.wallet.platform.database.data.dao.RawCredentialDataDao
+import ch.admin.foitt.wallet.platform.database.data.dao.VerifiableCredentialDao
 import ch.admin.foitt.wallet.platform.database.domain.model.Cluster
 import ch.admin.foitt.wallet.platform.database.domain.model.ClusterDisplay
 import ch.admin.foitt.wallet.platform.database.domain.model.Credential
@@ -26,6 +27,7 @@ import ch.admin.foitt.wallet.platform.database.domain.model.CredentialKeyBinding
 import ch.admin.foitt.wallet.platform.database.domain.model.DisplayConst
 import ch.admin.foitt.wallet.platform.database.domain.model.DisplayLanguage
 import ch.admin.foitt.wallet.platform.database.domain.model.RawCredentialData
+import ch.admin.foitt.wallet.platform.database.domain.model.VerifiableCredentialEntity
 import ch.admin.foitt.wallet.platform.database.domain.model.toCredentialClaimClusterDisplayEntity
 import ch.admin.foitt.wallet.platform.database.domain.model.toCredentialClaimClusterEntity
 import ch.admin.foitt.wallet.platform.database.domain.usecase.RunInTransaction
@@ -59,19 +61,15 @@ class CredentialOfferRepositoryImpl @Inject constructor(
         clusters: List<Cluster>,
         rawCredentialData: RawCredentialData
     ): Result<Long, CredentialOfferRepositoryError> = withContext(ioDispatcher) {
-        val credential = createCredential(
-            payload = payload,
-            format = format,
-            issuer = issuer,
-            validFrom = validFrom,
-            validUntil = validUntil,
-        )
+        val credential = Credential(format = format)
         val credentialKeyBinding = createCredentialKeyBinding(keyBinding)
         val credentialIssuerDisplays = createCredentialIssuerDisplays(issuerDisplays)
         val credDisplays = createCredentialDisplays(credentialDisplays)
+        val verifiableCredential = createVerifiableCredential(credential.id, payload, validFrom, validUntil, issuer)
 
         saveCredentialOffer(
             credential = credential,
+            verifiableCredential = verifiableCredential,
             keyBinding = credentialKeyBinding,
             issuerDisplays = credentialIssuerDisplays,
             credentialDisplays = credDisplays,
@@ -80,18 +78,18 @@ class CredentialOfferRepositoryImpl @Inject constructor(
         )
     }
 
-    private fun createCredential(
+    private fun createVerifiableCredential(
+        credentialId: Long,
         payload: String,
-        format: CredentialFormat,
         validFrom: Long?,
         validUntil: Long?,
         issuer: String?
-    ) = Credential(
+    ) = VerifiableCredentialEntity(
         payload = payload,
-        format = format,
         issuer = issuer,
         validFrom = validFrom,
-        validUntil = validUntil
+        validUntil = validUntil,
+        credentialId = credentialId,
     )
 
     private fun createCredentialKeyBinding(keyBinding: KeyBinding?) = keyBinding?.let {
@@ -154,16 +152,21 @@ class CredentialOfferRepositoryImpl @Inject constructor(
         }
     }.toMap()
 
+    @Suppress("LongParameterList")
     private suspend fun saveCredentialOffer(
         credential: Credential,
+        verifiableCredential: VerifiableCredentialEntity,
         keyBinding: CredentialKeyBindingEntity?,
         issuerDisplays: List<CredentialIssuerDisplay>,
         credentialDisplays: List<CredentialDisplay>,
         clusters: List<Cluster>,
-        rawCredentialData: RawCredentialData
+        rawCredentialData: RawCredentialData,
     ): Result<Long, CredentialOfferRepositoryError> = runSuspendCatching {
         val credentialId = runInTransaction {
             val credentialId = credentialDao().insert(credential)
+
+            verifiableCredentialDao().insert(verifiableCredential.copy(credentialId = credentialId))
+
             keyBinding?.let {
                 credentialKeyBindingDao().insert(it.copy(credentialId = credentialId))
             }
@@ -207,7 +210,11 @@ class CredentialOfferRepositoryImpl @Inject constructor(
     }
 
     private val credentialDaoFlow = daoProvider.credentialDaoFlow
+    private val verifiableCredentialDaoFlow = daoProvider.verifiableCredentialDaoFlow
     private suspend fun credentialDao(): CredentialDao = suspendUntilNonNull { credentialDaoFlow.value }
+    private suspend fun verifiableCredentialDao(): VerifiableCredentialDao = suspendUntilNonNull {
+        verifiableCredentialDaoFlow.value
+    }
 
     private val credentialKeyBindingEntityDaoFlow = daoProvider.credentialKeyBindingEntityDaoFlow
     private suspend fun credentialKeyBindingDao(): CredentialKeyBindingEntityDao = suspendUntilNonNull {

@@ -27,6 +27,12 @@ data class VcSdJwtCredentialConfiguration(
 
     @SerialName("vct")
     val vct: String,
+    @SerialName("vct#integrity")
+    val vctIntegrity: String?,
+    @SerialName("vct_metadata_uri")
+    val vctMetadataUri: String?,
+    @SerialName("vct_metadata_uri#integrity")
+    val vctMetadataUriIntegrity: String?,
 
     @SerialName("claims")
     @Serializable(with = JsonAsStringSerializer::class)

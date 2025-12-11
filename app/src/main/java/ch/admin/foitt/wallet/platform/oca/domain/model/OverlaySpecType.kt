@@ -40,6 +40,9 @@ enum class OverlaySpecType(val type: String) {
     @SerialName("extend/overlays/order/1.0")
     ORDER_1_0("extend/overlays/order/1.0"),
 
+    @SerialName("spec/overlays/sensitive/1.0")
+    SENSITIVE_1_0("spec/overlays/sensitive/1.0"),
+
     UNSUPPORTED("");
 
     companion object {

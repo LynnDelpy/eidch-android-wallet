@@ -3,6 +3,7 @@ package ch.admin.foitt.wallet.platform.eIdApplicationProcess.mock
 import ch.admin.foitt.wallet.platform.database.domain.model.EIdRequestCase
 import ch.admin.foitt.wallet.platform.database.domain.model.EIdRequestState
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.EIdRequestQueueState
+import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.IdentityType
 import java.time.Instant
 
 object EIdRequestMocks {
@@ -18,6 +19,8 @@ object EIdRequestMocks {
         documentNumber = DOCUMENT_NUMBER,
         firstName = FIRST_NAME,
         lastName = LAST_NAME,
+        credentialId = null,
+        selectedDocumentType = IdentityType.SWISS_IDK,
     )
 
     fun eIdRequestStateMock(id: Long = 1L, caseId: String = CASE_ID) = EIdRequestState(

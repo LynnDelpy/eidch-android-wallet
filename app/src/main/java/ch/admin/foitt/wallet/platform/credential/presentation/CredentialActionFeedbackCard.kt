@@ -47,9 +47,11 @@ import ch.admin.foitt.wallet.R
 import ch.admin.foitt.wallet.platform.actorMetadata.domain.model.ActorType
 import ch.admin.foitt.wallet.platform.actorMetadata.presentation.InvitationHeader
 import ch.admin.foitt.wallet.platform.actorMetadata.presentation.model.ActorUiState
+import ch.admin.foitt.wallet.platform.badges.domain.model.BadgeType
 import ch.admin.foitt.wallet.platform.composables.Buttons
 import ch.admin.foitt.wallet.platform.composables.LoadingOverlay
 import ch.admin.foitt.wallet.platform.composables.presentation.HeightReportingLayout
+import ch.admin.foitt.wallet.platform.nonCompliance.domain.model.NonComplianceState
 import ch.admin.foitt.wallet.platform.preview.WalletAllScreenPreview
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.TrustStatus
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.VcSchemaTrustStatus
@@ -77,6 +79,7 @@ fun CredentialActionFeedbackCardError(
     @StringRes secondaryButtonText: Int? = null,
     onPrimaryButton: (() -> Unit)? = null,
     onSecondaryButton: (() -> Unit)? = null,
+    onBadge: (BadgeType) -> Unit,
 ) {
     CredentialActionFeedbackCard(
         modifier = modifier,
@@ -95,6 +98,7 @@ fun CredentialActionFeedbackCardError(
         secondaryButtonText = secondaryButtonText,
         onPrimaryButton = onPrimaryButton,
         onSecondaryButton = onSecondaryButton,
+        onBadge = onBadge,
     )
 }
 
@@ -115,6 +119,7 @@ fun CredentialActionFeedbackCardSuccess(
     content: (@Composable () -> Unit)?,
     onPrimaryButton: (() -> Unit)? = null,
     onSecondaryButton: (() -> Unit)? = null,
+    onBadge: (BadgeType) -> Unit,
 ) {
     CredentialActionFeedbackCard(
         modifier = modifier,
@@ -132,6 +137,7 @@ fun CredentialActionFeedbackCardSuccess(
         content = content,
         onPrimaryButton = onPrimaryButton,
         onSecondaryButton = onSecondaryButton,
+        onBadge = onBadge,
     )
 }
 
@@ -155,6 +161,7 @@ fun CredentialActionFeedbackCard(
     content: (@Composable () -> Unit)? = null,
     onPrimaryButton: (() -> Unit)? = null,
     onSecondaryButton: (() -> Unit)? = null,
+    onBadge: (BadgeType) -> Unit,
 ) {
     val headerHeight = remember { mutableStateOf(0.dp) }
     val stickyBottomHeight = remember { mutableStateOf(0.dp) }
@@ -172,7 +179,8 @@ fun CredentialActionFeedbackCard(
         ) {
             Header(
                 issuer = issuer,
-                headerHeight = headerHeight
+                headerHeight = headerHeight,
+                onBadge = onBadge,
             )
 
             val minHeight = this@BoxWithConstraints.maxHeight - headerHeight.value
@@ -208,17 +216,15 @@ fun CredentialActionFeedbackCard(
 private fun Header(
     issuer: ActorUiState,
     headerHeight: MutableState<Dp>,
+    onBadge: (BadgeType) -> Unit,
 ) = HeightReportingLayout(
     onContentHeightMeasured = { height -> headerHeight.value = height }
 ) {
     Column {
         InvitationHeader(
             modifier = Modifier.padding(horizontal = Sizes.s04),
-            inviterName = issuer.name,
-            inviterImage = issuer.painter,
-            trustStatus = issuer.trustStatus,
-            vcSchemaTrustStatus = issuer.vcSchemaTrustStatus,
-            actorType = issuer.actorType,
+            actorUiState = issuer,
+            onBadge = onBadge,
         )
         Spacer(modifier = Modifier.height(Sizes.s06))
     }
@@ -352,6 +358,8 @@ private fun CredentialActionFeedbackCardPreview() {
                 trustStatus = TrustStatus.TRUSTED,
                 vcSchemaTrustStatus = VcSchemaTrustStatus.TRUSTED,
                 actorType = ActorType.ISSUER,
+                nonComplianceState = NonComplianceState.REPORTED,
+                nonComplianceReason = "report reason",
             ),
             contentTextFirstParagraphText = R.string.tk_receive_declineOffer_primary,
             contentTextSecondParagraphText = R.string.tk_receive_declineOffer_secondary,
@@ -362,6 +370,7 @@ private fun CredentialActionFeedbackCardPreview() {
             onPrimaryButton = {},
             primaryButtonText = R.string.tk_receive_declineOffer_primaryButton,
             secondaryButtonText = R.string.tk_global_cancel,
+            onBadge = {},
         )
     }
 }

@@ -10,6 +10,7 @@ import ch.admin.foitt.wallet.platform.credential.domain.usecase.GetAnyCredential
 import ch.admin.foitt.wallet.platform.database.domain.model.Credential
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialKeyBindingEntity
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialWithKeyBinding
+import ch.admin.foitt.wallet.platform.database.domain.model.VerifiableCredentialEntity
 import ch.admin.foitt.wallet.platform.ssi.domain.model.SsiError
 import ch.admin.foitt.wallet.platform.ssi.domain.repository.CredentialWithKeyBindingRepository
 import ch.admin.foitt.wallet.util.assertErrorType
@@ -141,6 +142,7 @@ class GetAnyCredentialsImplTest {
         keyBindingAlgorithm: String = KEY_BINDING_ALGORITHM.stdName,
     ) = CredentialWithKeyBinding(
         credential = createMockCredential(id, format),
+        verifiableCredential = createMockVerifiableCredential(id),
         keyBinding = createMockKeyBinding(keyBindingIdentifier, keyBindingAlgorithm),
     )
 
@@ -149,11 +151,17 @@ class GetAnyCredentialsImplTest {
         format: CredentialFormat = CredentialFormat.VC_SD_JWT,
     ) = Credential(
         id = id,
-        payload = PAYLOAD,
         format = format,
+    )
+
+    private fun createMockVerifiableCredential(
+        id: Long = CREDENTIAL_ID,
+    ) = VerifiableCredentialEntity(
+        payload = PAYLOAD,
         issuer = "issuer",
         validFrom = 0,
         validUntil = 17768026519L,
+        credentialId = id,
     )
 
     private fun createMockKeyBinding(

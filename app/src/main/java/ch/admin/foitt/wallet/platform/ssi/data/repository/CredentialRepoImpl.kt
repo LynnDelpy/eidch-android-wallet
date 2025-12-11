@@ -2,6 +2,8 @@ package ch.admin.foitt.wallet.platform.ssi.data.repository
 
 import ch.admin.foitt.wallet.platform.database.data.dao.CredentialDao
 import ch.admin.foitt.wallet.platform.database.data.dao.DaoProvider
+import ch.admin.foitt.wallet.platform.database.data.dao.ImageEntityDao
+import ch.admin.foitt.wallet.platform.database.data.dao.VerifiableCredentialDao
 import ch.admin.foitt.wallet.platform.database.domain.model.Credential
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialStatus
 import ch.admin.foitt.wallet.platform.di.IoDispatcher
@@ -20,12 +22,12 @@ import javax.inject.Inject
 
 class CredentialRepoImpl @Inject constructor(
     daoProvider: DaoProvider,
-    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : CredentialRepo {
 
     override suspend fun getAll(): Result<List<Credential>, CredentialRepositoryError> = runSuspendCatching {
         withContext(ioDispatcher) {
-            dao().getAll()
+            credentialDao().getAll()
         }
     }.mapError { throwable ->
         Timber.e(throwable)
@@ -34,7 +36,7 @@ class CredentialRepoImpl @Inject constructor(
 
     override suspend fun getAllIds(): Result<List<Long>, CredentialRepositoryError> = runSuspendCatching {
         withContext(ioDispatcher) {
-            dao().getAllIds()
+            credentialDao().getAllIds()
         }
     }.mapError { throwable ->
         Timber.e(throwable)
@@ -43,7 +45,7 @@ class CredentialRepoImpl @Inject constructor(
 
     override suspend fun getById(id: Long): Result<Credential, CredentialRepositoryError> = runSuspendCatching {
         withContext(ioDispatcher) {
-            dao().getById(id)
+            credentialDao().getById(id)
         }
     }.mapError { throwable ->
         Timber.e(throwable)
@@ -52,7 +54,9 @@ class CredentialRepoImpl @Inject constructor(
 
     override suspend fun deleteById(id: Long): Result<Unit, CredentialRepositoryError> = runSuspendCatching {
         withContext(ioDispatcher) {
-            dao().deleteById(id)
+            credentialDao().deleteById(id)
+            // also clean up images without children
+            imageDao().deleteImagesWithoutChildren()
         }
     }.mapError { throwable ->
         Timber.e(throwable)
@@ -62,7 +66,7 @@ class CredentialRepoImpl @Inject constructor(
     override suspend fun updateStatusByCredentialId(credentialId: Long, status: CredentialStatus): Result<Int, CredentialRepositoryError> =
         runSuspendCatching {
             withContext(ioDispatcher) {
-                dao().updateStatusByCredentialId(
+                verifiableCredentialDao().updateStatusByCredentialId(
                     id = credentialId,
                     status = status,
                     updatedAt = Instant.now().epochSecond,
@@ -73,6 +77,13 @@ class CredentialRepoImpl @Inject constructor(
             SsiError.Unexpected(throwable)
         }
 
-    private suspend fun dao(): CredentialDao = suspendUntilNonNull { daoFlow.value }
-    private val daoFlow = daoProvider.credentialDaoFlow
+    private suspend fun credentialDao(): CredentialDao = suspendUntilNonNull { credentialDaoFlow.value }
+    private suspend fun verifiableCredentialDao(): VerifiableCredentialDao = suspendUntilNonNull {
+        verifiableCredentialDaoFlow.value
+    }
+    private suspend fun imageDao(): ImageEntityDao = suspendUntilNonNull { imageDaoFlow.value }
+
+    private val credentialDaoFlow = daoProvider.credentialDaoFlow
+    private val verifiableCredentialDaoFlow = daoProvider.verifiableCredentialDaoFlow
+    private val imageDaoFlow = daoProvider.imageEntityDao
 }

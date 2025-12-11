@@ -1,5 +1,6 @@
 package ch.admin.foitt.wallet.platform.credential.domain.model
 
+import ch.admin.foitt.wallet.platform.actorEnvironment.domain.model.ActorEnvironment
 import ch.admin.foitt.wallet.platform.credentialStatus.domain.model.CredentialDisplayStatus
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialDisplay
 
@@ -10,13 +11,13 @@ data class CredentialDisplayData(
     val status: CredentialDisplayStatus,
     val logoUri: String?,
     val backgroundColor: String?,
-    val isCredentialFromBetaIssuer: Boolean
+    val actorEnvironment: ActorEnvironment
 ) {
     constructor(
         credentialId: Long,
         status: CredentialDisplayStatus,
         credentialDisplay: CredentialDisplay,
-        isCredentialFromBetaIssuer: Boolean
+        actorEnvironment: ActorEnvironment,
     ) : this(
         credentialId = credentialId,
         status = status,
@@ -24,6 +25,6 @@ data class CredentialDisplayData(
         subtitle = credentialDisplay.description,
         logoUri = credentialDisplay.logoUri,
         backgroundColor = credentialDisplay.backgroundColor,
-        isCredentialFromBetaIssuer = isCredentialFromBetaIssuer
+        actorEnvironment = actorEnvironment
     )
 }

@@ -2,6 +2,11 @@ package ch.admin.foitt.wallet.platform.database.data
 
 import android.content.Context
 import androidx.room.Room
+import ch.admin.foitt.wallet.platform.database.data.migrations.Migration11to12
+import ch.admin.foitt.wallet.platform.database.data.migrations.Migration1to2
+import ch.admin.foitt.wallet.platform.database.data.migrations.Migration2to3
+import ch.admin.foitt.wallet.platform.database.data.migrations.Migration5to6
+import ch.admin.foitt.wallet.platform.database.data.migrations.Migration6to7
 import ch.admin.foitt.wallet.platform.database.domain.model.DatabaseError
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.coroutines.runSuspendCatching
@@ -20,7 +25,8 @@ class SqlCipherDatabaseInitializer @Inject constructor(
         runSuspendCatching {
             Room.databaseBuilder(appContext, AppDatabase::class.java, DATABASE_NAME)
                 .openHelperFactory(SupportOpenHelperFactory(password))
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_5_6, MIGRATION_6_7) // see also auto migrations in AppDatabase
+                // see also auto migrations in AppDatabase
+                .addMigrations(Migration1to2, Migration2to3, Migration5to6, Migration6to7, Migration11to12)
                 .build()
         }.mapError { throwable ->
             DatabaseError.SetupFailed(throwable)

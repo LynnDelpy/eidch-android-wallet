@@ -175,32 +175,46 @@ class CleanArchitectureKonsistTest {
             )
         }
 
-    private val highPrioUseCases = Konsist.scopeFromProduction()
+    private val useCasesWithoutCompleteCoverage = Konsist.scopeFromProduction()
         .classes()
         .withPackage(
-            "..platform.credential.domain.usecase..",
-            "..platform.sdjwt.domain.usecase..",
-            "..platform.login.domain.usecase..",
-            "..openid4vc.domain.usecase..",
-            "..platform.ssi.domain.usecase..",
+            "..feature/changeLogin/domain/usecase..",
+            "..feature/credentialDetail/domain/usecase..",
+            "..feature/credentialOffer/domain/usecase..",
+            "..feature/eIdRequestVerification/domain/usecase..",
+            "..feature/home/domain/usecase..",
+            "..feature/login/domain/usecase..",
+            "..feature/onboarding/domain/usecase..",
+            "..feature/presentationRequest/domain/usecase..",
+            "..platform/actorEnvironment/domain/usecase..",
+            "..platform/actorMetadata/domain/usecase..",
+            "..platform/appAttestation/domain/usecase..",
+            "..platform/appLifecycleRepository/domain/usecase..",
+            "..platform/authenticateWithPassphrase/domain/usecase..",
+            "..platform/biometricPrompt/domain/usecase..",
+            "..platform/biometrics/domain/usecase..",
+            "..platform/cameraPermissionHandler/domain/usecase..",
+            "..platform/credentialStatus/domain/usecase..",
+            "..platform/database/domain/usecase..",
+            "..platform/deeplink/domain/usecase..",
+            "..platform/eIdApplicationProcess/domain/usecase..",
+            "..platform/eventTracking/domain/usecase..",
+            "..platform/holderBinding/domain/usecase..",
+            "..platform/invitation/domain/usecase..",
+            "..platform/jsonSchema/domain/usecase..",
+            "..platform/keystoreCrypto/domain/usecase..",
+            "..platform/locale/domain/usecase..",
+            "..platform/oca/domain/usecase..",
+            "..platform/passphrase/domain/usecase..",
+            "..platform/passphraseInput/domain/usecase..",
+            "..platform/scaffold/domain/usecase..",
+            "..platform/trustRegistry/domain/usecase..",
+            "..platform/userInteraction/domain/usecase..",
+            "..platform/versionEnforcement/domain/usecase.."
         )
 
-//    private val mediumPrioUseCases = Konsist.scopeFromProduction()
-//        .classes()
-//        .withPackage(
-//            "..platform.passphrase.domain.usecase..",
-//            "..platform.locale.domain.usecase..",
-//            "..platform.biometricPrompt.domain.usecase..",
-//            "..platform.database.domain.usecase..",
-//            "..platform.updateCredentialStatus.domain.usecase..",
-//            "..platform.biometrics.domain.usecase..",
-//            "..platform.keystoreCrypto.domain.usecase..",
-//            "..platform.passphrasePeppering.domain.usecase..",
-//            "..platform.passphrase.passphraseHashing.domain.usecase..",
-//        )
-
     private val testClasses = Konsist.scopeFromTest().classes()
-    private val useCases = highPrioUseCases // + mediumPrioUseCases
+    private val useCases = Konsist.scopeFromProduction().classes().withPackage("..domain.usecase..") - useCasesWithoutCompleteCoverage
 
     @TestFactory
     fun `use cases should have tests`(): Stream<DynamicTest> =

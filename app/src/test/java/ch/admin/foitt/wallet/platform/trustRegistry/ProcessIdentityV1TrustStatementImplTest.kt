@@ -1,7 +1,6 @@
 package ch.admin.foitt.wallet.platform.trustRegistry
 
 import ch.admin.foitt.openid4vc.domain.model.vcSdJwt.VcSdJwt
-import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.GetTrustUrlFromDidError
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.IdentityV1TrustStatement
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.TrustRegistryError
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.TrustStatementType
@@ -84,7 +83,7 @@ class ProcessIdentityV1TrustStatementImplTest {
     fun `Processing IdentityV1 trust statements maps errors from getting trust domain`() = runTest {
         coEvery {
             mockGetTrustUrlFromDid(trustStatementType = TrustStatementType.IDENTITY, actorDid = issuerDid, vcSchemaId = null)
-        } returns Err(GetTrustUrlFromDidError.NoTrustRegistryMapping("invalid mapping"))
+        } returns Err(TrustRegistryError.Unexpected(IllegalStateException("get trust url error")))
 
         useCase(issuerDid).assertErrorType(TrustRegistryError.Unexpected::class)
     }

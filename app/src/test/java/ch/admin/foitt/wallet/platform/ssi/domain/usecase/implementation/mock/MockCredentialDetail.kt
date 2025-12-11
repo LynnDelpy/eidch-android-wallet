@@ -3,6 +3,7 @@ package ch.admin.foitt.wallet.platform.ssi.domain.usecase.implementation.mock
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.CredentialFormat
+import ch.admin.foitt.wallet.platform.actorEnvironment.domain.model.ActorEnvironment
 import ch.admin.foitt.wallet.platform.credential.domain.model.CredentialDisplayData
 import ch.admin.foitt.wallet.platform.credential.domain.model.toDisplayStatus
 import ch.admin.foitt.wallet.platform.database.domain.model.Credential
@@ -11,6 +12,7 @@ import ch.admin.foitt.wallet.platform.database.domain.model.CredentialClaimDispl
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialClaimWithDisplays
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialDisplay
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialStatus
+import ch.admin.foitt.wallet.platform.database.domain.model.VerifiableCredentialEntity
 import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialClaimCluster
 import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialClaimText
 import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialDetail
@@ -26,11 +28,18 @@ object MockCredentialDetail {
 
     private val credential = Credential(
         id = CREDENTIAL_ID,
+        format = CredentialFormat.VC_SD_JWT,
+        createdAt = 1700463600000,
+    )
+
+    private val verifiableCredential = VerifiableCredentialEntity(
         status = CredentialStatus.VALID,
         payload = "payload",
-        format = CredentialFormat.VC_SD_JWT,
+        createdAt = 1700463600000,
+        updatedAt = null,
         issuer = ISSUER,
         validFrom = 0,
+        credentialId = CREDENTIAL_ID,
         validUntil = 17768026519L,
     )
 
@@ -121,15 +130,19 @@ object MockCredentialDetail {
     val claims = listOf(claimWithDisplays1, claimWithDisplays2)
 
     val claimData1 = CredentialClaimText(
+        id = 1L,
         localizedLabel = claimDisplay1.name,
         order = 1,
         value = claim1.value,
+        isSensitive = false
     )
 
     val claimData2 = CredentialClaimText(
+        id = 2L,
         localizedLabel = claimDisplay3.name,
         order = 2,
         value = claim2.value,
+        isSensitive = false
     )
 
     val listOfCredentialClaimCluster = listOf(
@@ -144,9 +157,9 @@ object MockCredentialDetail {
 
     val credentialDisplayData = CredentialDisplayData(
         credentialId = credential.id,
-        status = credential.status.toDisplayStatus(),
+        status = verifiableCredential.status.toDisplayStatus(),
         credentialDisplay = credentialDisplay1,
-        isCredentialFromBetaIssuer = false
+        actorEnvironment = ActorEnvironment.PRODUCTION,
     )
 
     val credentialDetail = CredentialDetail(
@@ -163,13 +176,13 @@ object MockCredentialDetail {
         credentialId = CREDENTIAL_ID,
         status = CredentialStatus.VALID.toDisplayStatus(),
         credentialDisplay = credentialDisplay1,
-        isCredentialFromBetaIssuer = false,
+        actorEnvironment = ActorEnvironment.PRODUCTION,
     )
 
     val credentialDisplayData2 = CredentialDisplayData(
         credentialId = CREDENTIAL_ID_2,
         status = CredentialStatus.VALID.toDisplayStatus(),
         credentialDisplay = credentialDisplay2,
-        isCredentialFromBetaIssuer = true,
+        actorEnvironment = ActorEnvironment.BETA,
     )
 }

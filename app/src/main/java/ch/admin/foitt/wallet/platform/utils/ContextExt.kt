@@ -3,7 +3,9 @@ package ch.admin.foitt.wallet.platform.utils
 import android.content.Context
 import android.content.Context.ACCESSIBILITY_SERVICE
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.nfc.NfcAdapter
 import android.provider.Settings
 import android.view.accessibility.AccessibilityManager
 import androidx.annotation.StringRes
@@ -52,6 +54,32 @@ fun Context.openLink(uri: String) {
 fun Context.isScreenReaderOn(): Boolean {
     val manager = getSystemService(ACCESSIBILITY_SERVICE) as AccessibilityManager?
     return manager != null && manager.isEnabled && manager.isTouchExplorationEnabled
+}
+
+fun Context.hasNFCHardware(): Boolean =
+    this.packageManager.hasSystemFeature(PackageManager.FEATURE_NFC) &&
+        NfcAdapter.getDefaultAdapter(this) != null
+
+fun Context.openNFCSettings() {
+    runSuspendCatching {
+        val intent = Intent(Settings.ACTION_NFC_SETTINGS)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+
+        if (intent.resolveActivity(this.packageManager) == null) {
+            // Some phones do not have direct jump to NFC settings thus jump to settings
+            intent.action = Settings.ACTION_SETTINGS
+
+            if (!hasNFCHardware()) {
+                // Method got called on a device that has no NFC hardware
+                Timber.w(message = "Try to open NFC settings on device that does not have hardware")
+            } else {
+                Timber.w(message = "Phone has no NFC settings shortcut")
+            }
+        }
+        startActivity(intent)
+    }.onFailure {
+        Timber.w(t = it, message = "Exception while trying to open NFC settings")
+    }
 }
 
 fun Context.shareText(

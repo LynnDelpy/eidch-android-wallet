@@ -12,8 +12,9 @@ import ch.admin.foitt.wallet.platform.oca.domain.usecase.OcaCaptureBaseValidator
 import ch.admin.foitt.wallet.platform.oca.domain.usecase.OcaCesrHashValidator
 import ch.admin.foitt.wallet.platform.oca.domain.usecase.OcaOverlayValidator
 import ch.admin.foitt.wallet.platform.oca.domain.usecase.TransformOcaOverlays
-import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.elfaCaptureBase
-import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.elfaExample
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.betaIdExample
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.elfaCaptureBase
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.elfaExample
 import ch.admin.foitt.wallet.util.SafeJsonTestInstance
 import ch.admin.foitt.wallet.util.assertErrorType
 import ch.admin.foitt.wallet.util.assertOk
@@ -28,7 +29,9 @@ import kotlinx.serialization.json.JsonObject
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestFactory
 
 class OcaBundlerImplTest {
 
@@ -79,9 +82,15 @@ class OcaBundlerImplTest {
         unmockkAll()
     }
 
-    @Test
-    fun `Oca with valid structure is processed correctly`(): Unit = runTest {
-        ocaBundler(elfaExample).assertOk()
+    @TestFactory
+    fun `Oca with valid structure is processed without error`(): List<DynamicTest> {
+        return mapOf("elfaJson" to elfaExample, "betaIdJson" to betaIdExample).map { (name, ocaJson) ->
+            DynamicTest.dynamicTest(name) {
+                runTest {
+                    ocaBundler(ocaJson).assertOk()
+                }
+            }
+        }
     }
 
     @Test

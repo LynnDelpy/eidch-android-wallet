@@ -1,16 +1,17 @@
 package ch.admin.foitt.wallet.platform.credential.domain.usecase.implementation
 
 import android.content.Context
+import ch.admin.foitt.wallet.platform.actorEnvironment.domain.model.ActorEnvironment
+import ch.admin.foitt.wallet.platform.actorEnvironment.domain.usecase.GetActorEnvironment
 import ch.admin.foitt.wallet.platform.credential.domain.model.CredentialError
 import ch.admin.foitt.wallet.platform.credential.domain.model.toDisplayStatus
-import ch.admin.foitt.wallet.platform.credential.domain.usecase.IsBetaIssuer
 import ch.admin.foitt.wallet.platform.credential.domain.usecase.MapToCredentialDisplayData
-import ch.admin.foitt.wallet.platform.database.domain.model.Credential
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialClaim
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialClaimDisplay
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialClaimWithDisplays
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialDisplay
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialStatus
+import ch.admin.foitt.wallet.platform.database.domain.model.VerifiableCredentialEntity
 import ch.admin.foitt.wallet.platform.locale.domain.usecase.GetLocalizedAndThemedDisplay
 import ch.admin.foitt.wallet.platform.theme.domain.model.Theme
 import ch.admin.foitt.wallet.util.assertErrorType
@@ -23,12 +24,13 @@ import io.mockk.unmockkAll
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import org.junit.jupiter.params.provider.ValueSource
+import java.util.stream.Stream
 
 class MapToCredentialDisplayDataImplTest {
 
@@ -36,13 +38,13 @@ class MapToCredentialDisplayDataImplTest {
     private lateinit var mockGetLocalizedAndThemedDisplay: GetLocalizedAndThemedDisplay
 
     @MockK
-    private lateinit var mockIsBetaIssuer: IsBetaIssuer
+    private lateinit var mockGetActorEnvironment: GetActorEnvironment
 
     @MockK
     private lateinit var mockAppContext: Context
 
     @MockK
-    private lateinit var mockCredential: Credential
+    private lateinit var mockVerifiableCredential: VerifiableCredentialEntity
 
     private lateinit var useCase: MapToCredentialDisplayData
 
@@ -53,7 +55,7 @@ class MapToCredentialDisplayDataImplTest {
         useCase = MapToCredentialDisplayDataImpl(
             mockAppContext,
             mockGetLocalizedAndThemedDisplay,
-            mockIsBetaIssuer,
+            mockGetActorEnvironment,
         )
 
         setupDefaultMocks()
@@ -66,7 +68,7 @@ class MapToCredentialDisplayDataImplTest {
 
     @Test
     fun `Valid input returns credential display data`() = runTest {
-        val result = useCase(mockCredential, credentialDisplays, claims)
+        val result = useCase(mockVerifiableCredential, credentialDisplays, claims)
 
         val displayData = result.assertOk()
         assertEquals(CREDENTIAL_ID, displayData.credentialId)
@@ -75,17 +77,20 @@ class MapToCredentialDisplayDataImplTest {
         assertEquals(DESCRIPTION, displayData.subtitle)
         assertEquals(LOGO_URI, displayData.logoUri)
         assertEquals(BACKGROUND_COLOR, displayData.backgroundColor)
-        assertEquals(true, displayData.isCredentialFromBetaIssuer)
+        assertEquals(ActorEnvironment.PRODUCTION, displayData.actorEnvironment)
     }
 
-    @Test
-    fun `Credential issuer beta check is indicated in the result`() = runTest {
-        coEvery { mockIsBetaIssuer(ISSUER) } returns false
+    @ParameterizedTest
+    @MethodSource("environmentInputs")
+    fun `Credential issuer environment check is indicated in the result`(
+        actorEnvironment: ActorEnvironment,
+    ) = runTest {
+        coEvery { mockGetActorEnvironment(ISSUER) } returns actorEnvironment
 
-        val result = useCase(mockCredential, credentialDisplays, claims)
+        val result = useCase(mockVerifiableCredential, credentialDisplays, claims)
 
         val displayData = result.assertOk()
-        assertFalse(displayData.isCredentialFromBetaIssuer)
+        assertEquals(actorEnvironment, displayData.actorEnvironment)
     }
 
     @Test
@@ -94,7 +99,7 @@ class MapToCredentialDisplayDataImplTest {
             mockGetLocalizedAndThemedDisplay(listOf(element = credentialDisplay), preferredTheme = Theme.LIGHT)
         } returns null
 
-        val result = useCase(mockCredential, credentialDisplays, claims)
+        val result = useCase(mockVerifiableCredential, credentialDisplays, claims)
         result.assertErrorType(CredentialError.Unexpected::class)
     }
 
@@ -105,7 +110,11 @@ class MapToCredentialDisplayDataImplTest {
             mockGetLocalizedAndThemedDisplay(credentialDisplays = credentialDisplays, preferredTheme = Theme.LIGHT)
         } returns credentialDisplaySimpleTemplate
 
-        val result = useCase(credential = mockCredential, credentialDisplays = credentialDisplays, claims = claims).assertOk()
+        val result = useCase(
+            verifiableCredential = mockVerifiableCredential,
+            credentialDisplays = credentialDisplays,
+            claims = claims
+        ).assertOk()
 
         assertEquals("Test: value1", result.subtitle)
     }
@@ -127,7 +136,7 @@ class MapToCredentialDisplayDataImplTest {
                 displays = listOf(claimDisplay)
             )
         )
-        val result = useCase(mockCredential, credentialDisplays, claims).assertOk()
+        val result = useCase(mockVerifiableCredential, credentialDisplays, claims).assertOk()
 
         assertEquals("Test: value1, value2", result.subtitle)
     }
@@ -139,7 +148,7 @@ class MapToCredentialDisplayDataImplTest {
             mockGetLocalizedAndThemedDisplay(credentialDisplays = credentialDisplays, preferredTheme = Theme.LIGHT)
         } returns credentialDisplayUnknownKey
 
-        val result = useCase(mockCredential, credentialDisplays, claims).assertOk()
+        val result = useCase(mockVerifiableCredential, credentialDisplays, claims).assertOk()
 
         assertEquals("Test: ", result.subtitle)
     }
@@ -151,7 +160,7 @@ class MapToCredentialDisplayDataImplTest {
             mockGetLocalizedAndThemedDisplay(credentialDisplays = credentialDisplays, preferredTheme = Theme.LIGHT)
         } returns credentialDisplaySimpleTemplate
 
-        val result = useCase(mockCredential, credentialDisplays, claimsWithNullValue).assertOk()
+        val result = useCase(mockVerifiableCredential, credentialDisplays, claimsWithNullValue).assertOk()
 
         assertEquals("Test: –", result.subtitle)
     }
@@ -165,7 +174,7 @@ class MapToCredentialDisplayDataImplTest {
             mockGetLocalizedAndThemedDisplay(credentialDisplays = credentialDisplays, preferredTheme = Theme.LIGHT)
         } returns credentialDisplay
 
-        val result = useCase(mockCredential, credentialDisplays, claims).assertOk()
+        val result = useCase(mockVerifiableCredential, credentialDisplays, claims).assertOk()
 
         assertEquals(input.second, result.subtitle)
     }
@@ -188,17 +197,17 @@ class MapToCredentialDisplayDataImplTest {
             mockGetLocalizedAndThemedDisplay(credentialDisplays = credentialDisplays, preferredTheme = Theme.LIGHT)
         } returns credentialDisplayInvalidTemplate
 
-        val result = useCase(mockCredential, credentialDisplays, claims).assertOk()
+        val result = useCase(mockVerifiableCredential, credentialDisplays, claims).assertOk()
 
         assertEquals(template, result.subtitle)
     }
 
     private fun setupDefaultMocks() {
-        every { mockCredential.id } returns CREDENTIAL_ID
-        every { mockCredential.status } returns CredentialStatus.VALID
-        every { mockCredential.validFrom } returns 0
-        every { mockCredential.validUntil } returns 17768026519L
-        every { mockCredential.issuer } returns ISSUER
+        every { mockVerifiableCredential.credentialId } returns CREDENTIAL_ID
+        every { mockVerifiableCredential.status } returns CredentialStatus.VALID
+        every { mockVerifiableCredential.validFrom } returns 0
+        every { mockVerifiableCredential.validUntil } returns 17768026519L
+        every { mockVerifiableCredential.issuer } returns ISSUER
 
         coEvery {
             mockGetLocalizedAndThemedDisplay(
@@ -206,7 +215,7 @@ class MapToCredentialDisplayDataImplTest {
                 preferredTheme = Theme.LIGHT
             )
         } returns credentialDisplay
-        coEvery { mockIsBetaIssuer(ISSUER) } returns true
+        coEvery { mockGetActorEnvironment(ISSUER) } returns ActorEnvironment.PRODUCTION
     }
 
     private companion object {
@@ -233,6 +242,13 @@ class MapToCredentialDisplayDataImplTest {
             "{{{$.claim1Key}}}" to "{value1}",
             "{{{{$.claim1Key}}}}" to "{{value1}}",
             "{{{$.claim1Key}}}}" to "{value1}}",
+        )
+
+        @JvmStatic
+        fun environmentInputs(): Stream<Arguments> = Stream.of(
+            Arguments.of(ActorEnvironment.PRODUCTION),
+            Arguments.of(ActorEnvironment.BETA),
+            Arguments.of(ActorEnvironment.EXTERNAL),
         )
 
         val claim1 = CredentialClaim(

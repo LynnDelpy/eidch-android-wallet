@@ -5,7 +5,6 @@ import ch.admin.foitt.wallet.platform.credential.domain.usecase.GenerateAnyDispl
 import ch.admin.foitt.wallet.platform.credential.domain.usecase.GenerateMetadataDisplays
 import ch.admin.foitt.wallet.platform.credential.domain.usecase.GetAnyCredential
 import ch.admin.foitt.wallet.platform.credential.domain.usecase.GetAnyCredentials
-import ch.admin.foitt.wallet.platform.credential.domain.usecase.IsBetaIssuer
 import ch.admin.foitt.wallet.platform.credential.domain.usecase.MapToCredentialDisplayData
 import ch.admin.foitt.wallet.platform.credential.domain.usecase.SaveCredential
 import ch.admin.foitt.wallet.platform.credential.domain.usecase.implementation.FetchAndSaveCredentialImpl
@@ -13,7 +12,6 @@ import ch.admin.foitt.wallet.platform.credential.domain.usecase.implementation.G
 import ch.admin.foitt.wallet.platform.credential.domain.usecase.implementation.GenerateMetadataDisplaysImpl
 import ch.admin.foitt.wallet.platform.credential.domain.usecase.implementation.GetAnyCredentialImpl
 import ch.admin.foitt.wallet.platform.credential.domain.usecase.implementation.GetAnyCredentialsImpl
-import ch.admin.foitt.wallet.platform.credential.domain.usecase.implementation.IsBetaIssuerImpl
 import ch.admin.foitt.wallet.platform.credential.domain.usecase.implementation.MapToCredentialDisplayDataImpl
 import ch.admin.foitt.wallet.platform.credential.domain.usecase.implementation.SaveCredentialImpl
 import ch.admin.foitt.wallet.platform.credential.presentation.adapter.GetCredentialCardState
@@ -51,11 +49,6 @@ internal interface CredentialModule {
     fun bindGetCredentialState(
         adapter: GetCredentialCardStateImpl
     ): GetCredentialCardState
-
-    @Binds
-    fun bindIsBetaIssuer(
-        useCase: IsBetaIssuerImpl
-    ): IsBetaIssuer
 
     @Binds
     fun bindMapToCredentialDisplayData(

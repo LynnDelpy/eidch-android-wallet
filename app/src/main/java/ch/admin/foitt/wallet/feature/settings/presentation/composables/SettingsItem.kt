@@ -3,14 +3,11 @@
 package ch.admin.foitt.wallet.feature.settings.presentation.composables
 
 import androidx.annotation.DrawableRes
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
@@ -283,15 +280,6 @@ private fun SettingsItem(
         }
     },
     leadingContent = leadingContent,
-)
-
-@Composable
-fun WalletListItems.SettingsDivider() = HorizontalDivider(
-    modifier = Modifier
-        .background(WalletTheme.colorScheme.listItemBackground)
-        .padding(start = Sizes.s04),
-    thickness = Sizes.line01,
-    color = WalletTheme.colorScheme.outlineVariant,
 )
 
 @WalletComponentPreview

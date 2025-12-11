@@ -1,5 +1,6 @@
 package ch.admin.foitt.wallet.platform.eIdApplicationProcess.data.repository
 
+import android.content.Context
 import ch.admin.foitt.wallet.platform.appAttestation.domain.model.ClientAttestation
 import ch.admin.foitt.wallet.platform.appAttestation.domain.model.ClientAttestationPoP
 import ch.admin.foitt.wallet.platform.appAttestation.domain.model.KeyAttestation
@@ -17,13 +18,16 @@ import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.toSIdRe
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.toValidateAttestationsError
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.repository.SIdRepository
 import ch.admin.foitt.wallet.platform.environmentSetup.domain.repository.EnvironmentSetupRepository
+import ch.admin.foitt.wallet.platform.utils.hasNFCHardware
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.coroutines.runSuspendCatching
 import com.github.michaelbull.result.mapError
+import dagger.hilt.android.qualifiers.ApplicationContext
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.header
+import io.ktor.client.request.parameter
 import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
@@ -34,6 +38,7 @@ import javax.inject.Inject
 class SIdRepositoryImpl @Inject constructor(
     private val httpClient: HttpClient,
     private val environmentSetupRepo: EnvironmentSetupRepository,
+    @param:ApplicationContext private val appContext: Context,
 ) : SIdRepository {
 
     override suspend fun requestSIdCase(
@@ -135,12 +140,14 @@ class SIdRepositoryImpl @Inject constructor(
         clientAttestationPoP: ClientAttestationPoP
     ): Result<AutoVerificationResponse, SIdRepositoryError> =
         runSuspendCatching<AutoVerificationResponse> {
+            val hasNFC = appContext.hasNFCHardware()
             httpClient.put(
                 environmentSetupRepo.sidBackendUrl + REST_API +
                     "eid/$caseId/start-auto-verification/$autoVerificationType"
             ) {
                 header(ClientAttestation.REQUEST_HEADER, clientAttestation.attestation.rawJwt)
                 header(ClientAttestationPoP.REQUEST_HEADER, clientAttestationPoP.value)
+                parameter("nfcAvailable", hasNFC)
             }.body()
         }.mapError { throwable ->
             throwable.toSIdRepositoryError("startAutoVerification error")

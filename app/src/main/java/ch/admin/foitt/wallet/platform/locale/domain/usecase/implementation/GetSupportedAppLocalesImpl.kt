@@ -3,6 +3,7 @@ package ch.admin.foitt.wallet.platform.locale.domain.usecase.implementation
 import android.app.LocaleConfig
 import android.content.Context
 import android.os.Build
+import ch.admin.foitt.wallet.platform.locale.LocaleCompat
 import ch.admin.foitt.wallet.platform.locale.domain.usecase.GetSupportedAppLocales
 import ch.admin.foitt.wallet.platform.utils.toListOfLocales
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -16,11 +17,11 @@ class GetSupportedAppLocalesImpl @Inject constructor(
 
     // keep this in sync with the locales_config.xml
     private val supportedLanguagesDefault = listOf(
-        Locale("de"),
-        Locale("en"),
-        Locale("fr"),
-        Locale("it"),
-        Locale("rm")
+        LocaleCompat.of("de"),
+        LocaleCompat.of("en"),
+        LocaleCompat.of("fr"),
+        LocaleCompat.of("it"),
+        LocaleCompat.of("rm")
     )
 
     override fun invoke(): List<Locale> {

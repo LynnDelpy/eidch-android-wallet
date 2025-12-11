@@ -2,6 +2,7 @@ package ch.admin.foitt.wallet.platform.actorMetadata.presentation.model
 
 import androidx.compose.ui.graphics.painter.Painter
 import ch.admin.foitt.wallet.platform.actorMetadata.domain.model.ActorType
+import ch.admin.foitt.wallet.platform.nonCompliance.domain.model.NonComplianceState
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.TrustStatus
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.VcSchemaTrustStatus
 
@@ -11,6 +12,8 @@ data class ActorUiState(
     val trustStatus: TrustStatus,
     val vcSchemaTrustStatus: VcSchemaTrustStatus,
     val actorType: ActorType,
+    val nonComplianceState: NonComplianceState,
+    val nonComplianceReason: String?,
 ) {
     companion object {
         val EMPTY = ActorUiState(
@@ -19,6 +22,8 @@ data class ActorUiState(
             trustStatus = TrustStatus.UNKNOWN,
             vcSchemaTrustStatus = VcSchemaTrustStatus.UNPROTECTED,
             actorType = ActorType.UNKNOWN,
+            nonComplianceState = NonComplianceState.UNKNOWN,
+            nonComplianceReason = null,
         )
     }
 }

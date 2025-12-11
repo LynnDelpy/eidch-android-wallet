@@ -21,5 +21,5 @@ interface EIdRequestFileDao {
 
     @Transaction
     @Query("SELECT * FROM eidrequestfile WHERE eIdRequestCaseId = :caseId AND fileName = :fileName ORDER BY createdAt DESC LIMIT 1")
-    fun getFile(caseId: String, fileName: String): EIdRequestFile?
+    fun getFile(caseId: String, fileName: String): EIdRequestFile
 }

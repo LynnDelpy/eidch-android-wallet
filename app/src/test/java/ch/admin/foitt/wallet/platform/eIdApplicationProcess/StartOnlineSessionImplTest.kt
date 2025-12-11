@@ -3,8 +3,8 @@ package ch.admin.foitt.wallet.platform.eIdApplicationProcess
 import ch.admin.foitt.wallet.platform.appAttestation.domain.model.AttestationError
 import ch.admin.foitt.wallet.platform.appAttestation.domain.model.ClientAttestation
 import ch.admin.foitt.wallet.platform.appAttestation.domain.model.ClientAttestationPoP
-import ch.admin.foitt.wallet.platform.appAttestation.domain.repository.CurrentClientAttestationRepository
 import ch.admin.foitt.wallet.platform.appAttestation.domain.usecase.GenerateProofOfPossession
+import ch.admin.foitt.wallet.platform.appAttestation.domain.usecase.RequestClientAttestation
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.EIdRequestError
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.SIdChallengeResponse
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.repository.SIdRepository
@@ -31,7 +31,7 @@ class StartOnlineSessionImplTest {
     private lateinit var mockSIdRepository: SIdRepository
 
     @MockK
-    private lateinit var mockCurrentClientAttestationRepository: CurrentClientAttestationRepository
+    private lateinit var mockRequestClientAttestation: RequestClientAttestation
 
     @MockK
     private lateinit var mockGenerateProofOfPossession: GenerateProofOfPossession
@@ -56,12 +56,12 @@ class StartOnlineSessionImplTest {
         MockKAnnotations.init(this)
         useCase = StartOnlineSessionImpl(
             sIdRepository = mockSIdRepository,
-            currentClientAttestationRepository = mockCurrentClientAttestationRepository,
+            requestClientAttestation = mockRequestClientAttestation,
             generateProofOfPossession = mockGenerateProofOfPossession,
             environmentSetupRepository = mockEnvironmentSetupRepository,
         )
 
-        coEvery { mockCurrentClientAttestationRepository.get() } returns Ok(mockClientAttestation)
+        coEvery { mockRequestClientAttestation(any(), any()) } returns Ok(mockClientAttestation)
         coEvery { mockSIdRepository.fetchChallenge() } returns Ok(mockSIdChallenge)
         coEvery {
             mockGenerateProofOfPossession.invoke(
@@ -92,7 +92,7 @@ class StartOnlineSessionImplTest {
         result.assertOk()
 
         coVerifyOrder {
-            mockCurrentClientAttestationRepository.get()
+            mockRequestClientAttestation(any(), any())
             mockSIdRepository.fetchChallenge()
             mockGenerateProofOfPossession(
                 clientAttestation = mockClientAttestation,
@@ -112,7 +112,7 @@ class StartOnlineSessionImplTest {
     fun `A missing client attestation cause a failure`() = runTest {
         val exception = Exception("testException")
         coEvery {
-            mockCurrentClientAttestationRepository.get()
+            mockRequestClientAttestation(any(), any())
         } returns Err(AttestationError.Unexpected(exception))
 
         val error = useCase(testCaseId).assertErrorType(EIdRequestError.Unexpected::class)

@@ -15,13 +15,16 @@ import ch.admin.foitt.wallet.platform.jsonSchema.domain.model.JsonSchemaError
 import ch.admin.foitt.wallet.platform.jsonSchema.domain.usecase.JsonSchemaValidator
 import ch.admin.foitt.wallet.platform.oca.domain.model.FetchOcaBundleError
 import ch.admin.foitt.wallet.platform.oca.domain.model.FetchVcMetadataByFormatError
+import ch.admin.foitt.wallet.platform.oca.domain.model.OcaError
 import ch.admin.foitt.wallet.platform.oca.domain.model.RawOcaBundle
 import ch.admin.foitt.wallet.platform.oca.domain.model.VcMetadata
 import ch.admin.foitt.wallet.platform.oca.domain.model.toFetchVcMetadataByFormatError
 import ch.admin.foitt.wallet.platform.oca.domain.usecase.FetchOcaBundle
 import ch.admin.foitt.wallet.platform.oca.domain.usecase.FetchVcMetadataByFormat
+import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.coroutines.coroutineBinding
+import com.github.michaelbull.result.get
 import com.github.michaelbull.result.mapError
 import javax.inject.Inject
 import javax.inject.Named
@@ -38,7 +41,7 @@ class FetchVcMetadataByFormatImpl @Inject constructor(
     ): Result<VcMetadata, FetchVcMetadataByFormatError> = coroutineBinding {
         when (anyCredential.format) {
             CredentialFormat.VC_SD_JWT -> fetchVcMetadataForVcSdJwt(anyCredential as VcSdJwtCredential).bind()
-            else -> error("invalid format")
+            else -> Err(OcaError.Unexpected(IllegalStateException("invalid format"))).bind()
         }
     }
 
@@ -48,11 +51,20 @@ class FetchVcMetadataByFormatImpl @Inject constructor(
         var vcSchema: VcSchema? = null
         var rawOcaBundle: RawOcaBundle? = null
 
-        val vctUrl = safeGetUrl(credential.vct)
+        val (typeMetadataUrl, typeMetadataUrlIntegrity) = if (credential.vctMetadataUri != null) {
+            // if vct_metadata_uri is present use it
+            val url = safeGetUrl(credential.vctMetadataUri)
+                .mapError(SafeGetUrlError::toFetchVcMetadataByFormatError)
+                .bind()
+            url to credential.vctMetadataUriIntegrity
+        } else {
+            // use vct as fallback
+            val url = safeGetUrl(credential.vct).get()
+            url to credential.vctIntegrity
+        }
 
-        // fetch type metadata only if vct is a valid url
-        if (vctUrl.isOk) {
-            val typeMetadata = fetchTypeMetadata(vctUrl = vctUrl.value, vctIntegrity = credential.vctIntegrity)
+        typeMetadataUrl?.let { url ->
+            val typeMetadata = fetchTypeMetadata(credentialVct = credential.vct, url = url, integrity = typeMetadataUrlIntegrity)
                 .mapError(FetchTypeMetadataError::toFetchVcMetadataByFormatError)
                 .bind()
 

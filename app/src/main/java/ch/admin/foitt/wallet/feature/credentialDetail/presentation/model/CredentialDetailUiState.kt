@@ -1,10 +1,12 @@
 package ch.admin.foitt.wallet.feature.credentialDetail.presentation.model
 
 import androidx.compose.ui.graphics.Color
+import ch.admin.foitt.wallet.platform.activityList.presentation.model.ActivityUiState
 import ch.admin.foitt.wallet.platform.actorMetadata.domain.model.ActorType
 import ch.admin.foitt.wallet.platform.actorMetadata.presentation.model.ActorUiState
 import ch.admin.foitt.wallet.platform.credential.presentation.model.CredentialCardState
 import ch.admin.foitt.wallet.platform.credentialStatus.domain.model.CredentialDisplayStatus
+import ch.admin.foitt.wallet.platform.nonCompliance.domain.model.NonComplianceState
 import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialClaimCluster
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.TrustStatus
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.VcSchemaTrustStatus
@@ -13,6 +15,7 @@ data class CredentialDetailUiState(
     val credential: CredentialCardState,
     val clusterItems: List<CredentialClaimCluster>,
     val issuer: ActorUiState,
+    val activities: List<ActivityUiState>,
 ) {
     companion object {
         val EMPTY = CredentialDetailUiState(
@@ -33,8 +36,11 @@ data class CredentialDetailUiState(
                 painter = null,
                 trustStatus = TrustStatus.UNKNOWN,
                 vcSchemaTrustStatus = VcSchemaTrustStatus.TRUSTED,
-                actorType = ActorType.UNKNOWN
+                actorType = ActorType.UNKNOWN,
+                nonComplianceState = NonComplianceState.UNKNOWN,
+                nonComplianceReason = null,
             ),
+            activities = emptyList(),
         )
     }
 }

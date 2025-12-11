@@ -8,4 +8,9 @@ interface EIdAvRepository {
     suspend fun uploadFileToCase(
         file: UploadFileRequest
     ): Result<Unit, AvRepositoryError>
+
+    suspend fun submitCase(
+        caseId: String,
+        accessToken: String
+    ): Result<Unit, AvRepositoryError>
 }

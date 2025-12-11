@@ -13,6 +13,8 @@ interface EnvironmentSetupRepository {
     val eIdMockMrzEnabled: Boolean
     val sidBackendUrl: String
     val avBackendUrl: String
+    val eIdNfcWebSocketUrl: String
     val appId: String
     val avBeamLoggingEnabled: Boolean
+    val nonComplianceEnabled: Boolean
 }

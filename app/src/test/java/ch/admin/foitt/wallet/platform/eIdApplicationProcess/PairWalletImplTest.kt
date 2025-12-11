@@ -3,8 +3,8 @@ package ch.admin.foitt.wallet.platform.eIdApplicationProcess
 import ch.admin.foitt.wallet.platform.appAttestation.domain.model.AttestationError
 import ch.admin.foitt.wallet.platform.appAttestation.domain.model.ClientAttestation
 import ch.admin.foitt.wallet.platform.appAttestation.domain.model.ClientAttestationPoP
-import ch.admin.foitt.wallet.platform.appAttestation.domain.repository.CurrentClientAttestationRepository
 import ch.admin.foitt.wallet.platform.appAttestation.domain.usecase.GenerateProofOfPossession
+import ch.admin.foitt.wallet.platform.appAttestation.domain.usecase.RequestClientAttestation
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.EIdRequestError
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.PairWalletResponse
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.SIdChallengeResponse
@@ -32,7 +32,7 @@ class PairWalletImplTest {
     private lateinit var mockSIdRepository: SIdRepository
 
     @MockK
-    private lateinit var mockCurrentClientAttestationRepository: CurrentClientAttestationRepository
+    private lateinit var mockRequestClientAttestation: RequestClientAttestation
 
     @MockK
     private lateinit var mockGenerateProofOfPossession: GenerateProofOfPossession
@@ -60,12 +60,12 @@ class PairWalletImplTest {
         MockKAnnotations.init(this)
         useCase = PairWalletImpl(
             sIdRepository = mockSIdRepository,
-            currentClientAttestationRepository = mockCurrentClientAttestationRepository,
+            requestClientAttestation = mockRequestClientAttestation,
             generateProofOfPossession = mockGenerateProofOfPossession,
             environmentSetupRepository = mockEnvironmentSetupRepository,
         )
 
-        coEvery { mockCurrentClientAttestationRepository.get() } returns Ok(mockClientAttestation)
+        coEvery { mockRequestClientAttestation(any(), any()) } returns Ok(mockClientAttestation)
         coEvery { mockSIdRepository.fetchChallenge() } returns Ok(mockSIdChallenge)
         coEvery {
             mockGenerateProofOfPossession.invoke(
@@ -96,7 +96,7 @@ class PairWalletImplTest {
         result.assertOk()
 
         coVerifyOrder {
-            mockCurrentClientAttestationRepository.get()
+            mockRequestClientAttestation(any(), any())
             mockSIdRepository.fetchChallenge()
             mockGenerateProofOfPossession(
                 clientAttestation = mockClientAttestation,
@@ -113,13 +113,12 @@ class PairWalletImplTest {
     }
 
     @Test
-    fun `A missing client attestation cause a failure`() = runTest {
+    fun `A client attestation error is propagated`() = runTest {
         val exception = Exception("testException")
-        coEvery {
-            mockCurrentClientAttestationRepository.get()
-        } returns Err(AttestationError.Unexpected(exception))
+        coEvery { mockRequestClientAttestation(any(), any()) } returns Err(AttestationError.Unexpected(exception))
 
-        val error = useCase(testCaseId).assertErrorType(EIdRequestError.Unexpected::class)
+        val result = useCase("caseId")
+        val error = result.assertErrorType(EIdRequestError.Unexpected::class)
         assertEquals(exception, error.cause)
     }
 

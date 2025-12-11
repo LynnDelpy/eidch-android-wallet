@@ -15,7 +15,6 @@ import androidx.compose.ui.res.stringResource
 import ch.admin.foitt.wallet.R
 import ch.admin.foitt.wallet.feature.settings.presentation.composables.ClickableTextSettingsItem
 import ch.admin.foitt.wallet.feature.settings.presentation.composables.LinkSettingsItem
-import ch.admin.foitt.wallet.feature.settings.presentation.composables.SettingsDivider
 import ch.admin.foitt.wallet.feature.settings.presentation.composables.SettingsSection
 import ch.admin.foitt.wallet.platform.composables.presentation.addTopScaffoldPadding
 import ch.admin.foitt.wallet.platform.composables.presentation.bottomSafeDrawing
@@ -91,7 +90,7 @@ private fun WalletSection(
         leadingIcon = R.drawable.wallet_ic_lock_small,
         onClick = onSecurityAndPrivacy,
     )
-    WalletListItems.SettingsDivider()
+    WalletListItems.Divider()
     WalletListItems.ClickableTextSettingsItem(
         title = stringResource(R.string.tk_settings_wallet_language),
         leadingIcon = R.drawable.wallet_ic_globe,
@@ -113,19 +112,19 @@ private fun GeneralSection(
         leadingIcon = R.drawable.wallet_ic_questionmark,
         onClick = onHelp,
     )
-    WalletListItems.SettingsDivider()
+    WalletListItems.Divider()
     WalletListItems.LinkSettingsItem(
         title = stringResource(R.string.tk_settings_general_feedback_link_text),
         leadingIcon = R.drawable.wallet_ic_feedback,
         onClick = onFeedback,
     )
-    WalletListItems.SettingsDivider()
+    WalletListItems.Divider()
     WalletListItems.ClickableTextSettingsItem(
         title = stringResource(R.string.tk_settings_general_licences),
         leadingIcon = R.drawable.wallet_ic_licenses,
         onClick = onLicenses,
     )
-    WalletListItems.SettingsDivider()
+    WalletListItems.Divider()
     WalletListItems.ClickableTextSettingsItem(
         title = stringResource(R.string.tk_settings_general_imprint),
         leadingIcon = R.drawable.wallet_ic_info,

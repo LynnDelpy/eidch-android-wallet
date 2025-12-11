@@ -107,15 +107,19 @@ class CredentialClaimItemCollectionExtTest {
     }
 
     private fun createClaimText(order: Int): CredentialClaimItem = CredentialClaimText(
+        id = 1L,
         localizedLabel = "label",
         order = order,
-        value = "value"
+        value = "value",
+        isSensitive = false
     )
 
     private fun createClaimImage(order: Int): CredentialClaimItem = CredentialClaimImage(
+        id = 1L,
         localizedLabel = "label",
         order = order,
-        imageData = "data".toByteArray()
+        imageData = "data".toByteArray(),
+        isSensitive = false
     )
 
     private fun createClaimCluster(order: Int): CredentialClaimItem = CredentialClaimCluster(

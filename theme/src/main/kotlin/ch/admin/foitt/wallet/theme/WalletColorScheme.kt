@@ -71,6 +71,9 @@ data class WalletColorScheme(
     val onLightErrorFixed: Color,
     val onWhiteTransparentFixed: Color,
 
+    val sensitiveBadge: Color,
+    val onSensitiveBadge: Color,
+
     val errorBackgroundLight: Color,
     val errorBackgroundDark: Color,
 
@@ -189,6 +192,8 @@ data class WalletColorScheme(
                 errorBackgroundDark = WalletColors.red16,
 
                 listItemBackground = WalletColors.white,
+                sensitiveBadge = WalletColors.purple91,
+                onSensitiveBadge = WalletColors.purple27
             )
         }
 
@@ -262,6 +267,8 @@ data class WalletColorScheme(
                 errorBackgroundDark = WalletColors.red16,
 
                 listItemBackground = WalletColors.grey17,
+                sensitiveBadge = WalletColors.purple18,
+                onSensitiveBadge = WalletColors.purple91
             )
         }
     }

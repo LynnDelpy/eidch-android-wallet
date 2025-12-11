@@ -3,11 +3,13 @@ package ch.admin.foitt.wallet.platform.trustRegistry.di
 import ch.admin.foitt.wallet.platform.trustRegistry.data.TrustStatementRepositoryImpl
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.repository.TrustStatementRepository
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.usecase.FetchVcSchemaTrustStatus
+import ch.admin.foitt.wallet.platform.trustRegistry.domain.usecase.GetTrustDomainFromDid
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.usecase.GetTrustUrlFromDid
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.usecase.ProcessIdentityV1TrustStatement
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.usecase.ProcessMetadataV1TrustStatement
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.usecase.ValidateTrustStatement
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.usecase.implementation.FetchVcSchemaTrustStatusImpl
+import ch.admin.foitt.wallet.platform.trustRegistry.domain.usecase.implementation.GetTrustDomainFromDidImpl
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.usecase.implementation.GetTrustUrlFromDidImpl
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.usecase.implementation.ProcessIdentityV1TrustStatementImpl
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.usecase.implementation.ProcessMetadataV1TrustStatementImpl
@@ -38,6 +40,11 @@ internal interface TrustRegistryModule {
 
     @Binds
     fun bindGetTrustDomainFromDid(
+        useCase: GetTrustDomainFromDidImpl
+    ): GetTrustDomainFromDid
+
+    @Binds
+    fun bindGetTrustUrlFromDid(
         useCase: GetTrustUrlFromDidImpl
     ): GetTrustUrlFromDid
 

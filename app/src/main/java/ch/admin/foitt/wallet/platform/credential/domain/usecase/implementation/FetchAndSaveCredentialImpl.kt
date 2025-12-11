@@ -8,6 +8,8 @@ import ch.admin.foitt.openid4vc.domain.model.credentialoffer.metadata.AnyCredent
 import ch.admin.foitt.openid4vc.domain.usecase.FetchCredentialByConfig
 import ch.admin.foitt.openid4vc.domain.usecase.FetchRawAndParsedIssuerCredentialInfo
 import ch.admin.foitt.openid4vc.domain.usecase.GetVerifiableCredentialParams
+import ch.admin.foitt.wallet.platform.actorEnvironment.domain.model.ActorEnvironment
+import ch.admin.foitt.wallet.platform.actorEnvironment.domain.usecase.GetActorEnvironment
 import ch.admin.foitt.wallet.platform.actorMetadata.domain.usecase.CacheIssuerDisplayData
 import ch.admin.foitt.wallet.platform.credential.domain.model.CredentialError
 import ch.admin.foitt.wallet.platform.credential.domain.model.FetchCredentialError
@@ -21,6 +23,7 @@ import ch.admin.foitt.wallet.platform.database.domain.model.RawCredentialData
 import ch.admin.foitt.wallet.platform.environmentSetup.domain.repository.EnvironmentSetupRepository
 import ch.admin.foitt.wallet.platform.holderBinding.domain.model.GenerateKeyPairError
 import ch.admin.foitt.wallet.platform.holderBinding.domain.usecase.GenerateKeyPair
+import ch.admin.foitt.wallet.platform.nonCompliance.domain.usecase.FetchNonComplianceData
 import ch.admin.foitt.wallet.platform.oca.domain.model.FetchVcMetadataByFormatError
 import ch.admin.foitt.wallet.platform.oca.domain.usecase.FetchVcMetadataByFormat
 import ch.admin.foitt.wallet.platform.oca.domain.usecase.OcaBundler
@@ -48,10 +51,12 @@ class FetchAndSaveCredentialImpl @Inject constructor(
     private val getVerifiableCredentialParams: GetVerifiableCredentialParams,
     private val generateKeyPair: GenerateKeyPair,
     private val fetchCredentialByConfig: FetchCredentialByConfig,
+    private val fetchNonComplianceData: FetchNonComplianceData,
     private val fetchVcMetadataByFormat: FetchVcMetadataByFormat,
     private val ocaBundler: OcaBundler,
     private val environmentSetupRepository: EnvironmentSetupRepository,
     private val processMetadataV1TrustStatement: ProcessMetadataV1TrustStatement,
+    private val getActorEnvironment: GetActorEnvironment,
     private val processIdentityV1TrustStatement: ProcessIdentityV1TrustStatement,
     private val fetchVcSchemaTrustStatus: FetchVcSchemaTrustStatus,
     private val generateAnyDisplays: GenerateAnyDisplays,
@@ -89,6 +94,8 @@ class FetchAndSaveCredentialImpl @Inject constructor(
             attestationJwt = keyPair?.attestationJwt
         ).mapError(FetchCredentialByConfigError::toFetchCredentialError).bind()
 
+        val nonComplianceData = fetchNonComplianceData(actorDid = anyCredential.issuer)
+
         val vcMetadata = fetchVcMetadataByFormat(anyCredential)
             .mapError(FetchVcMetadataByFormatError::toFetchCredentialError)
             .bind()
@@ -98,19 +105,22 @@ class FetchAndSaveCredentialImpl @Inject constructor(
             ocaBundler(it).get()
         }
 
-        val trustCheckResult = anyCredential.issuer?.let { issuerDid ->
-            fetchTrustForIssuance(issuerDid, anyCredential.vcSchemaId)
-        }
+        val trustCheckResult =
+            fetchTrustForIssuance(issuerDid = anyCredential.issuer, vcSchemaId = anyCredential.vcSchemaId)
 
         val displays = generateAnyDisplays(
             anyCredential = anyCredential,
             issuerInfo = issuerInfo,
-            trustIssuerNames = getTrustIssuerNames(trustCheckResult?.actorTrustStatement),
+            trustIssuerNames = getTrustIssuerNames(trustCheckResult.actorTrustStatement),
             metadata = config,
             ocaBundle = ocaBundle,
         ).mapError(GenerateCredentialDisplaysError::toFetchCredentialError).bind()
 
-        cacheIssuerDisplayData(trustCheckResult, displays.issuerDisplays)
+        cacheIssuerDisplayData(
+            trustCheckResult = trustCheckResult,
+            issuerDisplays = displays.issuerDisplays,
+            nonComplianceData = nonComplianceData,
+        )
 
         val rawCredentialData = RawCredentialData(
             credentialId = -1,
@@ -141,15 +151,24 @@ class FetchAndSaveCredentialImpl @Inject constructor(
         issuerDid: String,
         vcSchemaId: String,
     ): TrustCheckResult {
+        val environment = getActorEnvironment(issuerDid)
+
         return if (environmentSetupRepository.useMetadataV1TrustStatement) {
-            val metadataTrustStatement = processMetadataV1TrustStatement(issuerDid).get()
+            val metadataTrustStatement = when (environment) {
+                ActorEnvironment.PRODUCTION, ActorEnvironment.BETA -> processMetadataV1TrustStatement(issuerDid).get()
+                ActorEnvironment.EXTERNAL -> null
+            }
 
             TrustCheckResult(
+                actorEnvironment = environment,
                 actorTrustStatement = metadataTrustStatement,
                 vcSchemaTrustStatus = VcSchemaTrustStatus.UNPROTECTED,
             )
         } else {
-            val identityTrustStatement = processIdentityV1TrustStatement(issuerDid).get()
+            val identityTrustStatement = when (environment) {
+                ActorEnvironment.PRODUCTION, ActorEnvironment.BETA -> processIdentityV1TrustStatement(issuerDid).get()
+                ActorEnvironment.EXTERNAL -> null
+            }
 
             val issuanceTrustStatus = fetchVcSchemaTrustStatus(
                 trustStatementActor = TrustStatementActor.ISSUER,
@@ -158,6 +177,7 @@ class FetchAndSaveCredentialImpl @Inject constructor(
             ).getOrElse { VcSchemaTrustStatus.UNPROTECTED }
 
             TrustCheckResult(
+                actorEnvironment = environment,
                 actorTrustStatement = identityTrustStatement,
                 vcSchemaTrustStatus = issuanceTrustStatus,
             )

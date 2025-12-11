@@ -43,7 +43,7 @@ class ValidatePresentationRequestImplTest {
     private lateinit var mockVerifyJwtSignature: VerifyJwtSignature
 
     @SpyK
-    private var mockPresentationJwt: Jwt = Jwt(MockPresentationRequest.validJwt)
+    private var mockPresentationJwt: Jwt = Jwt(MockPresentationRequest.VALID_JWT)
 
     private var mockPresentationJson: JsonObject = MockPresentationRequest.presentationRequest.toJsonObject()
 
@@ -242,6 +242,20 @@ class ValidatePresentationRequestImplTest {
     @Test
     fun `Jwt Presentation request with a missing jwt kid header return invalid presentation error `(): Unit = runTest {
         coEvery { mockPresentationJwt.keyId } returns null
+
+        useCase(mockJwtPresentationContainer).assertErrorType(CredentialPresentationError.InvalidPresentation::class)
+    }
+
+    @Test
+    fun `Jwt Presentation request that is not yet valid returns invalid presentation error`() = runTest {
+        coEvery { mockJwtPresentationContainer.jwt } returns Jwt(MockPresentationRequest.NOT_YET_VALID_JWT)
+
+        useCase(mockJwtPresentationContainer).assertErrorType(CredentialPresentationError.InvalidPresentation::class)
+    }
+
+    @Test
+    fun `Jwt Presentation request that is expired returns invalid presentation error`() = runTest {
+        coEvery { mockJwtPresentationContainer.jwt } returns Jwt(MockPresentationRequest.EXPIRED_JWT)
 
         useCase(mockJwtPresentationContainer).assertErrorType(CredentialPresentationError.InvalidPresentation::class)
     }

@@ -1,5 +1,6 @@
 package ch.admin.foitt.wallet.platform.locale.domain.usecase.implementation
 
+import ch.admin.foitt.wallet.platform.locale.LocaleCompat
 import ch.admin.foitt.wallet.platform.locale.domain.usecase.GetCurrentAppLocale
 import ch.admin.foitt.wallet.platform.locale.domain.usecase.GetLocalizedAndThemedDisplay
 import ch.admin.foitt.wallet.platform.locale.domain.usecase.implementation.LocalizedAndThemedDisplayTestData.noSupportedLocaleAndNoFallback
@@ -17,7 +18,6 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.util.Locale
 
 class GetLocalizedAndThemedDisplayImplTest {
     @MockK
@@ -40,7 +40,7 @@ class GetLocalizedAndThemedDisplayImplTest {
 
     @Test
     fun `App locale with supported country code returns CredentialDisplay in requested theme with best matching locale`() = runTest {
-        coEvery { mockGetCurrentAppLocale() } returns Locale("de", "CH")
+        coEvery { mockGetCurrentAppLocale() } returns LocaleCompat.of("de", "CH")
 
         val displayWithSupportedLocaleWithCountryCode = getLocalizedAndThemedDisplay(
             credentialDisplays = withSupportedLocaleWithCountryCode,
@@ -73,7 +73,7 @@ class GetLocalizedAndThemedDisplayImplTest {
 
     @Test
     fun `App locale with supported country code returns CredentialDisplay in not requested theme with best matching locale`() = runTest {
-        coEvery { mockGetCurrentAppLocale() } returns Locale("de", "CH")
+        coEvery { mockGetCurrentAppLocale() } returns LocaleCompat.of("de", "CH")
         val displayWithSupportedLocaleWithCountryCode = getLocalizedAndThemedDisplay(
             credentialDisplays = withSupportedLocaleWithCountryCode,
             preferredTheme = Theme.LIGHT
@@ -105,7 +105,7 @@ class GetLocalizedAndThemedDisplayImplTest {
 
     @Test
     fun `App locale with unsupported country code returns CredentialDisplay in requested theme with best matching locale`() = runTest {
-        coEvery { mockGetCurrentAppLocale() } returns Locale("de", "XX")
+        coEvery { mockGetCurrentAppLocale() } returns LocaleCompat.of("de", "XX")
         val displayWithSupportedLocaleWithCountryCode = getLocalizedAndThemedDisplay(
             credentialDisplays = withSupportedLocaleWithCountryCode,
             preferredTheme = Theme.DARK
@@ -137,7 +137,7 @@ class GetLocalizedAndThemedDisplayImplTest {
 
     @Test
     fun `App locale with unsupported country code returns CredentialDisplay in not requested theme with best matching locale`() = runTest {
-        coEvery { mockGetCurrentAppLocale() } returns Locale("de", "XX")
+        coEvery { mockGetCurrentAppLocale() } returns LocaleCompat.of("de", "XX")
         val displayWithSupportedLocaleWithCountryCode = getLocalizedAndThemedDisplay(
             credentialDisplays = withSupportedLocaleWithCountryCode,
             preferredTheme = Theme.LIGHT
@@ -169,7 +169,7 @@ class GetLocalizedAndThemedDisplayImplTest {
 
     @Test
     fun `App locale without country code returns CredentialDisplay in requested theme with best matching locale`() = runTest {
-        coEvery { mockGetCurrentAppLocale() } returns Locale("de")
+        coEvery { mockGetCurrentAppLocale() } returns LocaleCompat.of("de")
         val displayWithSupportedLocaleWithCountryCode = getLocalizedAndThemedDisplay(
             credentialDisplays = withSupportedLocaleWithCountryCode,
             preferredTheme = Theme.DARK
@@ -201,7 +201,7 @@ class GetLocalizedAndThemedDisplayImplTest {
 
     @Test
     fun `App locale without country code returns CredentialDisplay in not requested theme with best matching locale`() = runTest {
-        coEvery { mockGetCurrentAppLocale() } returns Locale("de")
+        coEvery { mockGetCurrentAppLocale() } returns LocaleCompat.of("de")
         val displayWithSupportedLocaleWithCountryCode = getLocalizedAndThemedDisplay(
             credentialDisplays = withSupportedLocaleWithCountryCode,
             preferredTheme = Theme.LIGHT
@@ -233,7 +233,7 @@ class GetLocalizedAndThemedDisplayImplTest {
 
     @Test
     fun `Empty input list returns empty list`() = runTest {
-        coEvery { mockGetCurrentAppLocale() } returns Locale("de", "CH")
+        coEvery { mockGetCurrentAppLocale() } returns LocaleCompat.of("de", "CH")
 
         assertNull(getLocalizedAndThemedDisplay(credentialDisplays = emptyList(), preferredTheme = Theme.LIGHT))
     }

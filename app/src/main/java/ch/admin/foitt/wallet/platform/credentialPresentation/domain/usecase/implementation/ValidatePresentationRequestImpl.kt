@@ -1,6 +1,7 @@
 package ch.admin.foitt.wallet.platform.credentialPresentation.domain.usecase.implementation
 
 import ch.admin.foitt.openid4vc.domain.model.SigningAlgorithm
+import ch.admin.foitt.openid4vc.domain.model.anycredential.CredentialValidity
 import ch.admin.foitt.openid4vc.domain.model.presentationRequest.InputDescriptorFormat
 import ch.admin.foitt.openid4vc.domain.model.presentationRequest.PresentationRequest
 import ch.admin.foitt.openid4vc.domain.model.presentationRequest.PresentationRequestContainer
@@ -101,6 +102,8 @@ class ValidatePresentationRequestImpl @Inject constructor(
             check(issuerDid == clientId) { "jwt issuer did does not match request object clientId" }
 
             val keyId = checkNotNull(jwt.keyId) { "keyId is missing" }
+
+            check(jwt.jwtValidity == CredentialValidity.Valid) { "jwt is not yet valid or expired" }
 
             verifyJwtSignature(
                 did = issuerDid,

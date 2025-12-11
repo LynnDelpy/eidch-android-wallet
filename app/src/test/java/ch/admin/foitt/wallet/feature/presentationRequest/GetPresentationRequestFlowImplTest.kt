@@ -3,6 +3,7 @@ package ch.admin.foitt.wallet.feature.presentationRequest
 import ch.admin.foitt.openid4vc.domain.model.presentationRequest.PresentationRequest
 import ch.admin.foitt.wallet.feature.presentationRequest.domain.model.PresentationRequestError
 import ch.admin.foitt.wallet.feature.presentationRequest.domain.usecase.implementation.GetPresentationRequestFlowImpl
+import ch.admin.foitt.wallet.platform.actorEnvironment.domain.model.ActorEnvironment
 import ch.admin.foitt.wallet.platform.credential.domain.model.CredentialDisplayData
 import ch.admin.foitt.wallet.platform.credential.domain.model.CredentialError
 import ch.admin.foitt.wallet.platform.credential.domain.model.toDisplayStatus
@@ -10,13 +11,13 @@ import ch.admin.foitt.wallet.platform.credential.domain.usecase.MapToCredentialD
 import ch.admin.foitt.wallet.platform.credentialCluster.domain.usercase.MapToCredentialClaimCluster
 import ch.admin.foitt.wallet.platform.credentialPresentation.domain.model.PresentationRequestField
 import ch.admin.foitt.wallet.platform.database.domain.model.ClusterWithDisplaysAndClaims
-import ch.admin.foitt.wallet.platform.database.domain.model.Credential
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialClusterWithDisplays
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialDisplay
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialStatus
-import ch.admin.foitt.wallet.platform.database.domain.model.CredentialWithDisplaysAndClusters
+import ch.admin.foitt.wallet.platform.database.domain.model.VerifiableCredentialEntity
+import ch.admin.foitt.wallet.platform.database.domain.model.VerifiableCredentialWithDisplaysAndClusters
 import ch.admin.foitt.wallet.platform.ssi.domain.model.SsiError
-import ch.admin.foitt.wallet.platform.ssi.domain.repository.CredentialWithDisplaysAndClustersRepository
+import ch.admin.foitt.wallet.platform.ssi.domain.repository.VerifiableCredentialWithDisplaysAndClustersRepository
 import ch.admin.foitt.wallet.platform.ssi.domain.usecase.implementation.mock.MockCredentialDetail
 import ch.admin.foitt.wallet.platform.ssi.domain.usecase.implementation.mock.MockCredentialDetail.claims
 import ch.admin.foitt.wallet.util.assertErrorType
@@ -41,7 +42,7 @@ import org.junit.jupiter.api.Test
 class GetPresentationRequestFlowImplTest {
 
     @MockK
-    lateinit var mockCredentialWithDisplaysAndClustersRepository: CredentialWithDisplaysAndClustersRepository
+    lateinit var mockCredentialWithDisplaysAndClustersRepository: VerifiableCredentialWithDisplaysAndClustersRepository
 
     @MockK
     lateinit var mockMapToCredentialDisplayData: MapToCredentialDisplayData
@@ -50,7 +51,7 @@ class GetPresentationRequestFlowImplTest {
     lateinit var mockMapToCredentialClaimCluster: MapToCredentialClaimCluster
 
     @MockK
-    lateinit var mockCredentialWithDisplaysAndClusters: CredentialWithDisplaysAndClusters
+    lateinit var mockCredentialWithDisplaysAndClusters: VerifiableCredentialWithDisplaysAndClusters
 
     @MockK
     lateinit var mockRequestedField: PresentationRequestField
@@ -62,7 +63,7 @@ class GetPresentationRequestFlowImplTest {
     lateinit var mockClusterWithDisplays: CredentialClusterWithDisplays
 
     @MockK
-    lateinit var mockCredential: Credential
+    lateinit var mockVerifiableCredential: VerifiableCredentialEntity
 
     private lateinit var getPresentationRequestFlow: GetPresentationRequestFlowImpl
 
@@ -99,7 +100,7 @@ class GetPresentationRequestFlowImplTest {
     fun `Getting the presentation request flow maps errors from the repository`() = runTest {
         val exception = IllegalStateException("db error")
         coEvery {
-            mockCredentialWithDisplaysAndClustersRepository.getCredentialWithDisplaysAndClustersFlowById(CREDENTIAL_ID1)
+            mockCredentialWithDisplaysAndClustersRepository.getVerifiableCredentialWithDisplaysAndClustersFlowById(CREDENTIAL_ID1)
         } returns flowOf(Err(SsiError.Unexpected(exception)))
 
         val result = getPresentationRequestFlow(
@@ -131,10 +132,12 @@ class GetPresentationRequestFlowImplTest {
 
     private fun setupDefaultMocks() {
         coEvery {
-            mockCredentialWithDisplaysAndClustersRepository.getCredentialWithDisplaysAndClustersFlowById(CREDENTIAL_ID1)
+            mockCredentialWithDisplaysAndClustersRepository.getVerifiableCredentialWithDisplaysAndClustersFlowById(CREDENTIAL_ID1)
         } returns flowOf(Ok(mockCredentialWithDisplaysAndClusters))
 
-        every { mockCredentialWithDisplaysAndClusters.credential } returns mockCredential
+        every {
+            mockCredentialWithDisplaysAndClusters.verifiableCredential
+        } returns mockVerifiableCredential
         every { mockCredentialWithDisplaysAndClusters.credentialDisplays } returns MockCredentialDetail.credentialDisplays
         every { mockCredentialWithDisplaysAndClusters.clusters } returns listOf(
             ClusterWithDisplaysAndClaims(
@@ -144,11 +147,13 @@ class GetPresentationRequestFlowImplTest {
         )
 
         coEvery {
-            mockCredentialWithDisplaysAndClustersRepository.getNullableCredentialWithDisplaysAndClustersFlowById(CREDENTIAL_ID1)
+            mockCredentialWithDisplaysAndClustersRepository.getNullableVerifiableCredentialWithDisplaysAndClustersFlowById(
+                CREDENTIAL_ID1
+            )
         } returns flowOf(Ok(mockCredentialWithDisplaysAndClusters))
 
         coEvery {
-            mockMapToCredentialDisplayData(mockCredential, MockCredentialDetail.credentialDisplays, claims)
+            mockMapToCredentialDisplayData(mockVerifiableCredential, MockCredentialDetail.credentialDisplays, claims)
         } returns Ok(MockCredentialDetail.credentialDisplayData)
 
         coEvery { mockRequestedField.key } returns CLAIM_KEY
@@ -179,7 +184,7 @@ class GetPresentationRequestFlowImplTest {
             credentialId = CREDENTIAL_ID1,
             status = CredentialStatus.VALID.toDisplayStatus(),
             credentialDisplay = credentialDisplay1,
-            isCredentialFromBetaIssuer = false,
+            actorEnvironment = ActorEnvironment.PRODUCTION,
         )
     }
 }

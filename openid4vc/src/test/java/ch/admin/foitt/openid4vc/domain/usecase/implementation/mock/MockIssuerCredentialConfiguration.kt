@@ -11,9 +11,12 @@ import ch.admin.foitt.openid4vc.domain.usecase.implementation.mock.MockCredentia
 
 object MockIssuerCredentialConfiguration {
     private const val VCT = "vct"
+    private const val VCT_INTEGRITY = "vct integrity"
+    private const val VCT_METADATA_URI = "vct metadata uri"
+    private const val VCT_METADATA_URI_INTEGRITY = "vct metadata uri integrity"
     private const val CLAIMS = "{}"
     private val SUPPORTED_CRYPTOGRAPHIC_SUITE = SigningAlgorithm.ES512
-    const val DID_JWK_BINDING_METHOD = "did:jwk"
+    const val JWK_BINDING_METHOD = "jwk"
     val SUPPORTED_PROOF_TYPE = ProofType.JWT
     private val UNKNOWN_PROOF_TYPE = ProofType.UNKNOWN
     private val SIGNING_ALG = SigningAlgorithm.ES256
@@ -34,10 +37,13 @@ object MockIssuerCredentialConfiguration {
         identifier = CREDENTIAL_IDENTIFIER,
         claims = CLAIMS,
         credentialSigningAlgValuesSupported = listOf(SUPPORTED_CRYPTOGRAPHIC_SUITE),
-        cryptographicBindingMethodsSupported = listOf(DID_JWK_BINDING_METHOD),
+        cryptographicBindingMethodsSupported = listOf(JWK_BINDING_METHOD),
         format = CredentialFormat.VC_SD_JWT,
         proofTypesSupported = mapOf(SUPPORTED_PROOF_TYPE to proofTypeConfigSoftwareBinding),
         vct = VCT,
+        vctIntegrity = VCT_INTEGRITY,
+        vctMetadataUri = VCT_METADATA_URI,
+        vctMetadataUriIntegrity = VCT_METADATA_URI_INTEGRITY,
     )
     val credentialConfigurationWithHardwareKeyBinding = vcSdJwtCredentialConfiguration.copy(
         proofTypesSupported = mapOf(SUPPORTED_PROOF_TYPE to proofTypeConfigHardwareBinding)

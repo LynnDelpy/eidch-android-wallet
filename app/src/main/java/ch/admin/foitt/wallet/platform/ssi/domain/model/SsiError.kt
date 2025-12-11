@@ -13,13 +13,13 @@ interface SsiError {
         CredentialIssuerDisplayRepositoryError,
         CredentialRepositoryError,
         CredentialWithDisplaysRepositoryError,
-        CredentialWithDisplaysAndClustersRepositoryError,
         DeleteCredentialError,
         MapToCredentialClaimDataError,
         CredentialOfferRepositoryError,
         GetCredentialDetailFlowError,
         GetCredentialsWithDetailsFlowError,
-        CredentialWithKeyBindingRepositoryError
+        CredentialWithKeyBindingRepositoryError,
+        VerifiableCredentialWithDisplaysAndClustersRepositoryError
 }
 
 sealed interface CredentialClaimDisplayRepositoryError
@@ -27,18 +27,17 @@ sealed interface CredentialClaimRepositoryError
 sealed interface CredentialIssuerDisplayRepositoryError
 sealed interface CredentialRepositoryError
 sealed interface CredentialWithDisplaysRepositoryError
-sealed interface CredentialWithDisplaysAndClustersRepositoryError
 sealed interface CredentialOfferRepositoryError
 sealed interface DeleteCredentialError
 sealed interface MapToCredentialClaimDataError
 sealed interface GetCredentialDetailFlowError
 sealed interface GetCredentialsWithDetailsFlowError
 sealed interface CredentialWithKeyBindingRepositoryError
+sealed interface VerifiableCredentialWithDisplaysAndClustersRepositoryError
 
 internal fun CredentialRepositoryError.toDeleteCredentialError() = when (this) {
     is SsiError.Unexpected -> SsiError.Unexpected(cause)
 }
-
 internal fun CredentialWithKeyBindingRepositoryError.toDeleteCredentialError() = when (this) {
     is SsiError.Unexpected -> SsiError.Unexpected(cause)
 }
@@ -58,9 +57,9 @@ internal fun Throwable.toCredentialIssuerDisplayRepositoryError(message: String)
     return SsiError.Unexpected(this)
 }
 
-internal fun Throwable.toCredentialWithDisplaysAndClustersRepositoryError(
+internal fun Throwable.toVerifiableCredentialWithDisplaysAndClustersRepositoryError(
     message: String
-): CredentialWithDisplaysAndClustersRepositoryError {
+): VerifiableCredentialWithDisplaysAndClustersRepositoryError {
     Timber.e(t = this, message = message)
     return SsiError.Unexpected(this)
 }
@@ -69,11 +68,12 @@ internal fun MapToCredentialClaimDataError.toGetCredentialDetailFlowError(): Get
     is SsiError.Unexpected -> this
 }
 
-internal fun CredentialWithDisplaysAndClustersRepositoryError.toGetCredentialDetailFlowError(): GetCredentialDetailFlowError = when (this) {
+internal fun VerifiableCredentialWithDisplaysAndClustersRepositoryError.toGetCredentialDetailFlowError():
+    GetCredentialDetailFlowError = when (this) {
     is SsiError.Unexpected -> this
 }
 
-internal fun CredentialWithDisplaysAndClustersRepositoryError.toGetCredentialsWithDetailsFlowError():
+internal fun VerifiableCredentialWithDisplaysAndClustersRepositoryError.toGetCredentialsWithDetailsFlowError():
     GetCredentialsWithDetailsFlowError = when (this) {
     is SsiError.Unexpected -> this
 }

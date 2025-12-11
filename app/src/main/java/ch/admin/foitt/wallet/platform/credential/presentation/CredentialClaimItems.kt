@@ -1,7 +1,9 @@
 package ch.admin.foitt.wallet.platform.credential.presentation
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -27,6 +29,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import ch.admin.foitt.wallet.R
+import ch.admin.foitt.wallet.platform.badges.presentation.SensitiveBadge
 import ch.admin.foitt.wallet.platform.composables.Avatar
 import ch.admin.foitt.wallet.platform.composables.AvatarSize
 import ch.admin.foitt.wallet.platform.composables.presentation.ClaimClusterCard
@@ -101,15 +104,25 @@ private fun ClaimItem(node: CredentialClaimItem, depth: Int, lastItem: Boolean) 
                 )
             },
             headlineContent = {
-                when (node) {
-                    is CredentialClaimText -> WalletTexts.BodyLarge(
-                        text = node.value ?: "–"
-                    )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    when (node) {
+                        is CredentialClaimText -> WalletTexts.BodyLarge(
+                            modifier = Modifier.weight(1f),
+                            text = node.value ?: "–"
+                        )
 
-                    is CredentialClaimImage -> ClaimImage(claimImage = node)
-                    else -> Unit
+                        is CredentialClaimImage -> ClaimImage(claimImage = node)
+                        else -> Unit
+                    }
+                    if (node.isSensitive) {
+                        SensitiveBadge()
+                    }
                 }
-            }
+            },
         )
         if (!lastItem) {
             ItemDivider()

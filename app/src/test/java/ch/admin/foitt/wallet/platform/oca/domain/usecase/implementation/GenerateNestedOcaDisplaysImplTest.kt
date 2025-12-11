@@ -11,8 +11,8 @@ import ch.admin.foitt.wallet.platform.oca.domain.model.OcaClaimData
 import ch.admin.foitt.wallet.platform.oca.domain.model.OcaCredentialData
 import ch.admin.foitt.wallet.platform.oca.domain.usecase.GenerateOcaDisplays
 import ch.admin.foitt.wallet.platform.oca.domain.usecase.GetRootCaptureBase
-import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.complexNestedOca
-import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.simpleNestedOca
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.OcaMocks.complexNestedOca
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.OcaMocks.simpleNestedOca
 import ch.admin.foitt.wallet.util.SafeJsonTestInstance
 import ch.admin.foitt.wallet.util.assertOk
 import com.github.michaelbull.result.Ok
@@ -175,7 +175,8 @@ class GenerateNestedOcaDisplaysImplTest {
             name = "claim_key",
             attributeType = AttributeType.Text,
             labels = mapOf(LANGUAGE_EN to CLAIM_VALUE_EN),
-            dataSources = mapOf("vc+sd-jwt" to JSON_PATH)
+            dataSources = mapOf("vc+sd-jwt" to JSON_PATH),
+            isSensitive = false
         )
 
         val ocaCredentialData = OcaCredentialData(

@@ -3,10 +3,10 @@ package ch.admin.foitt.wallet.feature.eIdRequestVerification.domain.usecase.impl
 import ch.admin.foitt.wallet.feature.eIdRequestVerification.domain.usecase.FetchSIdCase
 import ch.admin.foitt.wallet.platform.appAttestation.domain.model.ClientAttestation
 import ch.admin.foitt.wallet.platform.appAttestation.domain.model.ClientAttestationPoP
-import ch.admin.foitt.wallet.platform.appAttestation.domain.model.ClientAttestationRepositoryError
 import ch.admin.foitt.wallet.platform.appAttestation.domain.model.GenerateProofOfPossessionError
-import ch.admin.foitt.wallet.platform.appAttestation.domain.repository.CurrentClientAttestationRepository
+import ch.admin.foitt.wallet.platform.appAttestation.domain.model.RequestClientAttestationError
 import ch.admin.foitt.wallet.platform.appAttestation.domain.usecase.GenerateProofOfPossession
+import ch.admin.foitt.wallet.platform.appAttestation.domain.usecase.RequestClientAttestation
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.ApplyRequest
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.ApplyRequestError
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.CaseResponse
@@ -23,14 +23,14 @@ import javax.inject.Inject
 
 class FetchSIdCaseImpl @Inject constructor(
     private val sIdRepository: SIdRepository,
-    private val currentClientAttestationRepository: CurrentClientAttestationRepository,
+    private val requestClientAttestation: RequestClientAttestation,
     private val generateProofOfPossession: GenerateProofOfPossession,
     private val environmentSetupRepository: EnvironmentSetupRepository,
     private val safeJson: SafeJson,
 ) : FetchSIdCase {
     override suspend fun invoke(applyRequest: ApplyRequest): Result<CaseResponse, ApplyRequestError> = coroutineBinding {
-        val clientAttestation: ClientAttestation = currentClientAttestationRepository.get()
-            .mapError(ClientAttestationRepositoryError::toApplyRequestError).bind()
+        val clientAttestation: ClientAttestation = requestClientAttestation()
+            .mapError(RequestClientAttestationError::toApplyRequestError).bind()
         val challengeResponse = sIdRepository.fetchChallenge()
             .mapError(SIdRepositoryError::toApplyRequestError).bind()
         val requestBody = safeJson.safeEncodeObjectToJsonElement(applyRequest)

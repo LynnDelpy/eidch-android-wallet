@@ -5,8 +5,8 @@ import ch.admin.foitt.wallet.feature.eIdRequestVerification.domain.usecase.imple
 import ch.admin.foitt.wallet.platform.appAttestation.domain.model.AttestationError
 import ch.admin.foitt.wallet.platform.appAttestation.domain.model.ClientAttestation
 import ch.admin.foitt.wallet.platform.appAttestation.domain.model.ClientAttestationPoP
-import ch.admin.foitt.wallet.platform.appAttestation.domain.repository.CurrentClientAttestationRepository
 import ch.admin.foitt.wallet.platform.appAttestation.domain.usecase.GenerateProofOfPossession
+import ch.admin.foitt.wallet.platform.appAttestation.domain.usecase.RequestClientAttestation
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.ApplyRequest
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.CaseResponse
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.EIdRequestError
@@ -36,7 +36,7 @@ class FetchSIdCaseImplTest {
     private lateinit var mockSIdRepository: SIdRepository
 
     @MockK
-    private lateinit var mockCurrentClientAttestationRepository: CurrentClientAttestationRepository
+    private lateinit var mockRequestClientAttestation: RequestClientAttestation
 
     @MockK
     private lateinit var mockGenerateProofOfPossession: GenerateProofOfPossession
@@ -79,14 +79,14 @@ class FetchSIdCaseImplTest {
         MockKAnnotations.init(this)
         fetchSIdCase = FetchSIdCaseImpl(
             sIdRepository = mockSIdRepository,
-            currentClientAttestationRepository = mockCurrentClientAttestationRepository,
+            requestClientAttestation = mockRequestClientAttestation,
             generateProofOfPossession = mockGenerateProofOfPossession,
             environmentSetupRepository = mockEnvironmentSetupRepository,
             safeJson = testSafeJson,
         )
 
         coEvery { mockSIdRepository.requestSIdCase(any(), any(), any()) } returns Ok(testCaseResponse)
-        coEvery { mockCurrentClientAttestationRepository.get() } returns Ok(mockClientAttestation)
+        coEvery { mockRequestClientAttestation(any(), any()) } returns Ok(mockClientAttestation)
         coEvery { mockSIdRepository.fetchChallenge() } returns Ok(mockSIdChallenge)
         coEvery { mockGenerateProofOfPossession(any(), any(), any(), any()) } returns Ok(mockClientAttestationPoP)
         coEvery { mockEnvironmentSetupRepository.sidBackendUrl } returns mockSIdUrl
@@ -106,7 +106,7 @@ class FetchSIdCaseImplTest {
         assertEquals(testCaseResponse.legalRepresentant, response.legalRepresentant)
 
         coVerifyOrder {
-            mockCurrentClientAttestationRepository.get()
+            mockRequestClientAttestation(any(), any())
             mockSIdRepository.fetchChallenge()
             mockGenerateProofOfPossession(
                 clientAttestation = mockClientAttestation,
@@ -124,10 +124,10 @@ class FetchSIdCaseImplTest {
     }
 
     @Test
-    fun `A missing client attestation cause a failure`() = runTest {
+    fun `A client attestation error is propagated`() = runTest {
         val exception = Exception("testException")
         coEvery {
-            mockCurrentClientAttestationRepository.get()
+            mockRequestClientAttestation(any(), any())
         } returns Err(AttestationError.Unexpected(exception))
 
         val error = fetchSIdCase(testApplyRequest).assertErrorType(EIdRequestError.Unexpected::class)

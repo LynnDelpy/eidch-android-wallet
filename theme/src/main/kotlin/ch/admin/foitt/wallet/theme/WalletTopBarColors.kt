@@ -33,4 +33,14 @@ object WalletTopBarColors {
         titleContentColor = WalletTheme.colorScheme.onPrimaryFixed,
         actionIconContentColor = WalletTheme.colorScheme.onPrimaryFixed,
     )
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    fun clusterScreen() = TopAppBarDefaults.topAppBarColors(
+        containerColor = WalletTheme.colorScheme.surfaceContainerLow,
+        scrolledContainerColor = WalletTheme.colorScheme.surfaceContainerLow.copy(alpha = 0.85f),
+        navigationIconContentColor = Color.Unspecified,
+        titleContentColor = Color.Unspecified,
+        actionIconContentColor = Color.Unspecified,
+    )
 }

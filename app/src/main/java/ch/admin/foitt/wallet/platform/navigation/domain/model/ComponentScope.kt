@@ -7,10 +7,8 @@ import ch.admin.foitt.walletcomposedestinations.destinations.DeclineCredentialOf
 import ch.admin.foitt.walletcomposedestinations.destinations.Destination
 import ch.admin.foitt.walletcomposedestinations.destinations.EIdDocumentRecordingScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.EIdDocumentSelectionScreenDestination
-import ch.admin.foitt.walletcomposedestinations.destinations.EIdGuardianConsentResultScreenDestination
-import ch.admin.foitt.walletcomposedestinations.destinations.EIdGuardianConsentScreenDestination
-import ch.admin.foitt.walletcomposedestinations.destinations.EIdGuardianSelectionScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.EIdGuardianshipScreenDestination
+import ch.admin.foitt.walletcomposedestinations.destinations.EIdNfcScannerScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.EIdProcessDataScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.EIdStartAutoVerificationScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.EIdStartSelfieVideoScreenDestination
@@ -71,20 +69,6 @@ sealed interface ComponentScope {
     }
 
     /**
-     * [ComponentScope] for keeping the data related to the current SId case in memory.
-     *
-     * It has to contain all screens past the [MrzSubmissionScreenDestination]
-     */
-    data object EidCurrentSIdCase : ComponentScope {
-        override val destinations = setOf(
-            MrzSubmissionScreenDestination,
-            EIdGuardianSelectionScreenDestination,
-            EIdGuardianConsentScreenDestination,
-            EIdGuardianConsentResultScreenDestination,
-        )
-    }
-
-    /**
      * [ComponentScope] for keeping the result of the document scan in memory.
      *
      * Should be kept as small as possible, as the scan files are quite heavy.
@@ -98,8 +82,7 @@ sealed interface ComponentScope {
     }
 
     /**
-     * [ComponentScope] for keeping the theAutoVerificationResponse in memory.
-     *
+     * [ComponentScope] for keeping the result of the current e-ID online session call in memory.
      */
     data object EidOnlineSession : ComponentScope {
         override val destinations = setOf(
@@ -107,7 +90,8 @@ sealed interface ComponentScope {
             EIdDocumentRecordingScreenDestination,
             EIdStartSelfieVideoScreenDestination,
             SDKFaceScannerScreenDestination,
-            EIdProcessDataScreenDestination
+            EIdProcessDataScreenDestination,
+            EIdNfcScannerScreenDestination,
         )
     }
 }

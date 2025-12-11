@@ -14,7 +14,7 @@ fun OnPauseEventHandler(
     val lifecycleOwner = LocalLifecycleOwner.current
 
     DisposableEffect(lifecycleOwner) {
-        Timber.d("EventObserver: Setup DisposableEffect")
+        Timber.d("EventObserver: Setup OnPause DisposableEffect")
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_PAUSE) {
                 Timber.d("EventObserver: OnPause()")

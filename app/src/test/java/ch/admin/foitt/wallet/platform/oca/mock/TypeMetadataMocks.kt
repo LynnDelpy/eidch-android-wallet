@@ -1,8 +1,11 @@
 package ch.admin.foitt.wallet.platform.oca.mock
 
 object TypeMetadataMocks {
-    const val VCT_URL = "https://credentials.example.com/identity_credential"
+    const val CREDENTIAL_VCT = "https://example.com/vct"
+    const val TYPE_METADATA_URL = "https://credentials.example.com/identity_credential"
     const val VCT_URL_INTEGRITY = "sha256-vctIntegrity"
+    const val VCT_METADATA_URI = "https://credentials.example.com/identity_credential"
+    const val VCT_METADATA_URI_INTEGRITY = "sha256-vctMetadataUriIntegrity"
     const val VC_SCHEMA_URL = "https://exampleuniversity.com/public/credential-schema-0.9"
     const val VC_SCHEMA_URL_INTEGRITY = "sha256-o984vn819a48ui1llkwPmKjZ5t0WRL5ca_xGgX3c1VLmXfh"
     const val OCA_URL = "https://example.com/oca/oca-bundle.json"
@@ -25,7 +28,7 @@ object TypeMetadataMocks {
 
     val typeMetadataWithoutVcSchemaUrl = """
         {
-          "vct": "$VCT_URL",
+          "vct": "$TYPE_METADATA_URL",
           "display": [
             {
               "lang": "en-US",
@@ -49,14 +52,14 @@ object TypeMetadataMocks {
 
     val typeMetadataWithInvalidVcSchemaUrl = """
         {
-          "vct": "$VCT_URL",
+          "vct": "$TYPE_METADATA_URL",
           "schema_uri": "invalidUrl"
         }
     """.trimIndent()
 
     val typeMetadataWithoutOcaRendering = """
         {
-          "vct": "$VCT_URL",
+          "vct": "$TYPE_METADATA_URL",
           "schema_uri": "$VC_SCHEMA_URL",
           "schema_uri#integrity": "$VC_SCHEMA_URL_INTEGRITY",
           "display": [
@@ -82,7 +85,7 @@ object TypeMetadataMocks {
 
     val typeMetadataWithOcaMultipleRenderings = """
         {
-          "vct": "$VCT_URL",
+          "vct": "$TYPE_METADATA_URL",
           "schema_uri": "$VC_SCHEMA_URL",
           "schema_uri#integrity": "$VC_SCHEMA_URL_INTEGRITY",
           "display": [
@@ -113,7 +116,7 @@ object TypeMetadataMocks {
 
     val typeMetadataFullExample = """
         {
-          "vct": "$VCT_URL",
+          "vct": "$TYPE_METADATA_URL",
           "name": "Betelgeuse Education Credential - Preliminary Version",
           "description": "This is our development version of the education credential. Don't panic.",
           "extends": "https://galaxy.example.com/galactic-education-credential-0.9",

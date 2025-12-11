@@ -3,6 +3,7 @@ package ch.admin.foitt.wallet.platform.ssi.domain.usecase.implementation
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialClaim
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialClaimDisplay
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialClaimWithDisplays
+import ch.admin.foitt.wallet.platform.locale.LocaleCompat
 import ch.admin.foitt.wallet.platform.locale.domain.usecase.GetCurrentAppLocale
 import ch.admin.foitt.wallet.platform.locale.domain.usecase.GetLocalizedDisplay
 import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialClaimImage
@@ -139,8 +140,8 @@ class MapToCredentialClaimDataImplTest {
     fun `Claim with value type 'numeric' returns localized CredentialClaimText`(input: Triple<String, String, String>) = runTest {
         val localeParts = input.second.split("-")
         val preferredLocale = when (localeParts.size) {
-            1 -> Locale(localeParts[0])
-            2 -> Locale(localeParts[0], localeParts[1])
+            1 -> LocaleCompat.of(localeParts[0])
+            2 -> LocaleCompat.of(localeParts[0], localeParts[1])
             else -> Locale.getDefault()
         }
         coEvery { mockGetCurrentAppLocale() } returns preferredLocale

@@ -30,7 +30,7 @@ fun InfoClusterCard(
 }
 
 @Composable
-fun ClusterCard(
+private fun ClusterCard(
     modifier: Modifier = Modifier,
     colors: CardColors = CardDefaults.cardColors(),
     shape: RoundedCornerShape = RoundedCornerShape(Sizes.s05),

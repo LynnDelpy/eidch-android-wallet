@@ -21,7 +21,8 @@ class CredentialWithKeyBindingRepositoryImpl @Inject constructor(
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : CredentialWithKeyBindingRepository {
 
-    override suspend fun getAll(): Result<List<CredentialWithKeyBinding>, CredentialWithKeyBindingRepositoryError> = runSuspendCatching {
+    override suspend fun getAll():
+        Result<List<CredentialWithKeyBinding>, CredentialWithKeyBindingRepositoryError> = runSuspendCatching {
         withContext(ioDispatcher) {
             dao().getAll()
         }

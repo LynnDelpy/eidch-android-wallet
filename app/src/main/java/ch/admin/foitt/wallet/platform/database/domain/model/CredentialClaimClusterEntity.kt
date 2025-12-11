@@ -8,9 +8,9 @@ import androidx.room.PrimaryKey
 @Entity(
     foreignKeys = [
         ForeignKey(
-            entity = Credential::class,
-            parentColumns = arrayOf("id"),
-            childColumns = arrayOf("credentialId"),
+            entity = VerifiableCredentialEntity::class,
+            parentColumns = arrayOf("credentialId"),
+            childColumns = arrayOf("verifiableCredentialId"),
             onDelete = ForeignKey.CASCADE,
             onUpdate = ForeignKey.CASCADE,
         ),
@@ -23,20 +23,20 @@ import androidx.room.PrimaryKey
         )
     ],
     indices = [
-        Index("credentialId"),
+        Index("verifiableCredentialId"),
         Index("parentClusterId")
     ]
 )
 data class CredentialClaimClusterEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
-    val credentialId: Long, // Foreign key
+    val verifiableCredentialId: Long, // Foreign key
     val parentClusterId: Long?, // Foreign key (on this table)
     val order: Int,
 )
 
-fun Cluster.toCredentialClaimClusterEntity(credentialId: Long, parentClusterId: Long? = null) = CredentialClaimClusterEntity(
-    credentialId = credentialId,
+fun Cluster.toCredentialClaimClusterEntity(verifiableCredentialId: Long, parentClusterId: Long? = null) = CredentialClaimClusterEntity(
+    verifiableCredentialId = verifiableCredentialId,
     parentClusterId = parentClusterId,
     order = this.order,
 )

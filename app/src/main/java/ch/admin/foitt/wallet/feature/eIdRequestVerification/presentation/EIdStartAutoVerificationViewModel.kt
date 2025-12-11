@@ -53,7 +53,9 @@ internal class EIdStartAutoVerificationViewModel @Inject constructor(
             startAutoVerificationResult == null -> StartAutoVerificationUiState.Info(
                 onStart = ::onStart
             )
-            startAutoVerificationResult.isOk -> StartAutoVerificationUiState.Valid
+            startAutoVerificationResult.isOk -> StartAutoVerificationUiState.Started(
+                onContinue = { onContinue(startAutoVerificationResult.value.useNfc) }
+            )
             startAutoVerificationResult.unwrapError() is EIdRequestError.NetworkError ->
                 StartAutoVerificationUiState.NetworkError(
                     onClose = ::onClose,
@@ -73,17 +75,11 @@ internal class EIdStartAutoVerificationViewModel @Inject constructor(
             }
             .onSuccess {
                 setStartAutoVerificationResult(it)
-                if (it.useNfc) {
-                    navManager.navigateTo(EIdNfcScannerScreenDestination(caseId = navArgs.caseId))
-                } else {
-                    navManager.navigateTo(
-                        EIdDocumentRecordingScreenDestination(caseId = navArgs.caseId)
-                    )
-                }
+                onContinue(it.useNfc)
             }
     }
 
-    fun onStart() {
+    private fun onStart() {
         if (isLoading.value) {
             return
         }
@@ -92,7 +88,13 @@ internal class EIdStartAutoVerificationViewModel @Inject constructor(
         }.trackCompletion(isLoading)
     }
 
-    fun onClose() = navManager.popBackStackTo(HomeScreenDestination, false)
+    private fun onClose() = navManager.popBackStackTo(HomeScreenDestination, false)
 
-    fun onRetry() = onStart()
+    private fun onRetry() = onStart()
+
+    private fun onContinue(useNfc: Boolean) = if (useNfc) {
+        navManager.navigateTo(EIdNfcScannerScreenDestination(caseId = navArgs.caseId))
+    } else {
+        navManager.navigateTo(EIdDocumentRecordingScreenDestination(caseId = navArgs.caseId))
+    }
 }

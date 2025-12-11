@@ -31,7 +31,7 @@ class FetchTypeMetadataImplTest {
     @MockK
     private lateinit var mockSRIValidator: SRIValidator
 
-    private val credentialVctUrl = URL(CREDENTIAL_VCT_URL)
+    private val typeMetadataUrl = URL(TYPE_METADATA_URL)
 
     @MockK
     private lateinit var mockTypeMetadata: TypeMetadata
@@ -59,10 +59,10 @@ class FetchTypeMetadataImplTest {
     @SuppressLint("CheckResult")
     @Test
     fun `Fetching type metadata for VcSdJwt runs specific steps`() = runTest {
-        useCase(credentialVctUrl, CREDENTIAL_VCT_INTEGRITY).assertOk()
+        useCase(CREDENTIAL_VCT, typeMetadataUrl, CREDENTIAL_VCT_INTEGRITY).assertOk()
 
         coEvery {
-            mockTypeMetadataRepository.fetchTypeMetadata(URL(CREDENTIAL_VCT_URL))
+            mockTypeMetadataRepository.fetchTypeMetadata(URL(TYPE_METADATA_URL))
             mockSRIValidator(TYPE_METADATA_STRING.encodeToByteArray(), CREDENTIAL_VCT_INTEGRITY)
         }
     }
@@ -71,39 +71,39 @@ class FetchTypeMetadataImplTest {
     fun `Fetching type metadata for VcSdJwt maps errors from type metadata repo`() = runTest {
         coEvery { mockTypeMetadataRepository.fetchTypeMetadata(any()) } returns Err(TypeMetadataError.NetworkError)
 
-        useCase(credentialVctUrl, CREDENTIAL_VCT_INTEGRITY).assertErrorType(TypeMetadataError.NetworkError::class)
+        useCase(CREDENTIAL_VCT, typeMetadataUrl, CREDENTIAL_VCT_INTEGRITY).assertErrorType(TypeMetadataError.NetworkError::class)
     }
 
     @Test
     fun `Fetching type metadata for VcSdJwt maps errors from json decoding`() = runTest {
         coEvery { mockTypeMetadataRepository.fetchTypeMetadata(any()) } returns Ok("invalid type metadata json")
 
-        useCase(credentialVctUrl, CREDENTIAL_VCT_INTEGRITY).assertErrorType(TypeMetadataError.Unexpected::class)
+        useCase(CREDENTIAL_VCT, typeMetadataUrl, CREDENTIAL_VCT_INTEGRITY).assertErrorType(TypeMetadataError.Unexpected::class)
     }
 
     @Test
     fun `Fetching type metadata for VcSdJwt where credential vct is not equal to type metadata vct returns an error`() = runTest {
         coEvery { mockTypeMetadataRepository.fetchTypeMetadata(any()) } returns Ok(TYPE_METADATA_STRING_OTHER_VCT)
 
-        useCase(credentialVctUrl, CREDENTIAL_VCT_INTEGRITY).assertErrorType(TypeMetadataError.InvalidData::class)
+        useCase(CREDENTIAL_VCT, typeMetadataUrl, CREDENTIAL_VCT_INTEGRITY).assertErrorType(TypeMetadataError.InvalidData::class)
     }
 
     @Test
     fun `Fetching type metadata for VcSdJwt where credential vct integrity is null returns an error`() = runTest {
-        useCase(credentialVctUrl, null).assertErrorType(TypeMetadataError.InvalidData::class)
+        useCase(CREDENTIAL_VCT, typeMetadataUrl, null).assertErrorType(TypeMetadataError.InvalidData::class)
     }
 
     @Test
     fun `Fetching type metadata for VcSdJwt maps error from SRI validation`() = runTest {
         coEvery { mockSRIValidator(any(), any()) } returns Err(SRIError.ValidationFailed)
 
-        useCase(credentialVctUrl, CREDENTIAL_VCT_INTEGRITY).assertErrorType(TypeMetadataError.InvalidData::class)
+        useCase(CREDENTIAL_VCT, typeMetadataUrl, CREDENTIAL_VCT_INTEGRITY).assertErrorType(TypeMetadataError.InvalidData::class)
     }
 
     private fun setupDefaultMocks() = runTest {
-        every { mockTypeMetadata.vct } returns CREDENTIAL_VCT_URL
+        every { mockTypeMetadata.vct } returns CREDENTIAL_VCT
 
-        coEvery { mockTypeMetadataRepository.fetchTypeMetadata(URL(CREDENTIAL_VCT_URL)) } returns Ok(TYPE_METADATA_STRING)
+        coEvery { mockTypeMetadataRepository.fetchTypeMetadata(URL(TYPE_METADATA_URL)) } returns Ok(TYPE_METADATA_STRING)
 
         coEvery { mockSRIValidator(TYPE_METADATA_STRING.encodeToByteArray(), CREDENTIAL_VCT_INTEGRITY) } returns Ok(Unit)
         coEvery {
@@ -112,12 +112,13 @@ class FetchTypeMetadataImplTest {
     }
 
     private companion object {
-        const val CREDENTIAL_VCT_URL = "https://example.com/vct"
+        const val TYPE_METADATA_URL = "https://example.com/vct"
+        const val CREDENTIAL_VCT = "credentialVct"
         const val CREDENTIAL_VCT_INTEGRITY = "sha256-vctIntegrity"
 
         val TYPE_METADATA_STRING = """
             {
-              "vct": "$CREDENTIAL_VCT_URL"
+              "vct": "$CREDENTIAL_VCT"
             }
         """.trimIndent()
 

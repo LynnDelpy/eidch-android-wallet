@@ -11,10 +11,10 @@ import ch.admin.foitt.wallet.feature.eIdApplicationProcess.presentation.model.At
 import ch.admin.foitt.wallet.feature.eIdApplicationProcess.presentation.model.AttestationUiState.NetworkError
 import ch.admin.foitt.wallet.feature.eIdApplicationProcess.presentation.model.AttestationUiState.Unexpected
 import ch.admin.foitt.wallet.platform.appAttestation.domain.model.AttestationError
+import ch.admin.foitt.wallet.platform.appAttestation.domain.model.ClientAttestation
 import ch.admin.foitt.wallet.platform.appAttestation.domain.model.KeyAttestation
 import ch.admin.foitt.wallet.platform.appAttestation.domain.model.RequestClientAttestationError
 import ch.admin.foitt.wallet.platform.appAttestation.domain.model.RequestKeyAttestationError
-import ch.admin.foitt.wallet.platform.appAttestation.domain.usecase.GetCurrentClientAttestation
 import ch.admin.foitt.wallet.platform.appAttestation.domain.usecase.RequestClientAttestation
 import ch.admin.foitt.wallet.platform.appAttestation.domain.usecase.RequestKeyAttestation
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.EIdRequestError
@@ -35,14 +35,12 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
 internal class EIdAttestationViewModel @Inject constructor(
-    getCurrentClientAttestation: GetCurrentClientAttestation,
     private val requestClientAttestation: RequestClientAttestation,
     private val requestKeyAttestation: RequestKeyAttestation,
     private val validateAttestations: ValidateAttestations,
@@ -54,9 +52,9 @@ internal class EIdAttestationViewModel @Inject constructor(
 
     private val isLoading = MutableStateFlow(false)
 
-    private val currentClientAttestationFlow = getCurrentClientAttestation()
     private val keyAttestationResult = MutableStateFlow<Result<KeyAttestation, RequestKeyAttestationError>?>(null)
-    private val clientAttestationResult = MutableStateFlow<Result<Unit, RequestClientAttestationError>?>(null)
+    private val clientAttestationResult =
+        MutableStateFlow<Result<ClientAttestation, RequestClientAttestationError>?>(null)
     private val sIdValidationResult = MutableStateFlow<Result<Unit, ValidateAttestationsError>?>(null)
 
     val attestationState: StateFlow<AttestationUiState> = combine(
@@ -106,21 +104,21 @@ internal class EIdAttestationViewModel @Inject constructor(
                 sIdValidationResult.value = null
             }
 
-            if (currentClientAttestationFlow.firstOrNull() == null || clientAttestationResult.value?.isErr == true) {
-                clientAttestationResult.value = requestClientAttestation()
+            if (clientAttestationResult.value?.isErr == true) {
+                clientAttestationResult.value = null
             }
 
+            val currentClientAttestation = clientAttestationResult.value ?: requestClientAttestation()
+            clientAttestationResult.value = currentClientAttestation
             Timber.d(message = "Client attestation result: ${clientAttestationResult.value}")
 
             val currentKeyAttestation = keyAttestationResult.value ?: requestKeyAttestation()
             keyAttestationResult.value = currentKeyAttestation
-
-            val currentClientAttestation = currentClientAttestationFlow.firstOrNull()
-
             Timber.d(message = "Key Attestation result: ${currentKeyAttestation.value}")
-            if (currentClientAttestation != null && currentKeyAttestation.isOk) {
+
+            if (currentClientAttestation.isOk && currentKeyAttestation.isOk) {
                 val currentSIdValidation = sIdValidationResult.value ?: validateAttestations(
-                    clientAttestation = currentClientAttestation,
+                    clientAttestation = currentClientAttestation.value,
                     keyAttestation = currentKeyAttestation.value,
                 )
                 sIdValidationResult.value = currentSIdValidation

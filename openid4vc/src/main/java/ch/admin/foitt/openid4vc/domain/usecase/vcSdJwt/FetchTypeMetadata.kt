@@ -6,5 +6,9 @@ import com.github.michaelbull.result.Result
 import java.net.URL
 
 interface FetchTypeMetadata {
-    suspend operator fun invoke(vctUrl: URL, vctIntegrity: String?): Result<TypeMetadata, FetchTypeMetadataError>
+    suspend operator fun invoke(
+        credentialVct: String,
+        url: URL,
+        integrity: String?
+    ): Result<TypeMetadata, FetchTypeMetadataError>
 }

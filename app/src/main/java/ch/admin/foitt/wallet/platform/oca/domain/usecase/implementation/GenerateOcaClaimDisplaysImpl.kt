@@ -48,7 +48,8 @@ class GenerateOcaClaimDisplaysImpl @Inject constructor() : GenerateOcaClaimDispl
             value = formattedValue,
             valueType = valueType ?: getValueType(ocaClaimData),
             valueDisplayInfo = valueDisplayInfo,
-            order = ocaClaimData.order ?: -1
+            order = ocaClaimData.order ?: -1,
+            isSensitive = ocaClaimData.isSensitive
         )
         val claimDisplays =
             createClaimDisplays(ocaClaim = ocaClaimData, value = formattedValue, defaultClaimKey = key)

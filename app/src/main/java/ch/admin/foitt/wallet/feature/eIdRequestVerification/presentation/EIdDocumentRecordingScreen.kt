@@ -95,7 +95,7 @@ private fun EIdDocumentRecordingScreenContent(
     modifier = Modifier.Companion
         .background(color = WalletTheme.colorScheme.surface)
         .fillMaxSize()
-        .windowInsetsPadding(WindowInsets.Companion.safeDrawing.only(WindowInsetsSides.Companion.Horizontal))
+        .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))
 ) {
     TopBarTitleOnly(
         titleId = if (showSecondSide) {
@@ -114,14 +114,14 @@ private fun EIdDocumentRecordingScreenContent(
         if (!isLoading) {
             ScanBox(
                 showSecondSide = showSecondSide,
-                modifier = Modifier.Companion.align(Alignment.Companion.Center)
+                modifier = Modifier.align(Alignment.Center)
             )
             ScannerInfoBox(
                 infoState = infoState,
                 onClose = onCloseToast,
                 infoText = infoText,
-                modifier = Modifier.Companion
-                    .align(Alignment.Companion.BottomCenter)
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
                     .padding(bottom = Sizes.s05)
             )
         }
@@ -165,13 +165,13 @@ private fun ScanBox(
             .fillMaxWidth()
             .fillMaxHeight()
             .navigationBarsPadding(),
-        contentAlignment = Alignment.Companion.Center,
+        contentAlignment = Alignment.Center,
     ) {
         Image(
             painter = painterResource(id = overlayRes),
             contentDescription = null,
-            contentScale = ContentScale.Companion.Fit,
-            colorFilter = ColorFilter.Companion.tint(WalletTheme.colorScheme.onPrimaryFixed),
+            contentScale = ContentScale.Fit,
+            colorFilter = ColorFilter.tint(WalletTheme.colorScheme.onPrimaryFixed),
             modifier = Modifier.Companion
                 .sizeIn(maxWidth = 1200.dp, maxHeight = 1200.dp)
                 .graphicsLayer {

@@ -11,6 +11,7 @@ import ch.admin.foitt.wallet.platform.scaffold.domain.usecase.SetTopBarState
 import ch.admin.foitt.wallet.platform.scaffold.extension.navigateUpOrToRoot
 import ch.admin.foitt.wallet.platform.scaffold.presentation.ScreenViewModel
 import ch.admin.foitt.wallet.platform.utils.trackCompletion
+import ch.admin.foitt.walletcomposedestinations.destinations.EIdPairingOverviewScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.EIdStartAutoVerificationScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.EIdStartAvSessionScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.EIdWalletPairingScreenDestination
@@ -57,7 +58,7 @@ class EIdWalletPairingViewModel @Inject constructor(
         viewModelScope.launch {
             startOnlineSession(caseId = navArgs.caseId)
                 .onSuccess {
-                    navManager.navigateBackToHome(EIdStartAvSessionScreenDestination)
+                    navManager.navigateTo(EIdPairingOverviewScreenDestination(caseId = navArgs.caseId))
                 }.onFailure {
                 }
         }.trackCompletion(_isLoading)

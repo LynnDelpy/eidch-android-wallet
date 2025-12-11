@@ -12,7 +12,10 @@ import ch.admin.foitt.wallet.platform.database.domain.model.CredentialDisplay
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialIssuerDisplay
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialKeyBindingEntity
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialStatus
+import ch.admin.foitt.wallet.platform.database.domain.model.DeferredCredentialEntity
+import ch.admin.foitt.wallet.platform.database.domain.model.DeferredProgressionState
 import ch.admin.foitt.wallet.platform.database.domain.model.DisplayLanguage
+import ch.admin.foitt.wallet.platform.database.domain.model.VerifiableCredentialEntity
 
 object CredentialTestData {
     private const val PAYLOAD = "PAYLOAD"
@@ -55,9 +58,14 @@ object CredentialTestData {
 
     val credential1 = Credential(
         id = 1,
+        format = FORMAT,
+        createdAt = 1,
+    )
+
+    val verifiableCredential1 = VerifiableCredentialEntity(
+        credentialId = 1,
         status = CredentialStatus.VALID,
         payload = PAYLOAD,
-        format = FORMAT,
         createdAt = 1,
         updatedAt = 1,
         issuer = "issuer",
@@ -65,11 +73,27 @@ object CredentialTestData {
         validUntil = 17768026519L,
     )
 
+    val deferredCredential1 = DeferredCredentialEntity(
+        credentialId = 1,
+        progressionState = DeferredProgressionState.IN_PROGRESS,
+        transactionId = "1",
+        accessToken = "token",
+        endpoint = "endpoint",
+        pollInterval = 1000,
+        createdAt = 1,
+        polledAt = 1
+    )
+
     val credential2 = Credential(
         id = 2,
+        format = FORMAT,
+        createdAt = 2
+    )
+
+    val verifiableCredential2 = VerifiableCredentialEntity(
+        credentialId = 2,
         status = CredentialStatus.VALID,
         payload = PAYLOAD,
-        format = FORMAT,
         createdAt = 2,
         updatedAt = 2,
         issuer = "issuer",
@@ -78,9 +102,14 @@ object CredentialTestData {
     )
     val credentialWithPayload = Credential(
         id = 3,
+        format = CredentialFormat.VC_SD_JWT,
+        createdAt = 3
+    )
+
+    val verifiableCredentialWithPayload = VerifiableCredentialEntity(
+        credentialId = 3,
         status = CredentialStatus.VALID,
         payload = CREDENTIAL_PAYLOAD,
-        format = CredentialFormat.VC_SD_JWT,
         createdAt = 3,
         updatedAt = 3,
         issuer = "issuer",
@@ -88,9 +117,9 @@ object CredentialTestData {
         validUntil = 17768026519L,
     )
 
-    val cluster1 = CredentialClaimClusterEntity(id = 1, credentialId = 1, parentClusterId = null, order = -1)
-    val cluster2 = CredentialClaimClusterEntity(id = 2, credentialId = 2, parentClusterId = null, order = -1)
-    val clusterWithParent = CredentialClaimClusterEntity(id = 3, credentialId = 1, parentClusterId = 1, order = 2)
+    val cluster1 = CredentialClaimClusterEntity(id = 1, verifiableCredentialId = 1, parentClusterId = null, order = -1)
+    val cluster2 = CredentialClaimClusterEntity(id = 2, verifiableCredentialId = 2, parentClusterId = null, order = -1)
+    val clusterWithParent = CredentialClaimClusterEntity(id = 3, verifiableCredentialId = 1, parentClusterId = 1, order = 2)
 
     val clusterDisplay1 = CredentialClaimClusterDisplayEntity(id = 1, clusterId = 1, name = "name", locale = "locale")
     val clusterDisplay2 = CredentialClaimClusterDisplayEntity(id = 2, clusterId = 2, name = "name", locale = "locale")

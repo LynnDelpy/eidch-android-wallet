@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
@@ -16,11 +16,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import ch.admin.foitt.wallet.R
+import ch.admin.foitt.wallet.platform.composables.presentation.addTopScaffoldPadding
 import ch.admin.foitt.wallet.platform.composables.presentation.layout.LazyColumn
 import ch.admin.foitt.wallet.platform.composables.presentation.layout.WalletLayouts
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.EIdDocumentType
 import ch.admin.foitt.wallet.platform.preview.WalletAllScreenPreview
-import ch.admin.foitt.wallet.platform.scaffold.presentation.LocalScaffoldPaddings
 import ch.admin.foitt.wallet.theme.Sizes
 import ch.admin.foitt.wallet.theme.WalletTexts
 import ch.admin.foitt.wallet.theme.WalletTheme
@@ -46,7 +46,7 @@ private fun EIdDocumentSelectionScreenContent(
 ) {
     CompactDocumentList(
         modifier = Modifier
-            .fillMaxWidth(),
+            .fillMaxSize(),
         showEIdMockMrzButton = showEIdMockMrzButton,
         contentPadding = PaddingValues(bottom = Sizes.s06),
         onDocumentSelected = onDocumentSelected,
@@ -58,10 +58,10 @@ private fun EIdDocumentSelectionScreenContent(
 private fun ListHeader() {
     Column(
         modifier = Modifier
+            .addTopScaffoldPadding()
             .padding(
                 start = Sizes.s04,
                 end = Sizes.s04,
-                top = LocalScaffoldPaddings.current.calculateTopPadding()
             )
     ) {
         WalletTexts.TitleScreen(

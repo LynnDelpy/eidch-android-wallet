@@ -2,6 +2,7 @@ package ch.admin.foitt.wallet.feature.eIdRequestVerification.presentation
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import ch.admin.foitt.avwrapper.filesWithExtractDataList
 import ch.admin.foitt.wallet.feature.eIdRequestVerification.domain.model.SaveEIdRequestCaseError
 import ch.admin.foitt.wallet.feature.eIdRequestVerification.domain.model.SaveEIdRequestStateError
 import ch.admin.foitt.wallet.feature.eIdRequestVerification.domain.usecase.FetchSIdCase
@@ -10,6 +11,7 @@ import ch.admin.foitt.wallet.feature.eIdRequestVerification.domain.usecase.SaveE
 import ch.admin.foitt.wallet.feature.eIdRequestVerification.domain.usecase.SaveEIdRequestState
 import ch.admin.foitt.wallet.feature.eIdRequestVerification.presentation.model.MrzSubmissionUiState
 import ch.admin.foitt.wallet.platform.database.domain.model.EIdRequestCase
+import ch.admin.foitt.wallet.platform.database.domain.model.EIdRequestFileCategory
 import ch.admin.foitt.wallet.platform.database.domain.model.EIdRequestState
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.ApplyRequest
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.ApplyRequestError
@@ -23,22 +25,22 @@ import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.toLegal
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.usecase.FetchSIdStatus
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.usecase.GetDocumentScanResult
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.usecase.GetHasLegalGuardian
-import ch.admin.foitt.wallet.platform.navArgs.domain.model.EIdQueueNavArg
 import ch.admin.foitt.wallet.platform.navigation.NavigationManager
 import ch.admin.foitt.wallet.platform.scaffold.domain.model.TopBarState
 import ch.admin.foitt.wallet.platform.scaffold.domain.usecase.SetTopBarState
 import ch.admin.foitt.wallet.platform.scaffold.presentation.ScreenViewModel
 import ch.admin.foitt.wallet.platform.utils.trackCompletion
 import ch.admin.foitt.walletcomposedestinations.destinations.EIdGuardianSelectionScreenDestination
+import ch.admin.foitt.walletcomposedestinations.destinations.EIdGuardianshipScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.EIdQueueScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.EIdWalletPairingScreenDestination
-import ch.admin.foitt.walletcomposedestinations.destinations.HomeScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.MrzSubmissionScreenDestination
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.coroutines.runSuspendCatching
 import com.github.michaelbull.result.get
+import com.github.michaelbull.result.getError
 import com.github.michaelbull.result.onSuccess
-import com.github.michaelbull.result.unwrapError
+import com.ramcosta.composedestinations.spec.Direction
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -80,11 +82,11 @@ internal class MrzSubmissionViewModel @Inject constructor(
         when {
             isLoading -> MrzSubmissionUiState.Loading
             saveCaseResult?.isOk == true -> MrzSubmissionUiState.Valid
-            applyResult?.unwrapError() is EIdRequestError.NetworkError -> MrzSubmissionUiState.NetworkError(
+            applyResult?.getError() is EIdRequestError.NetworkError -> MrzSubmissionUiState.NetworkError(
                 onClose = ::onClose,
                 onRetry = ::onRetry
             )
-            fetchStatusResult?.unwrapError() is EIdRequestError.NetworkError -> MrzSubmissionUiState.NetworkError(
+            fetchStatusResult?.getError() is EIdRequestError.NetworkError -> MrzSubmissionUiState.NetworkError(
                 onClose = ::onClose,
                 onRetry = ::onRetry
             )
@@ -125,28 +127,21 @@ internal class MrzSubmissionViewModel @Inject constructor(
                 getDocumentScanResult().value?.let {
                     saveEIdRequestFiles(
                         sIdCaseId = caseResponse.caseId,
-                        filesDataList = it.files
+                        filesDataList = it.filesWithExtractDataList,
+                        filesCategory = EIdRequestFileCategory.DOCUMENT_SCAN,
                     ).onSuccess {
                         Timber.d("Files saved successfully")
                     }
-                }
+                } ?: Timber.d("No document scan result found")
 
                 if (isLegalCaseNeeded(stateResponse.legalRepresentant)) {
-                    navManager.navigateToAndClearCurrent(
-                        EIdGuardianSelectionScreenDestination(
-                            sIdCaseId = caseResponse.caseId
-                        )
-                    )
+                    navigateToNextScreen(EIdGuardianSelectionScreenDestination(caseId = caseResponse.caseId))
                 } else if (stateResponse.state == EIdRequestQueueState.READY_FOR_ONLINE_SESSION) {
-                    navManager.navigateToAndClearCurrent(
-                        direction = EIdWalletPairingScreenDestination(caseId = caseResponse.caseId)
-                    )
+                    navigateToNextScreen(EIdWalletPairingScreenDestination(caseId = caseResponse.caseId))
                 } else {
-                    navManager.navigateToAndClearCurrent(
+                    navigateToNextScreen(
                         EIdQueueScreenDestination(
-                            navArgs = EIdQueueNavArg(
-                                rawDeadline = stateResponse.queueInformation?.expectedOnlineSessionStart
-                            )
+                            rawDeadline = stateResponse.queueInformation?.expectedOnlineSessionStart,
                         )
                     )
                 }
@@ -189,11 +184,16 @@ internal class MrzSubmissionViewModel @Inject constructor(
         else -> false
     }
 
+    private fun navigateToNextScreen(direction: Direction) = navManager.navigateToAndPopUpTo(
+        direction = direction,
+        route = EIdGuardianshipScreenDestination.route,
+    )
+
     init {
         onRefreshState()
     }
 
-    fun onClose() = navManager.popBackStackTo(HomeScreenDestination, false)
+    fun onClose() = navManager.navigateBackToHome(EIdGuardianshipScreenDestination)
 
     fun onRetry() = onRefreshState()
 }

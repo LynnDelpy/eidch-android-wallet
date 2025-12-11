@@ -6,7 +6,6 @@ import ch.admin.foitt.wallet.platform.oca.domain.model.OcaError
 import ch.admin.foitt.wallet.platform.oca.domain.repository.OcaRepository
 import ch.admin.foitt.wallet.platform.oca.domain.usecase.FetchOcaBundle
 import ch.admin.foitt.wallet.platform.oca.domain.usecase.implementation.FetchOcaBundleImpl
-import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ocaResponse
 import ch.admin.foitt.wallet.platform.oca.mock.TypeMetadataMocks.OCA_DATA_URI
 import ch.admin.foitt.wallet.platform.oca.mock.TypeMetadataMocks.OCA_DATA_URI_CONTENT
 import ch.admin.foitt.wallet.platform.oca.mock.TypeMetadataMocks.OCA_DATA_URI_INTEGRITY
@@ -14,6 +13,7 @@ import ch.admin.foitt.wallet.platform.oca.mock.TypeMetadataMocks.OCA_INVALID_HTT
 import ch.admin.foitt.wallet.platform.oca.mock.TypeMetadataMocks.OCA_INVALID_URI
 import ch.admin.foitt.wallet.platform.oca.mock.TypeMetadataMocks.OCA_URL
 import ch.admin.foitt.wallet.platform.oca.mock.TypeMetadataMocks.OCA_URL_INTEGRITY
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.OcaMocks.ocaResponse
 import ch.admin.foitt.wallet.util.assertErrorType
 import ch.admin.foitt.wallet.util.assertOk
 import com.github.michaelbull.result.Err

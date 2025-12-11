@@ -10,13 +10,15 @@ interface EIdRequestVerificationError {
         SaveEIdRequestCaseError,
         SaveEIdRequestStateError,
         GetImportantMrzKeysError,
-        SaveEIdRequestFileError
+        SaveEIdRequestFileError,
+        GetDocumentScanDataError
 }
 
 sealed interface SaveEIdRequestCaseError
 sealed interface SaveEIdRequestStateError
 sealed interface GetImportantMrzKeysError
 sealed interface SaveEIdRequestFileError
+sealed interface GetDocumentScanDataError
 
 internal fun EIdRequestCaseRepositoryError.toSaveEIdRequestCaseError(): SaveEIdRequestCaseError = when (this) {
     is EIdRequestError.Unexpected -> EIdRequestVerificationError.Unexpected(cause)
@@ -27,5 +29,9 @@ internal fun EIdRequestStateRepositoryError.toSaveEIdRequestStateError(): SaveEI
 }
 
 internal fun EIdRequestFileRepositoryError.toSaveEIdRequestFileError(): SaveEIdRequestFileError = when (this) {
+    is EIdRequestError.Unexpected -> EIdRequestVerificationError.Unexpected(cause)
+}
+
+internal fun EIdRequestFileRepositoryError.toGetDocumentScanDataError(): GetDocumentScanDataError = when (this) {
     is EIdRequestError.Unexpected -> EIdRequestVerificationError.Unexpected(cause)
 }

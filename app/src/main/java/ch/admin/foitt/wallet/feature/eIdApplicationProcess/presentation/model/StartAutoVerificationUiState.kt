@@ -5,7 +5,9 @@ internal sealed interface StartAutoVerificationUiState {
         val onStart: () -> Unit,
     ) : StartAutoVerificationUiState
     data object Loading : StartAutoVerificationUiState
-    data object Valid : StartAutoVerificationUiState
+    data class Started(
+        val onContinue: () -> Unit,
+    ) : StartAutoVerificationUiState
     data class Unexpected(
         val onClose: () -> Unit,
         val onRetry: () -> Unit,

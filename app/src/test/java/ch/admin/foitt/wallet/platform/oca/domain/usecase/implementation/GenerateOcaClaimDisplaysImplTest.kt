@@ -342,6 +342,7 @@ class GenerateOcaClaimDisplaysImplTest {
         labels = labels,
         order = order,
         standard = standard,
+        isSensitive = false
     )
 
     private companion object {

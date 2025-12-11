@@ -1,7 +1,9 @@
 package ch.admin.foitt.wallet.platform.messageEvents.di
 
+import ch.admin.foitt.wallet.platform.messageEvents.data.repository.ActivityEventRepositoryImpl
 import ch.admin.foitt.wallet.platform.messageEvents.data.repository.CredentialOfferEventRepositoryImpl
 import ch.admin.foitt.wallet.platform.messageEvents.data.repository.PassphraseChangeEventRepositoryImpl
+import ch.admin.foitt.wallet.platform.messageEvents.domain.repository.ActivityEventRepository
 import ch.admin.foitt.wallet.platform.messageEvents.domain.repository.CredentialOfferEventRepository
 import ch.admin.foitt.wallet.platform.messageEvents.domain.repository.PassphraseChangeEventRepository
 import dagger.Binds
@@ -28,4 +30,10 @@ interface MessageEventsBindingModule {
     fun bindCredentialReceivedEventRepo(
         repo: CredentialOfferEventRepositoryImpl
     ): CredentialOfferEventRepository
+
+    @Binds
+    @ActivityRetainedScoped
+    fun bindActivityEventRepo(
+        repo: ActivityEventRepositoryImpl
+    ): ActivityEventRepository
 }

@@ -1,5 +1,7 @@
 package ch.admin.foitt.wallet.feature.eIdRequestVerification.presentation.nfcScanner
 
+import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -10,6 +12,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import ch.admin.foitt.wallet.R
 import ch.admin.foitt.wallet.platform.composables.Buttons
+import ch.admin.foitt.wallet.platform.composables.presentation.LoadingIndicator
 import ch.admin.foitt.wallet.platform.composables.presentation.ScreenMainImage
 import ch.admin.foitt.wallet.platform.composables.presentation.layout.ScrollableColumnWithPicture
 import ch.admin.foitt.wallet.platform.composables.presentation.layout.WalletLayouts
@@ -31,24 +34,137 @@ internal fun NfcScannerInfoContent(
     stickyBottomBackgroundColor = Color.Transparent,
     stickyBottomContent = {
         Buttons.FilledPrimary(
-            text = stringResource(R.string.tk_eidRequest_nfcScan_primaryButton),
+            text = stringResource(R.string.tk_eidRequest_nfcScan_intro_primaryButton),
             onClick = onStart,
+            modifier = Modifier.fillMaxWidth(),
         )
     },
 ) {
-    Spacer(modifier = Modifier.Companion.height(Sizes.s06))
+    Spacer(modifier = Modifier.height(Sizes.s06))
     WalletTexts.TitleScreen(
-        text = stringResource(R.string.tk_eidRequest_nfcScan_primary)
+        text = stringResource(R.string.tk_eidRequest_nfcScan_intro_primary)
     )
-    Spacer(modifier = Modifier.Companion.height(Sizes.s06))
+    Spacer(modifier = Modifier.height(Sizes.s06))
     WalletTexts.BodyLarge(
-        modifier = Modifier.Companion.fillMaxWidth(),
-        text = stringResource(R.string.tk_eidRequest_nfcScan_secondary)
+        modifier = Modifier.fillMaxWidth(),
+        text = stringResource(R.string.tk_eidRequest_nfcScan_intro_secondary)
     )
-    Spacer(modifier = Modifier.Companion.height(Sizes.s04))
+    Spacer(modifier = Modifier.height(Sizes.s04))
     Buttons.TextLink(
-        text = stringResource(id = R.string.tk_eidRequest_nfcScan_tertiary),
+        text = stringResource(id = R.string.tk_eidRequest_nfcScan_intro_tertiary),
         onClick = onTips,
         endIcon = painterResource(id = R.drawable.wallet_ic_chevron),
     )
+}
+
+@Composable
+internal fun NfcScannerChipDetectionContent(
+    onStop: () -> Unit,
+) = NfcScannerContent(
+    icon = R.drawable.wallet_ic_spinner_colored,
+    primaryText = R.string.tk_eidRequest_nfcScan_chipDetection_primary,
+    secondaryText = R.string.tk_eidRequest_nfcScan_chipDetection_secondary,
+    buttonText = R.string.tk_eidRequest_nfcScan_chipDetection_button_scanning,
+    isButtonActive = true,
+    onButtonClick = onStop,
+)
+
+@Composable
+internal fun NfcScannerChipDataReadingContent(
+    onStop: () -> Unit,
+) = NfcScannerContent(
+    icon = R.drawable.wallet_ic_queue_colored,
+    primaryText = R.string.tk_eidRequest_nfcScan_chipDataReading_primary,
+    secondaryText = R.string.tk_eidRequest_nfcScan_chipDataReading_secondary,
+    buttonText = R.string.tk_eidRequest_nfcScan_chipDataReading_button_scanning,
+    isButtonActive = true,
+    onButtonClick = onStop,
+)
+
+@Composable
+internal fun NfcScannerSuccessContent() = NfcScannerContent(
+    icon = R.drawable.wallet_ic_check_circle_colored,
+    primaryText = R.string.tk_eidRequest_nfcScan_success_primary,
+    secondaryText = R.string.tk_eidRequest_nfcScan_success_secondary,
+    buttonText = null,
+    isButtonActive = false,
+    onButtonClick = { },
+)
+
+@Composable
+internal fun NfcScannerErrorContent(
+    onRetry: () -> Unit,
+) = NfcScannerContent(
+    icon = R.drawable.wallet_ic_cross_circle_colored,
+    primaryText = R.string.tk_eidRequest_nfcScan_failure_primary,
+    secondaryText = R.string.tk_eidRequest_nfcScan_failure_secondary,
+    buttonText = R.string.tk_eidRequest_nfcScan_failure_button_retry,
+    isButtonActive = false,
+    onButtonClick = onRetry,
+)
+
+@Composable
+internal fun NfcScannerNfcDisabledContent(
+    onEnableNfc: () -> Unit,
+) = NfcScannerContent(
+    icon = R.drawable.wallet_ic_nfc_disabled_colored,
+    primaryText = R.string.tk_eidRequest_nfcScan_nfcDisabled_primary,
+    secondaryText = R.string.tk_eidRequest_nfcScan_nfcDisabled_secondary,
+    buttonText = R.string.tk_eidRequest_nfcScan_nfcDisabled_button_enable,
+    isButtonActive = false,
+    onButtonClick = onEnableNfc,
+)
+
+@Composable
+internal fun NfcScannerLoadingContent() = WalletLayouts.ScrollableColumnWithPicture(
+    stickyStartContent = {
+        LoadingIndicator()
+    },
+    stickyBottomBackgroundColor = Color.Transparent,
+    stickyBottomContent = null,
+) {
+    Spacer(modifier = Modifier.height(Sizes.s06))
+    WalletTexts.TitleScreen(
+        text = stringResource(R.string.tk_eidRequest_nfcScan_loading_primary),
+    )
+}
+
+@Composable
+private fun NfcScannerContent(
+    @DrawableRes icon: Int,
+    @StringRes primaryText: Int,
+    @StringRes secondaryText: Int?,
+    @StringRes buttonText: Int?,
+    onButtonClick: () -> Unit = {},
+    isButtonActive: Boolean,
+) = WalletLayouts.ScrollableColumnWithPicture(
+    stickyStartContent = {
+        ScreenMainImage(
+            iconRes = icon,
+            backgroundColor = WalletTheme.colorScheme.surfaceContainerLow
+        )
+    },
+    stickyBottomBackgroundColor = Color.Transparent,
+    stickyBottomContent = {
+        buttonText?.let {
+            Buttons.FilledPrimary(
+                text = stringResource(buttonText),
+                onClick = onButtonClick,
+                isActive = isButtonActive,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+    },
+) {
+    Spacer(modifier = Modifier.height(Sizes.s06))
+    WalletTexts.TitleScreen(
+        text = stringResource(primaryText)
+    )
+    secondaryText?.let {
+        Spacer(modifier = Modifier.height(Sizes.s06))
+        WalletTexts.BodyLarge(
+            modifier = Modifier.fillMaxWidth(),
+            text = stringResource(secondaryText)
+        )
+    }
 }

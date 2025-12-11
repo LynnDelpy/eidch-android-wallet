@@ -18,7 +18,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ch.admin.foitt.wallet.R
 import ch.admin.foitt.wallet.feature.settings.presentation.composables.ClickableTextSettingsItem
 import ch.admin.foitt.wallet.feature.settings.presentation.composables.LinkSettingsItem
-import ch.admin.foitt.wallet.feature.settings.presentation.composables.SettingsDivider
 import ch.admin.foitt.wallet.feature.settings.presentation.composables.SettingsSection
 import ch.admin.foitt.wallet.feature.settings.presentation.composables.SwitchSettingsItem
 import ch.admin.foitt.wallet.platform.composables.ToastAnimated
@@ -120,7 +119,7 @@ private fun SecuritySection(
         title = stringResource(R.string.tk_settings_securityPrivacy_security_changePassword),
         onClick = onChangePin,
     )
-    WalletListItems.SettingsDivider()
+    WalletListItems.Divider()
     WalletListItems.SwitchSettingsItem(
         title = stringResource(R.string.tk_settings_securityPrivacy_security_unlock),
         subtitle = biometricsDescription(biometricsAvailableThroughDeviceSettings, showPassphraseDeletionMessage),
@@ -145,12 +144,12 @@ fun AnalysisSection(
         isSwitchChecked = shareAnalysisEnabled,
         onSwitchChange = onShareAnalysisChange,
     )
-    WalletListItems.SettingsDivider()
+    WalletListItems.Divider()
     WalletListItems.ClickableTextSettingsItem(
         title = stringResource(id = R.string.tk_settings_securityPrivacy_dataProtection_diagnosticData),
         onClick = onDataAnalysis,
     )
-    WalletListItems.SettingsDivider()
+    WalletListItems.Divider()
     WalletListItems.LinkSettingsItem(
         title = stringResource(id = R.string.tk_settings_securityPrivacy_dataProtection_privacyPolicy_link_text),
         onClick = onDataProtection,

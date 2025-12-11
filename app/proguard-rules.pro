@@ -47,6 +47,5 @@
 -dontwarn com.radaee.**
 -dontwarn icc.ICCProfiler
 -dontwarn jj2000.j2k.**
--dontwarn org.java_websocket.client.WebSocketClient
 -dontwarn org.jnbis.Bitmap
 -dontwarn org.jnbis.WsqDecoder

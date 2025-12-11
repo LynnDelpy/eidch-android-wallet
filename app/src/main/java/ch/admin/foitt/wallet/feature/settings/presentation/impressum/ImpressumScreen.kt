@@ -19,7 +19,6 @@ import androidx.compose.ui.res.stringResource
 import ch.admin.foitt.wallet.BuildConfig
 import ch.admin.foitt.wallet.R
 import ch.admin.foitt.wallet.feature.settings.presentation.composables.LinkSettingsItem
-import ch.admin.foitt.wallet.feature.settings.presentation.composables.SettingsDivider
 import ch.admin.foitt.wallet.feature.settings.presentation.composables.SettingsSection
 import ch.admin.foitt.wallet.feature.settings.presentation.composables.SpecialLinkSettingsItem
 import ch.admin.foitt.wallet.feature.settings.presentation.composables.TextSettingsItem
@@ -88,12 +87,12 @@ private fun AppVersionSection(
         title = stringResource(R.string.tk_settings_imprint_appInformation_buildNumber),
         version = BuildConfig.VERSION_CODE.toString()
     )
-    WalletListItems.SettingsDivider()
+    WalletListItems.Divider()
     WalletListItems.VersionSettingsItem(
         title = stringResource(R.string.tk_settings_imprint_appInformation_appVersion),
         version = BuildConfig.VERSION_NAME
     )
-    WalletListItems.SettingsDivider()
+    WalletListItems.Divider()
     WalletListItems.TextSettingsItem(
         title = stringResource(R.string.tk_settings_imprint_appInformation_body)
     )
@@ -134,7 +133,7 @@ private fun LegalSection(
         onClick = onLegals,
         leadingIcon = R.drawable.wallet_ic_letter
     )
-    WalletListItems.SettingsDivider()
+    WalletListItems.Divider()
     WalletListItems.TextSettingsItem(
         title = stringResource(R.string.tk_settings_imprint_legal_disclaimer_primary),
         subtitle = stringResource(R.string.tk_settings_imprint_legal_disclaimer_secondary)

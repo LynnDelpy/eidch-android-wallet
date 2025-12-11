@@ -19,6 +19,8 @@ open class VcSdJwt(
     val kid: String = keyId ?: error("missing keyId claim")
     val vct = sdJwtJson.jsonObject[CLAIM_KEY_VCT]?.jsonPrimitive?.content ?: error("missing vct claim")
     val vctIntegrity: String? = sdJwtJson.jsonObject[CLAIM_KEY_VCT_INTEGRITY]?.jsonPrimitive?.content
+    val vctMetadataUri: String? = sdJwtJson.jsonObject[CLAIM_KEY_VCT_METADATA_URI]?.jsonPrimitive?.content
+    val vctMetadataUriIntegrity: String? = sdJwtJson.jsonObject[CLAIM_KEY_VCT_METADATA_URI_INTEGRITY]?.jsonPrimitive?.content
     val cnfJwk = sdJwtJson.jsonObject[CLAIM_KEY_CNF]?.jsonObject[CLAIM_KEY_CNF_JWK]
         // Support for both malformed and standard format of cnf claim
         ?: sdJwtJson.jsonObject[CLAIM_KEY_CNF]
@@ -45,6 +47,8 @@ open class VcSdJwt(
         const val CLAIM_KEY_CNF_JWK = "jwk"
         const val CLAIM_KEY_VCT = "vct"
         const val CLAIM_KEY_VCT_INTEGRITY = "vct#integrity"
+        const val CLAIM_KEY_VCT_METADATA_URI = "vct_metadata_uri"
+        const val CLAIM_KEY_VCT_METADATA_URI_INTEGRITY = "vct_metadata_uri#integrity"
         const val CLAIM_KEY_STATUS = "status"
     }
 }

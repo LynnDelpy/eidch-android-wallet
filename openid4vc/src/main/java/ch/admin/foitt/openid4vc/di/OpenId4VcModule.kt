@@ -64,6 +64,7 @@ import dagger.hilt.android.scopes.ActivityRetainedScoped
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.okhttp.OkHttp
+import io.ktor.client.plugins.compression.ContentEncoding
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
@@ -108,11 +109,14 @@ internal class OpenId4VcModule {
 
     @ActivityRetainedScoped
     @Provides
-    fun provideHttpClient(engine: HttpClientEngine, @Named("OpenId4VcJsonSerializer") jsonSerializer: Json): HttpClient {
+    fun provideHttpClient(engine: HttpClientEngine, @Named(NAME_SCOPE) jsonSerializer: Json): HttpClient {
         return HttpClient(engine) {
             expectSuccess = true
             install(ContentNegotiation) {
                 json(jsonSerializer)
+            }
+            install(ContentEncoding) {
+                gzip()
             }
             install(Logging) {
                 logger = object : Logger {
@@ -130,7 +134,7 @@ internal class OpenId4VcModule {
 
     @OptIn(ExperimentalSerializationApi::class)
     @Provides
-    @Named("OpenId4VcJsonSerializer")
+    @Named(NAME_SCOPE)
     fun provideJsonSerializer(): Json {
         return Json {
             ignoreUnknownKeys = true
@@ -141,11 +145,15 @@ internal class OpenId4VcModule {
     }
 
     @Provides
-    fun provideSafeJson(@Named("OpenId4VcJsonSerializer") json: Json) = SafeJson(json)
+    fun provideSafeJson(@Named(NAME_SCOPE) json: Json) = SafeJson(json)
 
     @ActivityRetainedScoped
     @Provides
     fun provideClock(): Clock = Clock.systemUTC()
+
+    companion object {
+        internal const val NAME_SCOPE = "OpenId4VcModule"
+    }
 }
 
 @Module

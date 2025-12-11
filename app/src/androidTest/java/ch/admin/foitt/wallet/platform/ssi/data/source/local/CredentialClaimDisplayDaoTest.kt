@@ -8,6 +8,7 @@ import ch.admin.foitt.wallet.platform.database.data.dao.CredentialClaimClusterEn
 import ch.admin.foitt.wallet.platform.database.data.dao.CredentialClaimDao
 import ch.admin.foitt.wallet.platform.database.data.dao.CredentialClaimDisplayDao
 import ch.admin.foitt.wallet.platform.database.data.dao.CredentialDao
+import ch.admin.foitt.wallet.platform.database.data.dao.VerifiableCredentialDao
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialClaimDisplay
 import ch.admin.foitt.wallet.platform.ssi.data.source.local.mock.CredentialTestData.DISPLAY_VALUE
 import ch.admin.foitt.wallet.platform.ssi.data.source.local.mock.CredentialTestData.NAME1
@@ -19,6 +20,8 @@ import ch.admin.foitt.wallet.platform.ssi.data.source.local.mock.CredentialTestD
 import ch.admin.foitt.wallet.platform.ssi.data.source.local.mock.CredentialTestData.credentialClaim2
 import ch.admin.foitt.wallet.platform.ssi.data.source.local.mock.CredentialTestData.credentialClaimDisplay1
 import ch.admin.foitt.wallet.platform.ssi.data.source.local.mock.CredentialTestData.credentialClaimDisplay2
+import ch.admin.foitt.wallet.platform.ssi.data.source.local.mock.CredentialTestData.verifiableCredential1
+import ch.admin.foitt.wallet.platform.ssi.data.source.local.mock.CredentialTestData.verifiableCredential2
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -29,6 +32,7 @@ class CredentialClaimDisplayDaoTest {
 
     private lateinit var database: AppDatabase
     private lateinit var credentialDao: CredentialDao
+    private lateinit var verifiableCredentialDao: VerifiableCredentialDao
     private lateinit var credentialClaimClusterDao: CredentialClaimClusterEntityDao
     private lateinit var credentialClaimDao: CredentialClaimDao
     private lateinit var credentialClaimDisplayDao: CredentialClaimDisplayDao
@@ -42,6 +46,10 @@ class CredentialClaimDisplayDaoTest {
         credentialDao = database.credentialDao()
         credentialDao.insert(credential1)
         credentialDao.insert(credential2)
+
+        verifiableCredentialDao = database.verifiableCredentialDao()
+        verifiableCredentialDao.insert(verifiableCredential1)
+        verifiableCredentialDao.insert(verifiableCredential2)
 
         credentialClaimClusterDao = database.credentialClaimClusterEntityDao()
         credentialClaimClusterDao.insert(cluster1)

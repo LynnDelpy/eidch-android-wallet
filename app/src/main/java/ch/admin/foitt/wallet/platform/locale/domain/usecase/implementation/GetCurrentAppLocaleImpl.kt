@@ -3,6 +3,7 @@ package ch.admin.foitt.wallet.platform.locale.domain.usecase.implementation
 import android.content.res.Resources
 import androidx.appcompat.app.AppCompatDelegate
 import ch.admin.foitt.wallet.platform.database.domain.model.DisplayLanguage
+import ch.admin.foitt.wallet.platform.locale.LocaleCompat
 import ch.admin.foitt.wallet.platform.locale.domain.usecase.GetCurrentAppLocale
 import ch.admin.foitt.wallet.platform.locale.domain.usecase.GetSupportedAppLocales
 import ch.admin.foitt.wallet.platform.utils.toListOfLocales
@@ -13,7 +14,7 @@ class GetCurrentAppLocaleImpl @Inject constructor(
     private val getSupportedAppLocales: GetSupportedAppLocales
 ) : GetCurrentAppLocale {
 
-    private val defaultLocale = Locale(DisplayLanguage.DEFAULT)
+    private val defaultLocale = LocaleCompat.of(DisplayLanguage.DEFAULT, DisplayLanguage.DEFAULT_COUNTRY)
 
     override fun invoke(): Locale {
         return if (AppCompatDelegate.getApplicationLocales().isEmpty) {

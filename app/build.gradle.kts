@@ -272,4 +272,5 @@ dependencies {
 
     // AvWrapper
     implementation(libs.av.wrapper)
+    implementation(libs.java.websocket)
 }

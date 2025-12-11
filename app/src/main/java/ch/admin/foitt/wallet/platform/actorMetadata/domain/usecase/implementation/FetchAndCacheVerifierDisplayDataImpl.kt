@@ -3,6 +3,8 @@ package ch.admin.foitt.wallet.platform.actorMetadata.domain.usecase.implementati
 import ch.admin.foitt.openid4vc.domain.model.presentationRequest.ClientMetaData
 import ch.admin.foitt.openid4vc.domain.model.presentationRequest.InputDescriptorFormat
 import ch.admin.foitt.openid4vc.domain.model.presentationRequest.PresentationRequest
+import ch.admin.foitt.wallet.platform.actorEnvironment.domain.model.ActorEnvironment
+import ch.admin.foitt.wallet.platform.actorEnvironment.domain.usecase.GetActorEnvironment
 import ch.admin.foitt.wallet.platform.actorMetadata.domain.model.ActorDisplayData
 import ch.admin.foitt.wallet.platform.actorMetadata.domain.model.ActorField
 import ch.admin.foitt.wallet.platform.actorMetadata.domain.model.ActorType
@@ -10,6 +12,8 @@ import ch.admin.foitt.wallet.platform.actorMetadata.domain.usecase.FetchAndCache
 import ch.admin.foitt.wallet.platform.actorMetadata.domain.usecase.InitializeActorForScope
 import ch.admin.foitt.wallet.platform.environmentSetup.domain.repository.EnvironmentSetupRepository
 import ch.admin.foitt.wallet.platform.navigation.domain.model.ComponentScope
+import ch.admin.foitt.wallet.platform.nonCompliance.domain.model.NonComplianceReasonDisplay
+import ch.admin.foitt.wallet.platform.nonCompliance.domain.usecase.FetchNonComplianceData
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.IdentityV1TrustStatement
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.MetadataV1TrustStatement
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.TrustCheckResult
@@ -26,9 +30,11 @@ import javax.inject.Inject
 
 internal class FetchAndCacheVerifierDisplayDataImpl @Inject constructor(
     private val environmentSetupRepository: EnvironmentSetupRepository,
+    private val getActorEnvironment: GetActorEnvironment,
     private val processMetadataV1TrustStatement: ProcessMetadataV1TrustStatement,
     private val processIdentityV1TrustStatement: ProcessIdentityV1TrustStatement,
     private val fetchVcSchemaTrustStatus: FetchVcSchemaTrustStatus,
+    private val fetchNonComplianceData: FetchNonComplianceData,
     private val initializeActorForScope: InitializeActorForScope,
 ) : FetchAndCacheVerifierDisplayData {
     override suspend fun invoke(
@@ -48,11 +54,7 @@ internal class FetchAndCacheVerifierDisplayDataImpl @Inject constructor(
 
         Timber.d("${trustStatement ?: "trust statement not evaluated or failed"}")
 
-        val trustStatementStatus = if (trustStatement != null) {
-            TrustStatus.TRUSTED
-        } else {
-            TrustStatus.NOT_TRUSTED
-        }
+        val trustStatus = getTrustStatus(trustCheckResult)
 
         val vcSchemaTrustStatus = trustCheckResult?.vcSchemaTrustStatus ?: VcSchemaTrustStatus.UNPROTECTED
 
@@ -69,13 +71,18 @@ internal class FetchAndCacheVerifierDisplayDataImpl @Inject constructor(
             else -> null
         }
 
+        val nonComplianceData = fetchNonComplianceData(actorDid = presentationRequest.clientId)
+        val nonComplianceReason: List<ActorField<String>>? = nonComplianceData.reasonDisplays?.toNonComplianceReason()
+
         val presentationVerifierDisplay = ActorDisplayData(
             name = verifierTrustNameDisplay,
             image = verifierTrustLogoDisplay,
-            trustStatus = trustStatementStatus,
+            trustStatus = trustStatus,
             vcSchemaTrustStatus = vcSchemaTrustStatus,
             preferredLanguage = preferredLanguage,
             actorType = ActorType.VERIFIER,
+            nonComplianceState = nonComplianceData.state,
+            nonComplianceReason = nonComplianceReason,
         )
 
         initializeActorForScope(
@@ -100,16 +107,28 @@ internal class FetchAndCacheVerifierDisplayDataImpl @Inject constructor(
 
     private suspend fun fetchTrustForVerification(presentationRequest: PresentationRequest): TrustCheckResult {
         val verifierDid = presentationRequest.clientId
+        val environment = getActorEnvironment(verifierDid)
 
         return if (environmentSetupRepository.useMetadataV1TrustStatement) {
-            val metadataTrustStatement = processMetadataV1TrustStatement(verifierDid).get()
+            val metadataTrustStatement = when (environment) {
+                ActorEnvironment.PRODUCTION, ActorEnvironment.BETA -> {
+                    processMetadataV1TrustStatement(verifierDid).get()
+                }
+                ActorEnvironment.EXTERNAL -> null
+            }
 
             TrustCheckResult(
+                actorEnvironment = environment,
                 actorTrustStatement = metadataTrustStatement,
                 vcSchemaTrustStatus = VcSchemaTrustStatus.UNPROTECTED,
             )
         } else {
-            val identityTrustStatement = processIdentityV1TrustStatement(verifierDid).get()
+            val identityTrustStatement = when (environment) {
+                ActorEnvironment.PRODUCTION, ActorEnvironment.BETA -> {
+                    processIdentityV1TrustStatement(verifierDid).get()
+                }
+                ActorEnvironment.EXTERNAL -> null
+            }
 
             val vcSchemaId = getVcSchemaId(presentationRequest)
 
@@ -122,6 +141,7 @@ internal class FetchAndCacheVerifierDisplayDataImpl @Inject constructor(
             } ?: VcSchemaTrustStatus.UNPROTECTED
 
             TrustCheckResult(
+                actorEnvironment = environment,
                 actorTrustStatement = identityTrustStatement,
                 vcSchemaTrustStatus = verificationTrustStatus
             )
@@ -141,10 +161,29 @@ internal class FetchAndCacheVerifierDisplayDataImpl @Inject constructor(
         }
     }
 
+    private fun getTrustStatus(trustCheckResult: TrustCheckResult?) = when (trustCheckResult?.actorEnvironment) {
+        ActorEnvironment.PRODUCTION, ActorEnvironment.BETA -> {
+            if (trustCheckResult.actorTrustStatement != null) {
+                TrustStatus.TRUSTED
+            } else {
+                TrustStatus.NOT_TRUSTED
+            }
+        }
+        ActorEnvironment.EXTERNAL -> TrustStatus.EXTERNAL
+        null -> TrustStatus.UNKNOWN
+    }
+
     private fun <T> Map<String, T>.toActorField(): List<ActorField<T>> = map { entry ->
         ActorField(
             value = entry.value,
             locale = entry.key,
+        )
+    }
+
+    private fun List<NonComplianceReasonDisplay>.toNonComplianceReason(): List<ActorField<String>> = map { entry ->
+        ActorField(
+            value = entry.reason,
+            locale = entry.locale,
         )
     }
 }

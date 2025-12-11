@@ -12,14 +12,9 @@ import java.time.Instant
 data class Credential(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
-    val status: CredentialStatus = CredentialStatus.UNKNOWN,
-    val payload: String,
-    val issuer: String?,
     val format: CredentialFormat,
-    val validFrom: Long?,
-    val validUntil: Long?,
     val createdAt: Long = Instant.now().epochSecond,
-    val updatedAt: Long? = null,
+    val selectedConfigurationId: String? = null,
 )
 
 class Converters {

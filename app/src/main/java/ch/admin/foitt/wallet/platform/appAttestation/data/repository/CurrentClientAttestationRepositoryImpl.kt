@@ -45,12 +45,14 @@ class CurrentClientAttestationRepositoryImpl @Inject constructor(
 
     override suspend fun get(
         keyPairAlias: String,
-    ): Result<ClientAttestation, ClientAttestationRepositoryError> = runSuspendCatching {
+    ): Result<ClientAttestation?, ClientAttestationRepositoryError> = runSuspendCatching {
         dao().getById(keyPairAlias).let { dbClientAttestation ->
-            ClientAttestation(
-                keyStoreAlias = dbClientAttestation.id,
-                attestation = Jwt(dbClientAttestation.attestation),
-            )
+            dbClientAttestation?.let { dbClientAttestation ->
+                ClientAttestation(
+                    keyStoreAlias = dbClientAttestation.id,
+                    attestation = Jwt(dbClientAttestation.attestation),
+                )
+            }
         }
     }.mapError { throwable ->
         throwable.toClientAttestationRepositoryError("Get client attestation failed")

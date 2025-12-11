@@ -4,6 +4,7 @@ import ch.admin.foitt.wallet.platform.database.data.AppDatabase
 import ch.admin.foitt.wallet.platform.database.data.dao.CredentialClaimDao
 import ch.admin.foitt.wallet.platform.database.data.dao.CredentialClaimDisplayDao
 import ch.admin.foitt.wallet.platform.database.data.dao.CredentialDao
+import ch.admin.foitt.wallet.platform.database.data.dao.VerifiableCredentialDao
 import ch.admin.foitt.wallet.platform.database.domain.model.ChangeDatabasePassphraseError
 import ch.admin.foitt.wallet.platform.database.domain.model.CreateDatabaseError
 import ch.admin.foitt.wallet.platform.database.domain.model.DatabaseState
@@ -23,6 +24,7 @@ class FakeDatabaseRepositoryImpl(
 ) : DatabaseRepository {
 
     private lateinit var credentialDao: CredentialDao
+    private lateinit var verifiableCredentialDao: VerifiableCredentialDao
     private lateinit var credentialClaimDao: CredentialClaimDao
     private lateinit var credentialClaimDisplayDao: CredentialClaimDisplayDao
 
@@ -30,6 +32,8 @@ class FakeDatabaseRepositoryImpl(
         credentialDao = appDatabase.credentialDao()
         credentialDao.insert(credential1)
         credentialDao.insert(credential2)
+
+        verifiableCredentialDao = appDatabase.verifiableCredentialDao()
 
         credentialClaimDao = appDatabase.credentialClaimDao()
         credentialClaimDao.insert(credentialClaim1)

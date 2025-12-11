@@ -21,13 +21,14 @@ class SaveEIdRequestFilesImpl @Inject constructor(
     override suspend operator fun invoke(
         sIdCaseId: String,
         filesDataList: AVBeamFilesDataList?,
+        filesCategory: EIdRequestFileCategory,
     ): Result<Unit, SaveEIdRequestFileError> = coroutineBinding {
         val files = filesDataList ?: Err<SaveEIdRequestFileError>(
             EIdRequestVerificationError.Unexpected(Exception("No files"))
         ).bind()
 
         val scanResultFiles = files.value.map { file ->
-            file.toDBFile(sIdCaseId)
+            file.toDBFile(sIdCaseId, filesCategory)
         }
 
         eIdRequestFileRepository.saveEIdRequestFiles(scanResultFiles)
@@ -36,11 +37,14 @@ class SaveEIdRequestFilesImpl @Inject constructor(
             }.bind()
     }
 
-    private fun AVBeamFileData.toDBFile(eIdRequestCaseId: String): EIdRequestFile = EIdRequestFile(
+    private fun AVBeamFileData.toDBFile(
+        eIdRequestCaseId: String,
+        fileCategory: EIdRequestFileCategory
+    ): EIdRequestFile = EIdRequestFile(
         eIdRequestCaseId = eIdRequestCaseId,
         fileName = fileDescription,
         mime = fileType.toMimeType(),
-        category = EIdRequestFileCategory.DOCUMENT_SCAN,
+        category = fileCategory,
         data = fileData
     )
 }

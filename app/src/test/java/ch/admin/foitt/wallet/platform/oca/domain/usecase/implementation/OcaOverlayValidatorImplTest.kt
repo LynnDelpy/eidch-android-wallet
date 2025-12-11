@@ -8,7 +8,6 @@ import ch.admin.foitt.wallet.platform.oca.domain.model.overlays.BrandingOverlay1
 import ch.admin.foitt.wallet.platform.oca.domain.model.overlays.DataSourceOverlay1x0
 import ch.admin.foitt.wallet.platform.oca.domain.model.overlays.LabelOverlay1x0
 import ch.admin.foitt.wallet.platform.oca.domain.usecase.OcaOverlayValidator
-import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.elfaExample
 import ch.admin.foitt.wallet.platform.oca.mock.OverlayMocks.ocaBundleWithEntryButWithoutEntryCodeOverlay
 import ch.admin.foitt.wallet.platform.oca.mock.OverlayMocks.ocaBundleWithEntryKeyNotInEntryCodes
 import ch.admin.foitt.wallet.platform.oca.mock.OverlayMocks.ocaBundleWithInvalidOverlayAttributeKey
@@ -16,6 +15,7 @@ import ch.admin.foitt.wallet.platform.oca.mock.OverlayMocks.ocaBundleWithInvalid
 import ch.admin.foitt.wallet.platform.oca.mock.OverlayMocks.ocaBundleWithValidEntryAndEntryCodeOverlays
 import ch.admin.foitt.wallet.platform.oca.mock.OverlayMocks.ocaBundleWithoutEntryButWithEntryCodeOverlay
 import ch.admin.foitt.wallet.platform.oca.mock.OverlayMocks.ocaBundleWithoutEntryButWithMultipleEntryCodeOverlays
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.elfaExample
 import ch.admin.foitt.wallet.util.SafeJsonTestInstance
 import ch.admin.foitt.wallet.util.assertErrorType
 import ch.admin.foitt.wallet.util.assertOk

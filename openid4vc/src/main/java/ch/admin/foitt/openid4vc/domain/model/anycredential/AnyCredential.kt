@@ -12,7 +12,7 @@ interface AnyCredential {
     val format: CredentialFormat
     val claimsPath: String
     val validity: CredentialValidity
-    val issuer: String?
+    val issuer: String
     val validFromInstant: Instant?
     val validUntilInstant: Instant?
     val vcSchemaId: String

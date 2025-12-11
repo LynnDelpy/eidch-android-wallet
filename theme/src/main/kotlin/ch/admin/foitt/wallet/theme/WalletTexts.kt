@@ -15,6 +15,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 
@@ -52,7 +53,7 @@ object WalletTexts {
             }
 
             when (depth) {
-                0 -> HeadlineMedium(
+                0 -> HeadlineSmallEmphasized(
                     text = text,
                     modifier = Modifier
                         .padding(paddingValues)
@@ -242,6 +243,36 @@ object WalletTexts {
     )
 
     @Composable
+    fun HeadlineSmall(
+        modifier: Modifier = Modifier,
+        text: String,
+        textAlign: TextAlign = TextAlign.Start,
+        color: Color = WalletTheme.colorScheme.onSurface,
+    ) = Text(
+        text = text,
+        color = color,
+        style = WalletTheme.typography.headlineSmall,
+        textAlign = textAlign,
+        overflow = TextOverflow.Ellipsis,
+        modifier = modifier,
+    )
+
+    @Composable
+    fun HeadlineSmallEmphasized(
+        modifier: Modifier = Modifier,
+        text: String,
+        textAlign: TextAlign = TextAlign.Start,
+        color: Color = WalletTheme.colorScheme.onSurface,
+    ) = Text(
+        text = text,
+        color = color,
+        style = WalletTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Medium),
+        textAlign = textAlign,
+        overflow = TextOverflow.Ellipsis,
+        modifier = modifier,
+    )
+
+    @Composable
     fun TitleLarge(
         text: String,
         modifier: Modifier = Modifier,
@@ -306,6 +337,22 @@ object WalletTexts {
     )
 
     @Composable
+    fun BodyLargeEmphasized(
+        text: String,
+        modifier: Modifier = Modifier,
+        textAlign: TextAlign = TextAlign.Start,
+        color: Color = WalletTheme.colorScheme.secondary
+    ) = Text(
+        text = text,
+        color = color,
+        style = WalletTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
+        textAlign = textAlign,
+        overflow = TextOverflow.Ellipsis,
+        maxLines = Int.MAX_VALUE,
+        modifier = modifier,
+    )
+
+    @Composable
     fun BodyMedium(
         text: String,
         modifier: Modifier = Modifier,
@@ -344,6 +391,20 @@ object WalletTexts {
         text = text,
         color = color,
         style = WalletTheme.typography.labelLarge,
+        textAlign = TextAlign.Start,
+        overflow = TextOverflow.Ellipsis,
+        modifier = modifier,
+    )
+
+    @Composable
+    fun LabelLargeEmphasized(
+        text: String,
+        modifier: Modifier = Modifier,
+        color: Color = WalletTheme.colorScheme.secondary,
+    ) = Text(
+        text = text,
+        color = color,
+        style = WalletTheme.typography.labelLarge.copy(fontWeight = FontWeight.Medium),
         textAlign = TextAlign.Start,
         overflow = TextOverflow.Ellipsis,
         modifier = modifier,

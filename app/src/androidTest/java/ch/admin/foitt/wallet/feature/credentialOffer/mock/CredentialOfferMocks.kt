@@ -65,6 +65,7 @@ object CredentialOfferMocks {
           "elfa-sdjwt":{
              "format":"vc+sd-jwt",
              "cryptographic_binding_methods_supported":[
+                "jwk",
                 "did:jwk"
              ],
              "credential_signing_alg_values_supported":[

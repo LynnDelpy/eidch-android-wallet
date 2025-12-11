@@ -6,9 +6,11 @@ import ch.admin.foitt.wallet.platform.database.data.AppDatabase
 import ch.admin.foitt.wallet.platform.database.data.dao.CredentialClaimClusterDisplayEntityDao
 import ch.admin.foitt.wallet.platform.database.data.dao.CredentialClaimClusterEntityDao
 import ch.admin.foitt.wallet.platform.database.data.dao.CredentialDao
+import ch.admin.foitt.wallet.platform.database.data.dao.VerifiableCredentialDao
 import ch.admin.foitt.wallet.platform.ssi.data.source.local.mock.CredentialTestData.cluster1
 import ch.admin.foitt.wallet.platform.ssi.data.source.local.mock.CredentialTestData.clusterDisplay1
 import ch.admin.foitt.wallet.platform.ssi.data.source.local.mock.CredentialTestData.credential1
+import ch.admin.foitt.wallet.platform.ssi.data.source.local.mock.CredentialTestData.verifiableCredential1
 import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -20,6 +22,7 @@ class CredentialClaimClusterDisplayEntityDaoTest {
 
     private lateinit var database: AppDatabase
     private lateinit var credentialDao: CredentialDao
+    private lateinit var verifiableCredentialDao: VerifiableCredentialDao
     private lateinit var credentialClaimClusterEntityDao: CredentialClaimClusterEntityDao
     private lateinit var credentialClaimClusterDisplayEntityDao: CredentialClaimClusterDisplayEntityDao
 
@@ -30,10 +33,12 @@ class CredentialClaimClusterDisplayEntityDaoTest {
         ).allowMainThreadQueries().build()
 
         credentialDao = database.credentialDao()
+        verifiableCredentialDao = database.verifiableCredentialDao()
         credentialClaimClusterEntityDao = database.credentialClaimClusterEntityDao()
         credentialClaimClusterDisplayEntityDao = database.credentialClaimClusterDisplayEntityDao()
 
         credentialDao.insert(credential1)
+        verifiableCredentialDao.insert(verifiableCredential1)
         credentialClaimClusterEntityDao.insert(cluster1)
     }
 
@@ -53,6 +58,7 @@ class CredentialClaimClusterDisplayEntityDaoTest {
     @Test
     fun deleteCredentialTest() = runTest {
         credentialDao.insert(credential1)
+        verifiableCredentialDao.insert(verifiableCredential1)
         credentialClaimClusterEntityDao.insert(cluster1)
         val clusterDisplayId = credentialClaimClusterDisplayEntityDao.insert(clusterDisplay1)
 

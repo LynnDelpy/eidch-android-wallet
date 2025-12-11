@@ -1,6 +1,7 @@
 package ch.admin.foitt.wallet.platform.versionEnforcement.data.repository
 
 import ch.admin.foitt.wallet.platform.environmentSetup.domain.repository.EnvironmentSetupRepository
+import ch.admin.foitt.wallet.platform.versionEnforcement.di.VersionEnforcementModule
 import ch.admin.foitt.wallet.platform.versionEnforcement.domain.model.FetchVersionEnforcementError
 import ch.admin.foitt.wallet.platform.versionEnforcement.domain.model.VersionEnforcement
 import ch.admin.foitt.wallet.platform.versionEnforcement.domain.model.VersionEnforcementError
@@ -17,9 +18,10 @@ import timber.log.Timber
 import java.time.Instant
 import java.time.OffsetDateTime
 import javax.inject.Inject
+import javax.inject.Named
 
 class VersionEnforcementRepositoryImpl @Inject constructor(
-    private val httpClient: HttpClient,
+    @param:Named(VersionEnforcementModule.NAME_SCOPE) private val httpClient: HttpClient,
     private val environmentSetupRepo: EnvironmentSetupRepository
 ) : VersionEnforcementRepository {
     override suspend fun fetchLatestHighPriority(): Result<VersionEnforcement?, FetchVersionEnforcementError> =

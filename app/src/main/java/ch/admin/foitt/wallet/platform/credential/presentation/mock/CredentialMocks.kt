@@ -89,17 +89,23 @@ object CredentialMocks {
                 localizedLabel = "Personal data",
                 parentId = null,
                 items = mutableListOf(
-                    CredentialClaimText(localizedLabel = "First name", order = 1, value = "Max"),
-                    CredentialClaimText(localizedLabel = "Last name", order = 2, value = "Mustermann"),
-                    CredentialClaimText(localizedLabel = "Date of birth", order = 3, value = "01.01.1970"),
+                    CredentialClaimText(id = 1, localizedLabel = "First name", order = 1, value = "Max", isSensitive = true),
+                    CredentialClaimText(id = 2, localizedLabel = "Last name", order = 2, value = "Mustermann", isSensitive = false),
+                    CredentialClaimText(id = 3, localizedLabel = "Date of birth", order = 3, value = "01.01.1970", isSensitive = false),
                     CredentialClaimCluster(
                         id = 2,
                         order = 2,
                         localizedLabel = "Address",
                         parentId = 1,
                         items = mutableListOf(
-                            CredentialClaimText(localizedLabel = "Street", order = 1, value = "1 Ipsum Avenue"),
-                            CredentialClaimText(localizedLabel = "City", order = 2, value = "3000 Loremburg"),
+                            CredentialClaimText(
+                                id = 4,
+                                localizedLabel = "Street",
+                                order = 1,
+                                value = "1 Ipsum Avenue",
+                                isSensitive = true
+                            ),
+                            CredentialClaimText(id = 5, localizedLabel = "City", order = 2, value = "3000 Loremburg", isSensitive = false),
                         )
                     )
                 )
@@ -110,7 +116,7 @@ object CredentialMocks {
                 localizedLabel = "",
                 parentId = null,
                 items = mutableListOf(
-                    CredentialClaimText(localizedLabel = "AHV", order = 1, value = "756.9217.0769.85"),
+                    CredentialClaimText(id = 6, localizedLabel = "AHV", order = 1, value = "756.9217.0769.85", isSensitive = false),
                 )
             )
         )

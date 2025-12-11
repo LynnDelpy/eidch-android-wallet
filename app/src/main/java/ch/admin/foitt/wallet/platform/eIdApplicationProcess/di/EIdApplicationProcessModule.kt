@@ -1,7 +1,6 @@
 package ch.admin.foitt.wallet.platform.eIdApplicationProcess.di
 
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.data.repository.EIdAvRepositoryImpl
-import ch.admin.foitt.wallet.platform.eIdApplicationProcess.data.repository.EIdCurrentSIdCaseRepositoryImpl
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.data.repository.EIdDocumentScanRepositoryImpl
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.data.repository.EIdRequestCaseRepositoryImpl
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.data.repository.EIdRequestCaseWithStateRepositoryImpl
@@ -11,7 +10,6 @@ import ch.admin.foitt.wallet.platform.eIdApplicationProcess.data.repository.EIdS
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.data.repository.EidApplicationProcessRepositoryImpl
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.data.repository.SIdRepositoryImpl
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.repository.EIdAvRepository
-import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.repository.EIdCurrentSIdCaseRepository
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.repository.EIdDocumentScanRepository
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.repository.EIdRequestCaseRepository
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.repository.EIdRequestCaseWithStateRepository
@@ -22,13 +20,11 @@ import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.repository.Ei
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.repository.SIdRepository
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.usecase.FetchGuardianVerification
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.usecase.FetchSIdStatus
-import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.usecase.GetCurrentSIdCaseId
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.usecase.GetDocumentScanResult
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.usecase.GetDocumentType
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.usecase.GetHasLegalGuardian
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.usecase.GetStartAutoVerificationResult
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.usecase.PairWallet
-import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.usecase.SetCurrentSIdCaseId
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.usecase.SetDocumentScanResult
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.usecase.SetDocumentType
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.usecase.SetHasLegalGuardian
@@ -41,13 +37,11 @@ import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.usecase.Uploa
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.usecase.ValidateAttestations
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.usecase.implementation.FetchGuardianVerificationImpl
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.usecase.implementation.FetchSIdStatusImpl
-import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.usecase.implementation.GetCurrentSIdCaseIdImpl
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.usecase.implementation.GetDocumentScanResultImpl
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.usecase.implementation.GetDocumentTypeImpl
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.usecase.implementation.GetHasLegalGuardianImpl
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.usecase.implementation.GetStartAutoVerificationResultImpl
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.usecase.implementation.PairWalletImpl
-import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.usecase.implementation.SetCurrentSIdCaseIdImpl
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.usecase.implementation.SetDocumentScanResultImpl
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.usecase.implementation.SetDocumentTypeImpl
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.usecase.implementation.SetHasLegalGuardianImpl
@@ -138,16 +132,6 @@ interface EIdApplicationProcessModule {
     ): UpdateSIdStatusByCaseId
 
     @Binds
-    fun bindGetCurrentSIdCaseId(
-        useCase: GetCurrentSIdCaseIdImpl
-    ): GetCurrentSIdCaseId
-
-    @Binds
-    fun bindSetCurrentSIdCaseId(
-        useCase: SetCurrentSIdCaseIdImpl
-    ): SetCurrentSIdCaseId
-
-    @Binds
     fun bindSetDocumentType(
         useCase: SetDocumentTypeImpl
     ): SetDocumentType
@@ -214,12 +198,6 @@ internal interface EidApplicationRepositoryModule {
 
     @Binds
     @DestinationsScoped
-    fun bindEIdCurrentSIdCaseRepository(
-        repo: EIdCurrentSIdCaseRepositoryImpl
-    ): EIdCurrentSIdCaseRepository
-
-    @Binds
-    @DestinationsScoped
     fun bindEIdDocumentScanRepository(
         repo: EIdDocumentScanRepositoryImpl
     ): EIdDocumentScanRepository
@@ -235,7 +213,6 @@ internal interface EidApplicationRepositoryModule {
 @InstallIn(DestinationScopedComponent::class)
 interface EidApplicationProcessEntryPoint {
     fun eidApplicationProcessRepository(): EidApplicationProcessRepository
-    fun eidCurrentCaseRepository(): EIdCurrentSIdCaseRepository
     fun eidDocumentScanRepository(): EIdDocumentScanRepository
     fun eidStartAutoVerificationRepository(): EIdStartAutoVerificationRepository
 }

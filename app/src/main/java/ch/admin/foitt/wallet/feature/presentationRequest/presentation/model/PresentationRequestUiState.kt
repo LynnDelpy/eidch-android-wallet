@@ -1,19 +1,21 @@
 package ch.admin.foitt.wallet.feature.presentationRequest.presentation.model
 
 import androidx.compose.ui.graphics.Color
+import ch.admin.foitt.wallet.platform.badges.presentation.model.ClaimBadgeUiState
 import ch.admin.foitt.wallet.platform.credential.presentation.model.CredentialCardState
 import ch.admin.foitt.wallet.platform.credentialStatus.domain.model.CredentialDisplayStatus
 import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialClaimCluster
 
 data class PresentationRequestUiState(
-    val credential: CredentialCardState,
+    val credentialCardState: CredentialCardState,
     val requestedClaims: List<CredentialClaimCluster>,
+    val claimBadgesUiStates: List<ClaimBadgeUiState>,
     val numberOfClaims: Int,
 ) {
     companion object {
         val EMPTY by lazy {
             PresentationRequestUiState(
-                credential = CredentialCardState(
+                credentialCardState = CredentialCardState(
                     credentialId = -1,
                     status = CredentialDisplayStatus.Unknown,
                     title = "",
@@ -25,6 +27,7 @@ data class PresentationRequestUiState(
                     isCredentialFromBetaIssuer = false,
                 ),
                 requestedClaims = emptyList(),
+                claimBadgesUiStates = emptyList(),
                 numberOfClaims = 0,
             )
         }

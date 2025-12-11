@@ -5,15 +5,11 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import ch.admin.foitt.wallet.platform.database.domain.model.Credential
-import ch.admin.foitt.wallet.platform.database.domain.model.CredentialStatus
 
 @Dao
 interface CredentialDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insert(credential: Credential): Long
-
-    @Query("UPDATE credential SET status = :status, updatedAt = :updatedAt WHERE id = :id")
-    fun updateStatusByCredentialId(id: Long, status: CredentialStatus, updatedAt: Long): Int
 
     @Query("DELETE FROM Credential WHERE id = :id")
     fun deleteById(id: Long)

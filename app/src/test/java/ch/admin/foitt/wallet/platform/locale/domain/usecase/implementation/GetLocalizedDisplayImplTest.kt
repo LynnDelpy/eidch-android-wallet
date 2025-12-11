@@ -1,5 +1,6 @@
 package ch.admin.foitt.wallet.platform.locale.domain.usecase.implementation
 
+import ch.admin.foitt.wallet.platform.locale.LocaleCompat
 import ch.admin.foitt.wallet.platform.locale.domain.usecase.GetCurrentAppLocale
 import ch.admin.foitt.wallet.platform.locale.domain.usecase.GetLocalizedDisplay
 import io.mockk.MockKAnnotations
@@ -12,7 +13,6 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.util.Locale
 
 class GetLocalizedDisplayImplTest {
 
@@ -33,7 +33,7 @@ class GetLocalizedDisplayImplTest {
 
     @Test
     fun `should return LocalizedDisplay with best matching locale for app locale with supported country code`() = runTest {
-        coEvery { mockGetCurrentAppLocale() } returns Locale("de", "CH")
+        coEvery { mockGetCurrentAppLocale() } returns LocaleCompat.of("de", "CH")
 
         assertEquals("de-CH", getLocalizedDisplay(LocalizedDisplayTestData.withSupportedLocaleWithCountryCode)?.locale)
         assertEquals("en", getLocalizedDisplay(LocalizedDisplayTestData.withSupportedLocaleNoCountryCode)?.locale)
@@ -43,7 +43,7 @@ class GetLocalizedDisplayImplTest {
 
     @Test
     fun `should return LocalizedDisplay with best matching locale for app locale with unsupported country code`() = runTest {
-        coEvery { mockGetCurrentAppLocale() } returns Locale("de", "XX")
+        coEvery { mockGetCurrentAppLocale() } returns LocaleCompat.of("de", "XX")
 
         assertEquals("de-CH", getLocalizedDisplay(LocalizedDisplayTestData.withSupportedLocaleWithCountryCode)?.locale)
         assertEquals("en", getLocalizedDisplay(LocalizedDisplayTestData.withSupportedLocaleNoCountryCode)?.locale)
@@ -53,7 +53,7 @@ class GetLocalizedDisplayImplTest {
 
     @Test
     fun `should return LocalizedDisplay with best matching locale for app locale without country code`() = runTest {
-        coEvery { mockGetCurrentAppLocale() } returns Locale("de")
+        coEvery { mockGetCurrentAppLocale() } returns LocaleCompat.of("de")
 
         assertEquals("de-CH", getLocalizedDisplay(LocalizedDisplayTestData.withSupportedLocaleWithCountryCode)?.locale)
         assertEquals("en", getLocalizedDisplay(LocalizedDisplayTestData.withSupportedLocaleNoCountryCode)?.locale)
@@ -63,7 +63,7 @@ class GetLocalizedDisplayImplTest {
 
     @Test
     fun `should return same LocalizedDisplay for different Collection types as input`() = runTest {
-        coEvery { mockGetCurrentAppLocale() } returns Locale("de", "CH")
+        coEvery { mockGetCurrentAppLocale() } returns LocaleCompat.of("de", "CH")
 
         assertEquals(
             getLocalizedDisplay(LocalizedDisplayTestData.withSupportedLocaleWithCountryCode.toList())?.locale,
@@ -85,7 +85,7 @@ class GetLocalizedDisplayImplTest {
 
     @Test
     fun `should return null for empty input collection`() = runTest {
-        coEvery { mockGetCurrentAppLocale() } returns Locale("de", "CH")
+        coEvery { mockGetCurrentAppLocale() } returns LocaleCompat.of("de", "CH")
 
         assertNull(getLocalizedDisplay(emptyList()))
         assertNull(getLocalizedDisplay(emptySet()))

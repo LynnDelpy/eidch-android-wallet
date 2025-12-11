@@ -18,7 +18,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ch.admin.foitt.wallet.R
 import ch.admin.foitt.wallet.feature.settings.presentation.composables.LicenseSettingsItem
 import ch.admin.foitt.wallet.feature.settings.presentation.composables.SettingsCard
-import ch.admin.foitt.wallet.feature.settings.presentation.composables.SettingsDivider
 import ch.admin.foitt.wallet.feature.settings.presentation.licences.model.Library
 import ch.admin.foitt.wallet.platform.composables.Buttons
 import ch.admin.foitt.wallet.platform.composables.LoadingOverlay
@@ -104,7 +103,7 @@ private fun Licences(
                     onLibraryClick = { onLibraryClick(library) },
                 )
                 if (index != libraries.indices.last) {
-                    WalletListItems.SettingsDivider()
+                    WalletListItems.Divider()
                 }
             }
         }

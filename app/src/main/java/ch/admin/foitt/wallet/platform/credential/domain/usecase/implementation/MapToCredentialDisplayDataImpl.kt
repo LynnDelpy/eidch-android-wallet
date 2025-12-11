@@ -2,15 +2,15 @@ package ch.admin.foitt.wallet.platform.credential.domain.usecase.implementation
 
 import android.content.Context
 import android.os.Build
+import ch.admin.foitt.wallet.platform.actorEnvironment.domain.usecase.GetActorEnvironment
 import ch.admin.foitt.wallet.platform.credential.domain.model.CredentialDisplayData
 import ch.admin.foitt.wallet.platform.credential.domain.model.CredentialError
 import ch.admin.foitt.wallet.platform.credential.domain.model.MapToCredentialDisplayDataError
 import ch.admin.foitt.wallet.platform.credential.domain.model.getDisplayStatus
-import ch.admin.foitt.wallet.platform.credential.domain.usecase.IsBetaIssuer
 import ch.admin.foitt.wallet.platform.credential.domain.usecase.MapToCredentialDisplayData
-import ch.admin.foitt.wallet.platform.database.domain.model.Credential
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialClaimWithDisplays
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialDisplay
+import ch.admin.foitt.wallet.platform.database.domain.model.VerifiableCredentialEntity
 import ch.admin.foitt.wallet.platform.locale.domain.usecase.GetLocalizedAndThemedDisplay
 import ch.admin.foitt.wallet.platform.theme.domain.model.Theme
 import com.github.michaelbull.result.Err
@@ -23,10 +23,10 @@ import javax.inject.Inject
 class MapToCredentialDisplayDataImpl @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val getLocalizedAndThemedDisplay: GetLocalizedAndThemedDisplay,
-    private val isBetaIssuer: IsBetaIssuer,
+    private val getActorEnvironment: GetActorEnvironment,
 ) : MapToCredentialDisplayData {
     override suspend fun invoke(
-        credential: Credential,
+        verifiableCredential: VerifiableCredentialEntity,
         credentialDisplays: List<CredentialDisplay>,
         claims: List<CredentialClaimWithDisplays>,
     ): Result<CredentialDisplayData, MapToCredentialDisplayDataError> = coroutineBinding {
@@ -35,10 +35,10 @@ class MapToCredentialDisplayDataImpl @Inject constructor(
         val resolvedDisplay = credentialDisplay.resolveTemplate(claims)
 
         CredentialDisplayData(
-            credentialId = credential.id,
-            status = credential.getDisplayStatus(credential.status),
+            credentialId = verifiableCredential.credentialId,
+            status = verifiableCredential.getDisplayStatus(verifiableCredential.status),
             credentialDisplay = resolvedDisplay,
-            isCredentialFromBetaIssuer = isBetaIssuer(credential.issuer)
+            actorEnvironment = getActorEnvironment(verifiableCredential.issuer)
         )
     }
 

@@ -8,7 +8,7 @@ import ch.admin.foitt.wallet.platform.oca.domain.usecase.OcaCaptureBaseValidator
 import ch.admin.foitt.wallet.platform.oca.domain.usecase.OcaCesrHashValidator
 import ch.admin.foitt.wallet.platform.oca.domain.usecase.OcaOverlayValidator
 import ch.admin.foitt.wallet.platform.oca.domain.usecase.TransformOcaOverlays
-import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.elfaExample
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.elfaExample
 import ch.admin.foitt.wallet.util.SafeJsonTestInstance
 import ch.admin.foitt.wallet.util.assertOk
 import io.mockk.MockKAnnotations

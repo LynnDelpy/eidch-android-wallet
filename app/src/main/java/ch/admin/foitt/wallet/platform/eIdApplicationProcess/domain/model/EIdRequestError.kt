@@ -5,6 +5,7 @@ package ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model
 import ch.admin.foitt.wallet.platform.appAttestation.domain.model.AttestationError
 import ch.admin.foitt.wallet.platform.appAttestation.domain.model.ClientAttestationRepositoryError
 import ch.admin.foitt.wallet.platform.appAttestation.domain.model.GenerateProofOfPossessionError
+import ch.admin.foitt.wallet.platform.appAttestation.domain.model.RequestClientAttestationError
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.EIdRequestError.InsufficientKeyStorageResistance
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.EIdRequestError.InvalidClientAttestation
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.EIdRequestError.InvalidKeyAttestation
@@ -31,15 +32,23 @@ interface EIdRequestError {
         PairWalletError,
         StartAutoVerificationError,
         AvRepositoryError,
-        AvUploadFilesError
+        AvUploadFilesError,
+        AvSubmitCaseError
 
-    data object InvalidClientAttestation : ValidateAttestationsError
+    data object InvalidClientAttestation :
+        ValidateAttestationsError,
+        ApplyRequestError,
+        GuardianVerificationError,
+        StateRequestError,
+        PairWalletError,
+        StartAutoVerificationError,
+        StartOnlineSessionError
     data object InvalidKeyAttestation : ValidateAttestationsError
     data object InsufficientKeyStorageResistance : ValidateAttestationsError
     data class DeclinedProcessData(val cause: String?) :
         AvRepositoryError,
-        AvUploadFilesError
-    data object MissingJwt : AvUploadFilesError
+        AvUploadFilesError,
+        AvSubmitCaseError
     data class FileNotFound(val fileName: String) : AvUploadFilesError
 
     data class Unexpected(val cause: Throwable?) :
@@ -56,7 +65,8 @@ interface EIdRequestError {
         PairWalletError,
         StartAutoVerificationError,
         AvRepositoryError,
-        AvUploadFilesError
+        AvUploadFilesError,
+        AvSubmitCaseError
 }
 
 sealed interface EIdRequestCaseRepositoryError
@@ -73,10 +83,17 @@ sealed interface PairWalletError
 sealed interface StartAutoVerificationError
 sealed interface AvRepositoryError
 sealed interface AvUploadFilesError
+sealed interface AvSubmitCaseError
 
 internal fun SIdRepositoryError.toStartOnlineSessionError(): StartOnlineSessionError = when (this) {
     is Unexpected -> this
     is NetworkError -> this
+}
+
+internal fun RequestClientAttestationError.toStartOnlineSessionError(): StartOnlineSessionError = when (this) {
+    is AttestationError.NetworkError -> NetworkError
+    is AttestationError.Unexpected -> Unexpected(throwable)
+    is AttestationError.ValidationError -> InvalidClientAttestation
 }
 
 internal fun SIdRepositoryError.toApplyRequestError(): ApplyRequestError = when (this) {
@@ -89,12 +106,30 @@ internal fun SIdRepositoryError.toStartAutoVerificationError(): StartAutoVerific
     is NetworkError -> this
 }
 
+internal fun RequestClientAttestationError.toStartAutoVerificationError(): StartAutoVerificationError = when (this) {
+    is AttestationError.NetworkError -> NetworkError
+    is AttestationError.Unexpected -> Unexpected(throwable)
+    is AttestationError.ValidationError -> InvalidClientAttestation
+}
+
 internal fun SIdRepositoryError.toPairWalletError(): PairWalletError = when (this) {
     is Unexpected -> this
     is NetworkError -> this
 }
 
+internal fun RequestClientAttestationError.toPairWalletError(): PairWalletError = when (this) {
+    is AttestationError.NetworkError -> NetworkError
+    is AttestationError.Unexpected -> Unexpected(throwable)
+    is AttestationError.ValidationError -> InvalidClientAttestation
+}
+
 internal fun AvRepositoryError.toAvUploadFilesError(): AvUploadFilesError = when (this) {
+    is Unexpected -> this
+    is EIdRequestError.DeclinedProcessData -> this
+    is NetworkError -> this
+}
+
+internal fun AvRepositoryError.toAvSubmitCaseError(): AvSubmitCaseError = when (this) {
     is Unexpected -> this
     is EIdRequestError.DeclinedProcessData -> this
     is NetworkError -> this
@@ -116,8 +151,10 @@ internal fun ClientAttestationRepositoryError.toStartAutoVerificationError(): St
     is AttestationError.Unexpected -> Unexpected(this.throwable)
 }
 
-internal fun ClientAttestationRepositoryError.toApplyRequestError(): ApplyRequestError = when (this) {
-    is AttestationError.Unexpected -> Unexpected(this.throwable)
+internal fun RequestClientAttestationError.toApplyRequestError(): ApplyRequestError = when (this) {
+    is AttestationError.NetworkError -> NetworkError
+    is AttestationError.Unexpected -> Unexpected(throwable)
+    is AttestationError.ValidationError -> InvalidClientAttestation
 }
 
 internal fun GenerateProofOfPossessionError.toApplyRequestError(): ApplyRequestError = when (this) {
@@ -136,9 +173,21 @@ internal fun GenerateProofOfPossessionError.toStartAutoVerificationError(): Star
     is AttestationError.Unexpected -> Unexpected(this.throwable)
 }
 
+internal fun RequestClientAttestationError.toStateRequestError(): StateRequestError = when (this) {
+    is AttestationError.NetworkError -> NetworkError
+    is AttestationError.Unexpected -> Unexpected(throwable)
+    is AttestationError.ValidationError -> InvalidClientAttestation
+}
+
 internal fun SIdRepositoryError.toStateRequestError(): StateRequestError = when (this) {
     is Unexpected -> this
     is NetworkError -> this
+}
+
+internal fun RequestClientAttestationError.toGuardianVerificationError(): GuardianVerificationError = when (this) {
+    is AttestationError.NetworkError -> NetworkError
+    is AttestationError.Unexpected -> Unexpected(throwable)
+    is AttestationError.ValidationError -> InvalidClientAttestation
 }
 
 internal fun SIdRepositoryError.toGuardianVerificationError(): GuardianVerificationError = when (this) {

@@ -3,10 +3,12 @@ package ch.admin.foitt.wallet.platform.composables.di
 import android.content.Context
 import ch.admin.foitt.wallet.platform.composables.presentation.adapter.GetColor
 import ch.admin.foitt.wallet.platform.composables.presentation.adapter.GetContrastedColor
+import ch.admin.foitt.wallet.platform.composables.presentation.adapter.GetDrawableFromImageData
 import ch.admin.foitt.wallet.platform.composables.presentation.adapter.GetDrawableFromUri
 import ch.admin.foitt.wallet.platform.composables.presentation.adapter.GetLocalizedDateTime
 import ch.admin.foitt.wallet.platform.composables.presentation.adapter.implementation.GetColorImpl
 import ch.admin.foitt.wallet.platform.composables.presentation.adapter.implementation.GetContrastedColorImpl
+import ch.admin.foitt.wallet.platform.composables.presentation.adapter.implementation.GetDrawableFromImageDataImpl
 import ch.admin.foitt.wallet.platform.composables.presentation.adapter.implementation.GetDrawableFromUriImpl
 import ch.admin.foitt.wallet.platform.composables.presentation.adapter.implementation.GetLocalizedDateTimeImpl
 import coil.ImageLoader
@@ -43,6 +45,11 @@ internal interface ComposableBindings {
     fun bindGetDrawableFromUri(
         adapter: GetDrawableFromUriImpl
     ): GetDrawableFromUri
+
+    @Binds
+    fun bindGetDrawableFromImageData(
+        adapter: GetDrawableFromImageDataImpl
+    ): GetDrawableFromImageData
 
     @Binds
     fun bindGetLocalizedDateTime(

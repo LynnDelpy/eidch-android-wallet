@@ -1,5 +1,6 @@
 package ch.admin.foitt.wallet.platform.database.domain.model
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
@@ -27,5 +28,7 @@ data class CredentialClaim(
     override val value: String?,
     override val valueType: String?,
     val valueDisplayInfo: String? = null,
-    val order: Int = -1
+    val order: Int = -1,
+    @ColumnInfo(defaultValue = "false")
+    val isSensitive: Boolean = false
 ) : Claim

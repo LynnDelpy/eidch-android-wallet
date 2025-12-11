@@ -7,9 +7,15 @@ data class CredentialWithKeyBinding(
     @Embedded
     val credential: Credential,
     @Relation(
+        entity = VerifiableCredentialEntity::class,
+        parentColumn = "id",
+        entityColumn = "credentialId"
+    )
+    val verifiableCredential: VerifiableCredentialEntity,
+    @Relation(
         entity = CredentialKeyBindingEntity::class,
         parentColumn = "id",
-        entityColumn = "credentialId",
+        entityColumn = "credentialId"
     )
-    val keyBinding: CredentialKeyBindingEntity?,
+    val keyBinding: CredentialKeyBindingEntity?
 )

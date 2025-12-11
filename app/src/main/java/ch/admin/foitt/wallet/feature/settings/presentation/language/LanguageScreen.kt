@@ -14,10 +14,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ch.admin.foitt.wallet.R
 import ch.admin.foitt.wallet.feature.settings.presentation.composables.LanguageSettingsItem
 import ch.admin.foitt.wallet.feature.settings.presentation.composables.SettingsCard
-import ch.admin.foitt.wallet.feature.settings.presentation.composables.SettingsDivider
 import ch.admin.foitt.wallet.platform.composables.presentation.addTopScaffoldPadding
 import ch.admin.foitt.wallet.platform.composables.presentation.bottomSafeDrawing
 import ch.admin.foitt.wallet.platform.composables.presentation.horizontalSafeDrawing
+import ch.admin.foitt.wallet.platform.locale.LocaleCompat
 import ch.admin.foitt.wallet.platform.preview.WalletAllScreenPreview
 import ch.admin.foitt.wallet.theme.Sizes
 import ch.admin.foitt.wallet.theme.WalletListItems
@@ -71,7 +71,7 @@ private fun LanguageScreenContent(
                     isChecked = locale.displayLanguage == language && !isSystemLanguage,
                     onLanguageClick = { onUpdateLanguage(locale) }
                 )
-                WalletListItems.SettingsDivider()
+                WalletListItems.Divider()
             }
             WalletListItems.LanguageSettingsItem(
                 title = stringResource(id = R.string.tk_settings_language_device),
@@ -89,7 +89,7 @@ private fun SettingsScreenPreview() {
         LanguageScreenContent(
             isSystemLanguage = false,
             language = "English",
-            supportedLocales = listOf(Locale("en"), Locale("de")),
+            supportedLocales = listOf(LocaleCompat.of("en"), LocaleCompat.of("de")),
             onUpdateLanguage = {},
             onUseSystemDefaultLanguage = {},
         )

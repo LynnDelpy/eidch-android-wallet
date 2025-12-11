@@ -39,7 +39,8 @@ private object OverlaySerializer : JsonContentPolymorphicSerializer<Overlay>(
             OverlaySpecType.ORDER_1_0 -> OrderOverlay1x0.serializer()
             OverlaySpecType.ENTRY_1_0 -> EntryOverlay1x0.serializer()
             OverlaySpecType.ENTRY_CODE_1_0 -> EntryCodeOverlay1x0.serializer()
-            else -> UnsupportedOverlayItem.serializer()
+            OverlaySpecType.SENSITIVE_1_0 -> SensitiveOverlay1x0.serializer()
+            OverlaySpecType.UNSUPPORTED -> UnsupportedOverlayItem.serializer()
         }
     }
 }

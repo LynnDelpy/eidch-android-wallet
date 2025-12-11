@@ -38,12 +38,15 @@ class MapToCredentialClaimDataImpl @Inject constructor(
                 when (ValueType.getByType(claim.valueType)) {
                     ValueType.BOOLEAN,
                     ValueType.STRING -> CredentialClaimText(
+                        id = claim.id,
                         localizedLabel = display.name,
                         order = claim.order,
-                        value = display.value ?: claim.value?.let { truncateClaimValue(claimValue = it) }
+                        value = display.value ?: claim.value?.let { truncateClaimValue(claimValue = it) },
+                        isSensitive = claim.isSensitive
                     )
 
                     ValueType.DATETIME -> CredentialClaimText(
+                        id = claim.id,
                         localizedLabel = display.name,
                         order = claim.order,
                         value = claim.value?.let {
@@ -52,25 +55,36 @@ class MapToCredentialClaimDataImpl @Inject constructor(
                                 pattern = claim.valueDisplayInfo,
                                 locale = locale
                             )
-                        }
+                        },
+                        isSensitive = claim.isSensitive
                     )
 
                     ValueType.NUMERIC -> CredentialClaimText(
+                        id = claim.id,
                         localizedLabel = display.name,
                         order = claim.order,
-                        value = display.value ?: claim.value?.let { localizeNumber(numberString = it, locale = locale) }
+                        value = display.value ?: claim.value?.let { localizeNumber(numberString = it, locale = locale) },
+                        isSensitive = claim.isSensitive
                     )
 
                     ValueType.IMAGE -> {
                         if (claim.value != null) {
                             val byteArray = base64NonUrlStringToByteArray(claim.value)
                             CredentialClaimImage(
+                                id = claim.id,
                                 localizedLabel = display.name,
                                 order = claim.order,
-                                imageData = byteArray
+                                imageData = byteArray,
+                                isSensitive = claim.isSensitive
                             )
                         } else {
-                            CredentialClaimText(localizedLabel = display.name, value = null, order = claim.order)
+                            CredentialClaimText(
+                                id = claim.id,
+                                localizedLabel = display.name,
+                                value = null,
+                                order = claim.order,
+                                isSensitive = claim.isSensitive
+                            )
                         }
                     }
 

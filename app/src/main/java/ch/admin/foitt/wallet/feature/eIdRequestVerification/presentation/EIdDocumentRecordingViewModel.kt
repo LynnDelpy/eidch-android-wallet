@@ -13,6 +13,7 @@ import ch.admin.foitt.avwrapper.config.AVBeamConfigLogLevel
 import ch.admin.foitt.avwrapper.config.AVBeamRecordDocumentConfig
 import ch.admin.foitt.wallet.feature.eIdRequestVerification.domain.usecase.SaveEIdRequestFiles
 import ch.admin.foitt.wallet.feature.eIdRequestVerification.presentation.model.SDKInfoState
+import ch.admin.foitt.wallet.platform.database.domain.model.EIdRequestFileCategory
 import ch.admin.foitt.wallet.platform.environmentSetup.domain.repository.EnvironmentSetupRepository
 import ch.admin.foitt.wallet.platform.navArgs.domain.model.EIdOnlineSessionNavArg
 import ch.admin.foitt.wallet.platform.navigation.NavigationManager
@@ -171,7 +172,8 @@ class EIdDocumentRecordingViewModel @Inject constructor(
 
         saveEIdRequestFiles(
             sIdCaseId = navArgs.caseId,
-            filesDataList = packageResult.files
+            filesDataList = packageResult.files,
+            filesCategory = EIdRequestFileCategory.DOCUMENT_RECORDING,
         )
 
         navManager.navigateToAndPopUpTo(

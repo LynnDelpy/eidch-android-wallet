@@ -5,8 +5,12 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import ch.admin.foitt.wallet.R
 import ch.admin.foitt.wallet.feature.eIdApplicationProcess.presentation.model.ProcessDataUiState
-import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.AvRepositoryError
+import ch.admin.foitt.wallet.feature.eIdRequestVerification.domain.usecase.SubmitCaseId
+import ch.admin.foitt.wallet.feature.eIdRequestVerification.domain.usecase.UploadAllFiles
+import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.AvSubmitCaseError
+import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.AvUploadFilesError
 import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.model.EIdRequestError
+import ch.admin.foitt.wallet.platform.eIdApplicationProcess.domain.usecase.GetStartAutoVerificationResult
 import ch.admin.foitt.wallet.platform.navigation.NavigationManager
 import ch.admin.foitt.wallet.platform.scaffold.domain.model.TopBarState
 import ch.admin.foitt.wallet.platform.scaffold.domain.usecase.SetTopBarState
@@ -16,7 +20,8 @@ import ch.admin.foitt.wallet.platform.utils.trackCompletion
 import ch.admin.foitt.walletcomposedestinations.destinations.EIdIntroScreenDestination
 import ch.admin.foitt.walletcomposedestinations.destinations.EIdProcessDataScreenDestination
 import com.github.michaelbull.result.Result
-import com.github.michaelbull.result.unwrapError
+import com.github.michaelbull.result.getError
+import com.github.michaelbull.result.onSuccess
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -29,6 +34,9 @@ import javax.inject.Inject
 internal class EIdProcessDataViewModel @Inject constructor(
     private val navManager: NavigationManager,
     @param:ApplicationContext private val context: Context,
+    private val uploadAllFiles: UploadAllFiles,
+    private val submitCaseId: SubmitCaseId,
+    private val getStartAutoVerificationResult: GetStartAutoVerificationResult,
     setTopBarState: SetTopBarState,
     savedStateHandle: SavedStateHandle,
 ) : ScreenViewModel(setTopBarState) {
@@ -38,23 +46,29 @@ internal class EIdProcessDataViewModel @Inject constructor(
 
     private val isLoading = MutableStateFlow(false)
 
-    private val uploadFilesResult = MutableStateFlow<Result<Unit, AvRepositoryError>?>(null)
+    private val uploadFilesResult = MutableStateFlow<Result<Unit, AvUploadFilesError>?>(null)
+    private val submitCaseIdResult = MutableStateFlow<Result<Unit, AvSubmitCaseError>?>(null)
 
     val state: StateFlow<ProcessDataUiState> = combine(
         isLoading,
         uploadFilesResult,
-    ) { isLoading, uploadFiles ->
+        submitCaseIdResult,
+    ) { isLoading, uploadFiles, submitCaseId ->
+        val uploadError = uploadFiles?.getError()
+        val submitError = submitCaseId?.getError()
         when {
             isLoading -> ProcessDataUiState.Loading
-            uploadFiles?.isOk == true -> ProcessDataUiState.Valid
-            uploadFiles?.unwrapError() is EIdRequestError.NetworkError ->
+            uploadFiles?.isOk == true && submitCaseId?.isOk == true -> ProcessDataUiState.Valid
+            submitError is EIdRequestError.NetworkError ||
+                uploadError is EIdRequestError.NetworkError ->
                 ProcessDataUiState.GenericError(
                     onClose = ::onClose,
                     onRetry = ::onRetry,
                     onHelp = ::onHelp
                 )
 
-            uploadFiles?.unwrapError() is EIdRequestError.DeclinedProcessData ->
+            submitError is EIdRequestError.DeclinedProcessData ||
+                uploadError is EIdRequestError.DeclinedProcessData ->
                 ProcessDataUiState.Declined(
                     onClose = ::onClose,
                     onHelp = ::onHelp
@@ -68,18 +82,31 @@ internal class EIdProcessDataViewModel @Inject constructor(
         }
     }.toStateFlow(ProcessDataUiState.Loading)
 
+    init {
+        onRefreshState()
+    }
+
     private fun onRefreshState() {
         if (isLoading.value) {
             return
         }
         viewModelScope.launch {
-            val caseId = navArgs.caseId
-            // uploadFilesResult.value = uploadAllFiles(caseId = navArgs.caseId)
-        }.trackCompletion(isLoading)
-    }
+            val autoVerification = getStartAutoVerificationResult().value ?: return@launch
+            val jwt = autoVerification.jwt
 
-    init {
-        onRefreshState()
+            uploadFilesResult.value = uploadAllFiles(
+                caseId = navArgs.caseId,
+                accessToken = jwt
+            ).onSuccess {
+                submitCaseId(
+                    caseId = navArgs.caseId,
+                    accessToken = jwt
+                ).also { submitCaseIdResult.value = it }
+                    .onSuccess {
+                        navManager.navigateBackToHome(EIdIntroScreenDestination)
+                    }
+            }
+        }.trackCompletion(isLoading)
     }
 
     fun onClose() = navManager.navigateBackToHome(EIdIntroScreenDestination)

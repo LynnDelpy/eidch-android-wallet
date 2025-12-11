@@ -169,7 +169,6 @@ fun GenerateCredentialDisplaysError.toFetchCredentialError(): FetchCredentialErr
 fun CredentialWithKeyBindingRepositoryError.toGetAnyCredentialsError(): GetAnyCredentialsError = when (this) {
     is SsiError.Unexpected -> Unexpected(cause)
 }
-
 fun CredentialWithKeyBindingRepositoryError.toGetAnyCredentialError(): GetAnyCredentialError = when (this) {
     is SsiError.Unexpected -> Unexpected(cause)
 }

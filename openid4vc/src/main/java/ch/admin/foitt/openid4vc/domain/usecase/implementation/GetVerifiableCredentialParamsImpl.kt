@@ -66,6 +66,6 @@ class GetVerifiableCredentialParamsImpl @Inject constructor(
     }
 
     companion object {
-        private val supportedBindingMethods = listOf("did:jwk")
+        private val supportedBindingMethods = listOf("jwk", "did:jwk")
     }
 }

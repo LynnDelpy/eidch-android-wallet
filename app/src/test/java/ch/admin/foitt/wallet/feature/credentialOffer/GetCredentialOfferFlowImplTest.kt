@@ -12,11 +12,11 @@ import ch.admin.foitt.wallet.platform.credential.domain.model.CredentialError
 import ch.admin.foitt.wallet.platform.credential.domain.usecase.MapToCredentialDisplayData
 import ch.admin.foitt.wallet.platform.credentialCluster.domain.usercase.MapToCredentialClaimCluster
 import ch.admin.foitt.wallet.platform.database.domain.model.ClusterWithDisplaysAndClaims
-import ch.admin.foitt.wallet.platform.database.domain.model.Credential
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialClusterWithDisplays
-import ch.admin.foitt.wallet.platform.database.domain.model.CredentialWithDisplaysAndClusters
+import ch.admin.foitt.wallet.platform.database.domain.model.VerifiableCredentialEntity
+import ch.admin.foitt.wallet.platform.database.domain.model.VerifiableCredentialWithDisplaysAndClusters
 import ch.admin.foitt.wallet.platform.ssi.domain.model.SsiError
-import ch.admin.foitt.wallet.platform.ssi.domain.repository.CredentialWithDisplaysAndClustersRepository
+import ch.admin.foitt.wallet.platform.ssi.domain.repository.VerifiableCredentialWithDisplaysAndClustersRepository
 import ch.admin.foitt.wallet.platform.ssi.domain.usecase.implementation.mock.MockCredentialDetail
 import ch.admin.foitt.wallet.platform.ssi.domain.usecase.implementation.mock.MockCredentialDetail.claims
 import ch.admin.foitt.wallet.util.assertErrorType
@@ -41,7 +41,7 @@ import org.junit.jupiter.api.Test
 class GetCredentialOfferFlowImplTest {
 
     @MockK
-    lateinit var mockCredentialWithDisplaysAndClustersRepository: CredentialWithDisplaysAndClustersRepository
+    lateinit var mockCredentialWithDisplaysAndClustersRepository: VerifiableCredentialWithDisplaysAndClustersRepository
 
     @MockK
     lateinit var mockMapToCredentialDisplayData: MapToCredentialDisplayData
@@ -50,13 +50,13 @@ class GetCredentialOfferFlowImplTest {
     lateinit var mockMapToCredentialClaimCluster: MapToCredentialClaimCluster
 
     @MockK
-    lateinit var mockCredential: Credential
+    lateinit var mockVerifiableCredential: VerifiableCredentialEntity
 
     @MockK
     private lateinit var mockClusterWithDisplays: CredentialClusterWithDisplays
 
     @MockK
-    lateinit var mockCredentialWithDisplaysAndClusters: CredentialWithDisplaysAndClusters
+    lateinit var mockCredentialWithDisplaysAndClusters: VerifiableCredentialWithDisplaysAndClusters
 
     private lateinit var useCase: GetCredentialOfferFlow
 
@@ -96,7 +96,7 @@ class GetCredentialOfferFlowImplTest {
     @Test
     fun `Getting the credential offer flow with updates returns a flow with the credential offer`() = runTest {
         coEvery {
-            mockCredentialWithDisplaysAndClustersRepository.getNullableCredentialWithDisplaysAndClustersFlowById(CREDENTIAL_ID)
+            mockCredentialWithDisplaysAndClustersRepository.getNullableVerifiableCredentialWithDisplaysAndClustersFlowById(CREDENTIAL_ID)
         } returns flow {
             emit(Ok(mockCredentialWithDisplaysAndClusters))
             emit(Ok(mockCredentialWithDisplaysAndClusters))
@@ -114,7 +114,7 @@ class GetCredentialOfferFlowImplTest {
     fun `Getting the credential offer flow maps errors from the repository`() = runTest {
         val exception = IllegalStateException("db error")
         coEvery {
-            mockCredentialWithDisplaysAndClustersRepository.getNullableCredentialWithDisplaysAndClustersFlowById(CREDENTIAL_ID)
+            mockCredentialWithDisplaysAndClustersRepository.getNullableVerifiableCredentialWithDisplaysAndClustersFlowById(CREDENTIAL_ID)
         } returns flowOf(Err(SsiError.Unexpected(exception)))
 
         val result = useCase(CREDENTIAL_ID).firstOrNull()
@@ -139,8 +139,10 @@ class GetCredentialOfferFlowImplTest {
     }
 
     private fun setupDefaultMocks() {
-        coEvery { mockCredential.issuer } returns ISSUER
-        coEvery { mockCredentialWithDisplaysAndClusters.credential } returns mockCredential
+        coEvery { mockVerifiableCredential.issuer } returns ISSUER
+        coEvery {
+            mockCredentialWithDisplaysAndClusters.verifiableCredential
+        } returns mockVerifiableCredential
         coEvery { mockCredentialWithDisplaysAndClusters.credentialDisplays } returns MockCredentialDetail.credentialDisplays
         coEvery { mockCredentialWithDisplaysAndClusters.clusters } returns listOf(
             ClusterWithDisplaysAndClaims(
@@ -149,10 +151,12 @@ class GetCredentialOfferFlowImplTest {
             )
         )
         coEvery {
-            mockCredentialWithDisplaysAndClustersRepository.getNullableCredentialWithDisplaysAndClustersFlowById(MockCredentialDetail.CREDENTIAL_ID)
+            mockCredentialWithDisplaysAndClustersRepository.getNullableVerifiableCredentialWithDisplaysAndClustersFlowById(
+                MockCredentialDetail.CREDENTIAL_ID
+            )
         } returns flowOf(Ok(mockCredentialWithDisplaysAndClusters))
         coEvery {
-            mockMapToCredentialDisplayData(mockCredential, MockCredentialDetail.credentialDisplays, claims)
+            mockMapToCredentialDisplayData(mockVerifiableCredential, MockCredentialDetail.credentialDisplays, claims)
         } returns Ok(MockCredentialDetail.credentialDisplayData)
         coEvery {
             mockMapToCredentialClaimCluster(any())

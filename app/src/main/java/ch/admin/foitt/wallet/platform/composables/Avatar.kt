@@ -29,7 +29,7 @@ fun Avatar(
         modifier = Modifier
             .size(size.toDp())
             .clip(CircleShape)
-            .background(WalletTheme.colorScheme.surfaceContainerHigh)
+            .background(WalletTheme.colorScheme.surfaceContainerHighest)
             .padding(size.internalPadding),
         contentAlignment = Alignment.Center,
     ) {

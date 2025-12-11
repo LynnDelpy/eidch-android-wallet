@@ -1,6 +1,7 @@
 package ch.admin.foitt.wallet.feature.credentialOffer.mock
 
 import ch.admin.foitt.wallet.feature.credentialOffer.domain.model.CredentialOffer
+import ch.admin.foitt.wallet.platform.actorEnvironment.domain.model.ActorEnvironment
 import ch.admin.foitt.wallet.platform.actorMetadata.domain.model.ActorDisplayData
 import ch.admin.foitt.wallet.platform.actorMetadata.domain.model.ActorField
 import ch.admin.foitt.wallet.platform.actorMetadata.domain.model.ActorType
@@ -11,6 +12,7 @@ import ch.admin.foitt.wallet.platform.database.domain.model.CredentialClaimDispl
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialClaimWithDisplays
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialDisplay
 import ch.admin.foitt.wallet.platform.database.domain.model.CredentialStatus
+import ch.admin.foitt.wallet.platform.nonCompliance.domain.model.NonComplianceState
 import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialClaimCluster
 import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialClaimText
 import ch.admin.foitt.wallet.platform.ssi.domain.usecase.implementation.mock.MockCredentialDetail
@@ -112,22 +114,26 @@ object MockCredentialOffer {
     val claimsWithDisplays = listOf(claimWithDisplays1, claimWithDisplays2)
 
     val claimData1 = CredentialClaimText(
+        id = 1,
         localizedLabel = claimDisplay1.name,
         order = 1,
         value = claim1.value,
+        isSensitive = false
     )
 
     val claimData2 = CredentialClaimText(
+        id = 2L,
         localizedLabel = claimDisplay3.name,
         order = 2,
         value = claim2.value,
+        isSensitive = false
     )
 
     val credentialDisplayData = CredentialDisplayData(
         credentialId = CREDENTIAL_ID,
         status = CredentialStatus.VALID.toDisplayStatus(),
         credentialDisplay = credentialDisplay1,
-        isCredentialFromBetaIssuer = false
+        actorEnvironment = ActorEnvironment.PRODUCTION
     )
 
     val mockIssuerDisplayData = ActorDisplayData(
@@ -140,6 +146,8 @@ object MockCredentialOffer {
         trustStatus = TrustStatus.TRUSTED,
         vcSchemaTrustStatus = VcSchemaTrustStatus.TRUSTED,
         actorType = ActorType.ISSUER,
+        nonComplianceState = NonComplianceState.REPORTED,
+        nonComplianceReason = null
     )
 
     val listOfCredentialClaimCluster = listOf(

@@ -1,6 +1,7 @@
 package ch.admin.foitt.wallet.platform.credential.presentation.adapter.implementation
 
 import androidx.compose.ui.graphics.Color
+import ch.admin.foitt.wallet.platform.actorEnvironment.domain.model.ActorEnvironment
 import ch.admin.foitt.wallet.platform.composables.presentation.adapter.GetColor
 import ch.admin.foitt.wallet.platform.composables.presentation.adapter.GetContrastedColor
 import ch.admin.foitt.wallet.platform.composables.presentation.adapter.GetDrawableFromUri
@@ -28,7 +29,7 @@ internal class GetCredentialCardStateImpl @Inject constructor(
             backgroundColor = backgroundColor,
             contentColor = getContrastedColor(backgroundColor),
             logo = getDrawableFromUri(credentialDisplayData.logoUri)?.toPainter(),
-            isCredentialFromBetaIssuer = credentialDisplayData.isCredentialFromBetaIssuer
+            isCredentialFromBetaIssuer = credentialDisplayData.actorEnvironment == ActorEnvironment.BETA
         )
     }
 }

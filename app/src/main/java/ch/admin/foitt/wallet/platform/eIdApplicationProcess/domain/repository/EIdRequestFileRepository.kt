@@ -14,5 +14,5 @@ interface EIdRequestFileRepository {
     suspend fun getEIdRequestFileByCaseIdAndFileName(
         caseId: String,
         fileName: String
-    ): Result<EIdRequestFile?, EIdRequestFileRepositoryError>
+    ): Result<EIdRequestFile, EIdRequestFileRepositoryError>
 }

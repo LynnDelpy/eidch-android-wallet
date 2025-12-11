@@ -24,7 +24,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -45,7 +47,10 @@ import ch.admin.foitt.wallet.feature.credentialOffer.presentation.model.Credenti
 import ch.admin.foitt.wallet.platform.actorMetadata.domain.model.ActorType
 import ch.admin.foitt.wallet.platform.actorMetadata.presentation.InvitationHeader
 import ch.admin.foitt.wallet.platform.actorMetadata.presentation.model.ActorUiState
+import ch.admin.foitt.wallet.platform.badges.domain.model.BadgeType
+import ch.admin.foitt.wallet.platform.badges.presentation.BadgeBottomSheet
 import ch.admin.foitt.wallet.platform.composables.Buttons
+import ch.admin.foitt.wallet.platform.composables.ConfirmationBottomSheet
 import ch.admin.foitt.wallet.platform.composables.HiddenScrollToButton
 import ch.admin.foitt.wallet.platform.composables.HiddenScrollToTopButton
 import ch.admin.foitt.wallet.platform.composables.LoadingOverlay
@@ -59,6 +64,7 @@ import ch.admin.foitt.wallet.platform.credential.presentation.credentialClaimIte
 import ch.admin.foitt.wallet.platform.credential.presentation.mock.CredentialMocks
 import ch.admin.foitt.wallet.platform.credential.presentation.model.CredentialCardState
 import ch.admin.foitt.wallet.platform.navArgs.domain.model.CredentialOfferNavArg
+import ch.admin.foitt.wallet.platform.nonCompliance.domain.model.NonComplianceState
 import ch.admin.foitt.wallet.platform.preview.AllCompactScreensPreview
 import ch.admin.foitt.wallet.platform.preview.AllLargeScreensPreview
 import ch.admin.foitt.wallet.platform.trustRegistry.domain.model.TrustStatus
@@ -69,6 +75,7 @@ import ch.admin.foitt.wallet.theme.WalletTexts
 import ch.admin.foitt.wallet.theme.WalletTheme
 import com.ramcosta.composedestinations.annotation.Destination
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 @Destination(
     navArgsDelegate = CredentialOfferNavArg::class
@@ -85,9 +92,35 @@ fun CredentialOfferScreen(
         viewModel.credentialOfferUiState.refreshData()
     }
 
+    val badgeBottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val badgeBottomSheet = viewModel.badgeBottomSheet.collectAsStateWithLifecycle().value
+    if (badgeBottomSheet != null) {
+        BadgeBottomSheet(
+            sheetState = badgeBottomSheetState,
+            badgeBottomSheetUiState = badgeBottomSheet,
+            onDismiss = viewModel::onDismissBadgeBottomSheet
+        )
+    }
+
+    val confirmationBottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val showConfirmationBottomSheet = viewModel.showConfirmationBottomSheet.collectAsStateWithLifecycle().value
+    if (showConfirmationBottomSheet) {
+        ConfirmationBottomSheet(
+            sheetState = confirmationBottomSheetState,
+            title = R.string.tk_receive_credentialOffer_confirmIssuance_primary,
+            body = R.string.tk_receive_credentialOffer_confirmIssuance_secondary,
+            acceptButtonText = R.string.tk_receive_credentialOffer_confirmIssuance_button_primary,
+            declineButtonText = R.string.tk_receive_credentialOffer_confirmIssuance_button_secondary,
+            onAccept = viewModel::acceptCredential,
+            onDecline = viewModel::onDeclineBottomSheet,
+            onDismiss = viewModel::onDismissConfirmationBottomSheet,
+        )
+    }
+
     CredentialOfferScreenContent(
         isLoading = viewModel.isLoading.collectAsStateWithLifecycle().value,
         credentialOfferUiState = viewModel.credentialOfferUiState.stateFlow.collectAsStateWithLifecycle().value,
+        onBadge = viewModel::onBadge,
         onAccept = viewModel::onAcceptClicked,
         onDecline = viewModel::onDeclineClicked,
         onWrongData = viewModel::onReportWrongDataClicked,
@@ -98,6 +131,7 @@ fun CredentialOfferScreen(
 private fun CredentialOfferScreenContent(
     isLoading: Boolean,
     credentialOfferUiState: CredentialOfferUiState,
+    onBadge: (BadgeType) -> Unit,
     onAccept: () -> Unit,
     onDecline: () -> Unit,
     onWrongData: () -> Unit,
@@ -110,6 +144,7 @@ private fun CredentialOfferScreenContent(
     if (windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.COMPACT) {
         CompactContent(
             credentialOffer = credentialOfferUiState,
+            onBadge = onBadge,
             onAccept = onAccept,
             onDecline = onDecline,
             onWrongData = onWrongData,
@@ -117,6 +152,7 @@ private fun CredentialOfferScreenContent(
     } else {
         LargeContent(
             credentialOffer = credentialOfferUiState,
+            onBadge = onBadge,
             onAccept = onAccept,
             onDecline = onDecline,
             onWrongData = onWrongData,
@@ -128,6 +164,7 @@ private fun CredentialOfferScreenContent(
 @Composable
 private fun CompactContent(
     credentialOffer: CredentialOfferUiState,
+    onBadge: (BadgeType) -> Unit,
     onAccept: () -> Unit,
     onDecline: () -> Unit,
     onWrongData: () -> Unit,
@@ -150,11 +187,8 @@ private fun CompactContent(
     ) {
         item {
             InvitationHeader(
-                inviterName = credentialOffer.issuer.name,
-                inviterImage = credentialOffer.issuer.painter,
-                trustStatus = credentialOffer.issuer.trustStatus,
-                vcSchemaTrustStatus = credentialOffer.issuer.vcSchemaTrustStatus,
-                actorType = credentialOffer.issuer.actorType,
+                actorUiState = credentialOffer.issuer,
+                onBadge = onBadge,
             )
         }
         item {
@@ -223,6 +257,7 @@ private fun CredentialBoxCompact(
 @Composable
 private fun LargeContent(
     credentialOffer: CredentialOfferUiState,
+    onBadge: (BadgeType) -> Unit,
     onAccept: () -> Unit,
     onDecline: () -> Unit,
     onWrongData: () -> Unit,
@@ -237,6 +272,7 @@ private fun LargeContent(
             Spacer(modifier = Modifier.width(Sizes.s04))
             DetailsWithHeader(
                 credentialOffer = credentialOffer,
+                onBadge = onBadge,
                 onAccept = onAccept,
                 onDecline = onDecline,
                 onWrongData = onWrongData,
@@ -274,6 +310,7 @@ private fun CredentialBoxLarge(
 @Composable
 private fun DetailsWithHeader(
     credentialOffer: CredentialOfferUiState,
+    onBadge: (BadgeType) -> Unit,
     onAccept: () -> Unit,
     onDecline: () -> Unit,
     onWrongData: () -> Unit,
@@ -289,11 +326,8 @@ private fun DetailsWithHeader(
         ) {
             item {
                 InvitationHeader(
-                    inviterName = credentialOffer.issuer.name,
-                    inviterImage = credentialOffer.issuer.painter,
-                    trustStatus = credentialOffer.issuer.trustStatus,
-                    vcSchemaTrustStatus = credentialOffer.issuer.vcSchemaTrustStatus,
-                    actorType = credentialOffer.issuer.actorType,
+                    actorUiState = credentialOffer.issuer,
+                    onBadge = onBadge,
                 )
             }
 
@@ -416,10 +450,13 @@ private fun CredentialOfferScreenPreview() {
                     trustStatus = TrustStatus.TRUSTED,
                     vcSchemaTrustStatus = VcSchemaTrustStatus.TRUSTED,
                     actorType = ActorType.ISSUER,
+                    nonComplianceState = NonComplianceState.REPORTED,
+                    nonComplianceReason = "report reason",
                 ),
                 credential = CredentialMocks.cardState01,
                 claims = CredentialMocks.clusterList,
             ),
+            onBadge = {},
             onAccept = {},
             onDecline = {},
             onWrongData = {},
@@ -439,10 +476,13 @@ private fun CredentialOfferLargeContentPreview() {
                     trustStatus = TrustStatus.TRUSTED,
                     vcSchemaTrustStatus = VcSchemaTrustStatus.TRUSTED,
                     actorType = ActorType.ISSUER,
+                    nonComplianceState = NonComplianceState.REPORTED,
+                    nonComplianceReason = "report reason",
                 ),
                 credential = CredentialMocks.cardState01,
                 claims = CredentialMocks.clusterList,
             ),
+            onBadge = {},
             onAccept = {},
             onDecline = {},
             onWrongData = {},

@@ -167,7 +167,7 @@ class HomeViewModel @Inject constructor(
     }
 
     fun onObtainConsent(caseId: String) {
-        navigateTo(EIdGuardianSelectionScreenDestination(sIdCaseId = caseId))
+        navigateTo(EIdGuardianSelectionScreenDestination(caseId = caseId))
     }
 
     fun onCloseEId(caseId: String) {

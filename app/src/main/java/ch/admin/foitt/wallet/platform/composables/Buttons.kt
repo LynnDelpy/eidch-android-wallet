@@ -349,17 +349,19 @@ private fun ButtonContent(
     activeText: String? = null,
     isActive: Boolean = false,
 ) {
+    if (isActive) {
+        CircularProgressIndicator(
+            color = LocalContentColor.current,
+            strokeWidth = Sizes.line02,
+            modifier = Modifier
+                .width(Sizes.s04)
+                .height(Sizes.s04)
+                .focusable(false)
+        )
+        Spacer(modifier = Modifier.width(Sizes.s02))
+    }
     startIcon?.let { icon ->
-        if (isActive) {
-            CircularProgressIndicator(
-                color = LocalContentColor.current,
-                strokeWidth = Sizes.line02,
-                modifier = Modifier
-                    .width(Sizes.s04)
-                    .height(Sizes.s04)
-                    .focusable(false)
-            )
-        } else {
+        if (!isActive) {
             Icon(
                 painter = icon,
                 contentDescription = null,
@@ -368,7 +370,6 @@ private fun ButtonContent(
                     .focusable(false)
             )
         }
-
         Spacer(modifier = Modifier.width(Sizes.s02))
     }
     WalletTexts.Button(
@@ -407,8 +408,11 @@ private fun BottomButtonPreview() {
             verticalArrangement = Arrangement.spacedBy(Sizes.s03)
         ) {
             Buttons.FilledPrimary(text = "Click Me Primary", onClick = {})
+            Buttons.FilledPrimary(text = "Primary Disable", onClick = {}, enabled = false)
             Buttons.TonalSecondary(text = "Click Me Secondary", onClick = {})
+            Buttons.TonalSecondary(text = "Secondary Disable", onClick = {}, enabled = false)
             Buttons.FilledTertiary(text = "Click Me Tertiary", onClick = {})
+            Buttons.FilledTertiary(text = "Tertiary Disable", onClick = {}, enabled = false)
             Buttons.FilledTertiary(
                 text = "Click Me with icon",
                 onClick = {},

@@ -7,13 +7,11 @@ import ch.admin.foitt.wallet.platform.appAttestation.domain.repository.AppAttest
 import ch.admin.foitt.wallet.platform.appAttestation.domain.repository.AppIntegrityRepository
 import ch.admin.foitt.wallet.platform.appAttestation.domain.repository.CurrentClientAttestationRepository
 import ch.admin.foitt.wallet.platform.appAttestation.domain.usecase.GenerateProofOfPossession
-import ch.admin.foitt.wallet.platform.appAttestation.domain.usecase.GetCurrentClientAttestation
 import ch.admin.foitt.wallet.platform.appAttestation.domain.usecase.RequestClientAttestation
 import ch.admin.foitt.wallet.platform.appAttestation.domain.usecase.RequestKeyAttestation
 import ch.admin.foitt.wallet.platform.appAttestation.domain.usecase.ValidateClientAttestation
 import ch.admin.foitt.wallet.platform.appAttestation.domain.usecase.ValidateKeyAttestation
 import ch.admin.foitt.wallet.platform.appAttestation.domain.usecase.implementation.GenerateProofOfPossessionImpl
-import ch.admin.foitt.wallet.platform.appAttestation.domain.usecase.implementation.GetCurrentClientAttestationImpl
 import ch.admin.foitt.wallet.platform.appAttestation.domain.usecase.implementation.RequestClientAttestationImpl
 import ch.admin.foitt.wallet.platform.appAttestation.domain.usecase.implementation.RequestKeyAttestationImpl
 import ch.admin.foitt.wallet.platform.appAttestation.domain.usecase.implementation.ValidateClientAttestationImpl
@@ -60,11 +58,6 @@ internal interface AppAttestationModule {
     fun bindCurrentClientAttestationRepository(
         repo: CurrentClientAttestationRepositoryImpl
     ): CurrentClientAttestationRepository
-
-    @Binds
-    fun bindGetCurrentClientAttestation(
-        useCase: GetCurrentClientAttestationImpl
-    ): GetCurrentClientAttestation
 
     @Binds
     fun bindGenerateProofOfPossession(

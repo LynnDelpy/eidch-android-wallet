@@ -27,6 +27,9 @@ object Sizes {
     val credentialSmallHeight = s24
     val credentialSmallWidth = 72.dp
 
+    val credentialVerySmallHeight = s16
+    val credentialVerySmallWidth = s12
+
     val credentialVerySmallSquare = 34.dp
 
     val noCredentialThumbnailWidth = 52.dp
@@ -59,4 +62,6 @@ object Sizes {
     val maxTextWidth = 400.dp
 
     val homeMenuMinWidth = 200.dp
+
+    val maxClusterWidth = 600.dp
 }

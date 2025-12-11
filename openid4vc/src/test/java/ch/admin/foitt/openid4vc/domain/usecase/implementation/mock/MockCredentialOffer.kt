@@ -58,7 +58,7 @@ internal object MockCredentialOffer {
         credentialIssuer = CREDENTIAL_ISSUER,
         credentialConfigurations = listOf(vcSdJwtCredentialConfiguration),
         credentialResponseEncryption = null,
-        display = listOf()
+        display = listOf(),
     )
 
     const val KEY_ID = "keyId"

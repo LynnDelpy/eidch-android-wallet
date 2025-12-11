@@ -9,5 +9,5 @@ interface RequestClientAttestation {
     suspend operator fun invoke(
         keyAlias: String = ClientAttestation.KEY_ALIAS,
         signingAlgorithm: SigningAlgorithm = ClientAttestation.SIGNING_ALGORITHM,
-    ): Result<Unit, RequestClientAttestationError>
+    ): Result<ClientAttestation, RequestClientAttestationError>
 }

@@ -5,22 +5,22 @@ import ch.admin.foitt.wallet.platform.oca.domain.model.OcaClaimData
 import ch.admin.foitt.wallet.platform.oca.domain.model.overlays.DataSourceOverlay1x0
 import ch.admin.foitt.wallet.platform.oca.domain.usecase.GenerateOcaClaimData
 import ch.admin.foitt.wallet.platform.oca.domain.usecase.implementation.GenerateOcaClaimDataImpl
-import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ATTRIBUTE_KEY_ADDRESS_STREET
-import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ATTRIBUTE_KEY_AGE
-import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ATTRIBUTE_KEY_FIRSTNAME
-import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ATTRIBUTE_KEY_NAME
-import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ATTRIBUTE_LABEL_AGE_DE
-import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ATTRIBUTE_LABEL_AGE_EN
-import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ATTRIBUTE_LABEL_FIRSTNAME_DE
-import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ATTRIBUTE_LABEL_FIRSTNAME_EN
-import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.CREDENTIAL_FORMAT
-import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.DIGEST
-import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.JSON_PATH_AGE
-import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.JSON_PATH_FIRSTNAME
-import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.LANGUAGE_DE
-import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.LANGUAGE_EN
-import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ocaNested
-import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ocaSimple
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.OcaMocks.ATTRIBUTE_KEY_ADDRESS_STREET
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.OcaMocks.ATTRIBUTE_KEY_AGE
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.OcaMocks.ATTRIBUTE_KEY_FIRSTNAME
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.OcaMocks.ATTRIBUTE_KEY_NAME
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.OcaMocks.ATTRIBUTE_LABEL_AGE_DE
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.OcaMocks.ATTRIBUTE_LABEL_AGE_EN
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.OcaMocks.ATTRIBUTE_LABEL_FIRSTNAME_DE
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.OcaMocks.ATTRIBUTE_LABEL_FIRSTNAME_EN
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.OcaMocks.CREDENTIAL_FORMAT
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.OcaMocks.DIGEST
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.OcaMocks.JSON_PATH_AGE
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.OcaMocks.JSON_PATH_FIRSTNAME
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.OcaMocks.LANGUAGE_DE
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.OcaMocks.LANGUAGE_EN
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.OcaMocks.ocaNested
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.OcaMocks.ocaSimple
 import io.mockk.MockKAnnotations
 import io.mockk.unmockkAll
 import kotlinx.coroutines.test.runTest
@@ -77,6 +77,7 @@ class OcaBundleTest {
                 attributeType = AttributeType.Text,
                 labels = expectedLabelsFirstname,
                 dataSources = expectedDataSourcesFirstname,
+                isSensitive = false
             ),
             JSON_PATH_AGE to OcaClaimData(
                 captureBaseDigest = DIGEST,
@@ -84,6 +85,7 @@ class OcaBundleTest {
                 attributeType = AttributeType.Numeric,
                 labels = expectedLabelsAge,
                 dataSources = expectedDataSourcesAge,
+                isSensitive = false
             )
         )
 

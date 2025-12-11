@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 import ch.admin.foitt.wallet.R
 import ch.admin.foitt.wallet.platform.database.domain.model.DisplayLanguage
+import ch.admin.foitt.wallet.platform.locale.LocaleCompat
 import ch.admin.foitt.wallet.platform.locale.domain.usecase.GetCurrentAppLocale
 import ch.admin.foitt.wallet.platform.locale.domain.usecase.GetSupportedAppLocales
 import ch.admin.foitt.wallet.platform.navigation.NavigationManager
@@ -28,7 +29,7 @@ class LanguageViewModel @Inject constructor(
 
     override val topBarState = TopBarState.Details(navManager::popBackStack, R.string.tk_settings_language_title)
 
-    private val defaultLocale = Locale(DisplayLanguage.DEFAULT)
+    private val defaultLocale = LocaleCompat.of(DisplayLanguage.DEFAULT, DisplayLanguage.DEFAULT_COUNTRY)
 
     private var _selectedLocale = MutableStateFlow(defaultLocale)
     val selectedLocale = _selectedLocale.asStateFlow()
@@ -58,9 +59,8 @@ class LanguageViewModel @Inject constructor(
         _isSystemLocale.value = true
         val supportedLanguages = getSupportedAppLocales().map { it.language }.toSet()
         val systemLocales = Resources.getSystem().configuration.locales.toListOfLocales()
-        val systemLanguages = systemLocales.map { it.language }
-        val preferredLanguage = systemLanguages.intersect(supportedLanguages).firstOrNull() ?: defaultLocale.language
-        return Locale(preferredLanguage)
+        val preferredLocale = systemLocales.firstOrNull { it.language in supportedLanguages } ?: defaultLocale
+        return preferredLocale
     }
 
     private fun useAppSpecificLocale(): Locale {

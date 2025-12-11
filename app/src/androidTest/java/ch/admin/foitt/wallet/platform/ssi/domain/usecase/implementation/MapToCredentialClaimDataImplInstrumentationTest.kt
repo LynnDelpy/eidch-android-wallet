@@ -1,5 +1,6 @@
 package ch.admin.foitt.wallet.platform.ssi.domain.usecase.implementation
 
+import ch.admin.foitt.wallet.platform.locale.LocaleCompat
 import ch.admin.foitt.wallet.platform.locale.domain.usecase.GetCurrentAppLocale
 import ch.admin.foitt.wallet.platform.locale.domain.usecase.GetLocalizedDisplay
 import ch.admin.foitt.wallet.platform.ssi.domain.model.CredentialClaimText
@@ -26,7 +27,6 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import java.time.ZoneId
-import java.util.Locale
 import java.util.TimeZone
 
 @RunWith(Parameterized::class)
@@ -69,7 +69,7 @@ class MapToCredentialClaimDataImplInstrumentationTest(
 
     @Test
     fun runDataTest() = runTest {
-        coEvery { mockGetCurrentAppLocale.invoke() } returns Locale(locale)
+        coEvery { mockGetCurrentAppLocale.invoke() } returns LocaleCompat.of(locale)
 
         val claimWithDateTime = buildClaimWithDateTime(
             value = value,

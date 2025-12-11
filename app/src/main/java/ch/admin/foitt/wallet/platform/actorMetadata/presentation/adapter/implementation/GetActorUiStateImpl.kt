@@ -21,6 +21,7 @@ internal class GetActorUiStateImpl @Inject constructor(
     ): ActorUiState {
         val actorName: String? = actorDisplayData.getLocalizedName()
         val actorDataLogo: Painter? = actorDisplayData.getLocalizedIcon()
+        val localizedNonComplianceReason = actorDisplayData.getLocalizedReason()
 
         return ActorUiState(
             name = actorName,
@@ -28,6 +29,8 @@ internal class GetActorUiStateImpl @Inject constructor(
             trustStatus = actorDisplayData.trustStatus,
             vcSchemaTrustStatus = actorDisplayData.vcSchemaTrustStatus,
             actorType = actorDisplayData.actorType,
+            nonComplianceState = actorDisplayData.nonComplianceState,
+            nonComplianceReason = localizedNonComplianceReason,
         )
     }
 
@@ -53,5 +56,12 @@ internal class GetActorUiStateImpl @Inject constructor(
         )
     }?.let {
         getDrawableFromUri(it.value)?.toPainter()
+    }
+
+    private fun ActorDisplayData.getLocalizedReason(): String? = nonComplianceReason?.let {
+        getLocalizedDisplay(
+            displays = nonComplianceReason,
+            preferredLocale = preferredLanguage,
+        )?.value
     }
 }

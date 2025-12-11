@@ -5,7 +5,7 @@ import ch.admin.foitt.wallet.platform.oca.domain.model.CaptureBase1x0
 import ch.admin.foitt.wallet.platform.oca.domain.model.OcaBundle
 import ch.admin.foitt.wallet.platform.oca.domain.model.OcaError
 import ch.admin.foitt.wallet.platform.oca.domain.usecase.GetRootCaptureBase
-import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.elfaExample
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.elfaExample
 import ch.admin.foitt.wallet.util.SafeJsonTestInstance
 import ch.admin.foitt.wallet.util.assertErrorType
 import ch.admin.foitt.wallet.util.assertOk

@@ -14,7 +14,7 @@ object WalletButtonColors {
         containerColor = WalletTheme.colorScheme.primary,
         contentColor = WalletTheme.colorScheme.onPrimary,
         disabledContainerColor = WalletTheme.colorScheme.onSurface.copy(alpha = 0.12f),
-        disabledContentColor = WalletTheme.colorScheme.onSurface,
+        disabledContentColor = WalletTheme.colorScheme.onSurface.copy(alpha = 0.38f),
     )
 
     @Composable
@@ -62,7 +62,7 @@ object WalletButtonColors {
         containerColor = WalletTheme.colorScheme.tertiary,
         contentColor = WalletTheme.colorScheme.onTertiary,
         disabledContainerColor = WalletTheme.colorScheme.onSurface.copy(alpha = 0.12f),
-        disabledContentColor = WalletTheme.colorScheme.onSurface,
+        disabledContentColor = WalletTheme.colorScheme.onSurface.copy(alpha = 0.38f),
     )
 
     @Composable
@@ -70,7 +70,7 @@ object WalletButtonColors {
         containerColor = WalletTheme.colorScheme.secondaryContainer,
         contentColor = WalletTheme.colorScheme.onSecondaryContainer,
         disabledContainerColor = WalletTheme.colorScheme.onSurface.copy(alpha = 0.12f),
-        disabledContentColor = WalletTheme.colorScheme.onSurface.copy(alpha = 0.12f),
+        disabledContentColor = WalletTheme.colorScheme.onSurface.copy(alpha = 0.38f),
     )
 
     @Composable
@@ -85,6 +85,14 @@ object WalletButtonColors {
     fun text(): ButtonColors = ButtonDefaults.textButtonColors(
         containerColor = WalletTheme.colorScheme.primary.copy(alpha = 0f),
         contentColor = WalletTheme.colorScheme.primary,
+        disabledContainerColor = WalletTheme.colorScheme.primary.copy(alpha = 0f),
+        disabledContentColor = WalletTheme.colorScheme.onSurface,
+    )
+
+    @Composable
+    fun textError(): ButtonColors = ButtonDefaults.textButtonColors(
+        containerColor = WalletTheme.colorScheme.background,
+        contentColor = WalletTheme.colorScheme.error,
         disabledContainerColor = WalletTheme.colorScheme.primary.copy(alpha = 0f),
         disabledContentColor = WalletTheme.colorScheme.onSurface,
     )

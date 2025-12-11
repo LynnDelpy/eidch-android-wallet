@@ -4,34 +4,38 @@ import ch.admin.foitt.wallet.platform.oca.domain.model.AttributeType
 import ch.admin.foitt.wallet.platform.oca.domain.model.overlays.CharacterEncoding
 import ch.admin.foitt.wallet.platform.oca.domain.model.overlays.Standard
 import ch.admin.foitt.wallet.platform.oca.domain.usecase.GenerateOcaClaimData
-import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ATTRIBUTE_KEY_AGE
-import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ATTRIBUTE_KEY_FIRSTNAME
-import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ATTRIBUTE_LABEL_AGE_DE
-import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ATTRIBUTE_LABEL_AGE_EN
-import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ATTRIBUTE_LABEL_FIRSTNAME_DE
-import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ATTRIBUTE_LABEL_FIRSTNAME_EN
-import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.CREDENTIAL_FORMAT
-import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.DIGEST
-import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ENTRY_CODE_A
-import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ENTRY_CODE_A_DE
-import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ENTRY_CODE_A_EN
-import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ENTRY_CODE_B
-import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ENTRY_CODE_B_DE
-import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ENTRY_CODE_B_EN
-import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.FORMAT
-import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.JSON_PATH_AGE
-import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.JSON_PATH_FIRSTNAME
-import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.LANGUAGE_DE
-import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.LANGUAGE_EN
-import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.UNKNOWN_ENCODING
-import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ocaSimpleDataSource
-import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ocaSimpleEncoding
-import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ocaSimpleEncodingNoDefault
-import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ocaSimpleEntry
-import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ocaSimpleFormat
-import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ocaSimpleLabel
-import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ocaSimpleOrder
-import ch.admin.foitt.wallet.platform.oca.mock.OcaMocks.ocaSimpleStandard
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.OcaMocks.ATTRIBUTE_KEY_AGE
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.OcaMocks.ATTRIBUTE_KEY_FIRSTNAME
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.OcaMocks.ATTRIBUTE_KEY_LASTNAME
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.OcaMocks.ATTRIBUTE_KEY_NAME
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.OcaMocks.ATTRIBUTE_KEY_RACE
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.OcaMocks.ATTRIBUTE_LABEL_AGE_DE
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.OcaMocks.ATTRIBUTE_LABEL_AGE_EN
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.OcaMocks.ATTRIBUTE_LABEL_FIRSTNAME_DE
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.OcaMocks.ATTRIBUTE_LABEL_FIRSTNAME_EN
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.OcaMocks.CREDENTIAL_FORMAT
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.OcaMocks.DIGEST
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.OcaMocks.ENTRY_CODE_A
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.OcaMocks.ENTRY_CODE_A_DE
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.OcaMocks.ENTRY_CODE_A_EN
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.OcaMocks.ENTRY_CODE_B
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.OcaMocks.ENTRY_CODE_B_DE
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.OcaMocks.ENTRY_CODE_B_EN
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.OcaMocks.FORMAT
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.OcaMocks.JSON_PATH_AGE
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.OcaMocks.JSON_PATH_FIRSTNAME
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.OcaMocks.LANGUAGE_DE
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.OcaMocks.LANGUAGE_EN
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.OcaMocks.UNKNOWN_ENCODING
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.OcaMocks.ocaSensitiveEntry
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.OcaMocks.ocaSimpleDataSource
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.OcaMocks.ocaSimpleEncoding
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.OcaMocks.ocaSimpleEncodingNoDefault
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.OcaMocks.ocaSimpleEntry
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.OcaMocks.ocaSimpleFormat
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.OcaMocks.ocaSimpleLabel
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.OcaMocks.ocaSimpleOrder
+import ch.admin.foitt.wallet.platform.oca.mock.ocaMocks.OcaMocks.ocaSimpleStandard
 import io.mockk.MockKAnnotations
 import io.mockk.unmockkAll
 import kotlinx.coroutines.test.runTest
@@ -214,5 +218,18 @@ class GenerateOcaClaimDataImplTest {
 
         assertEquals(DIGEST, ocaClaimData[1].captureBaseDigest)
         assertEquals(expectedEntriesAge, ocaClaimData[1].entryMappings)
+    }
+
+    @Test
+    fun `Generator correctly generates all sensitive attributes`() = runTest {
+        val ocaClaimData = useCase(overlays = ocaSensitiveEntry.overlays, captureBases = ocaSensitiveEntry.captureBases)
+
+        assertEquals(7, ocaClaimData.size)
+
+        val sensitiveAttributes =
+            listOf(ATTRIBUTE_KEY_FIRSTNAME, ATTRIBUTE_KEY_AGE, ATTRIBUTE_KEY_NAME, ATTRIBUTE_KEY_RACE, ATTRIBUTE_KEY_LASTNAME)
+
+        assertEquals(DIGEST, ocaClaimData[0].captureBaseDigest)
+        assertEquals(sensitiveAttributes, ocaClaimData.filter { it.isSensitive }.map { it.name })
     }
 }

@@ -14,7 +14,7 @@ fun OnResumeEventHandler(
     val lifecycleOwner = LocalLifecycleOwner.current
 
     DisposableEffect(lifecycleOwner) {
-        Timber.d("EventObserver: Setup DisposableEffect")
+        Timber.d("EventObserver: Setup OnResume DisposableEffect")
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 Timber.d("EventObserver: OnResume()")

@@ -2,6 +2,7 @@ package ch.admin.foitt.wallet.architectureTests
 
 import ch.admin.foitt.wallet.app.MainActivity
 import ch.admin.foitt.wallet.app.WalletApplication
+import ch.admin.foitt.wallet.util.assertTrue
 import com.lemonappdev.konsist.api.Konsist
 import com.lemonappdev.konsist.api.ext.list.functions
 import com.lemonappdev.konsist.api.ext.list.modifierprovider.withOpenModifier
@@ -27,6 +28,21 @@ class GeneralCodingKonsistTest {
                     annotation.fullyQualifiedName == "org.junit.Test"
                 }
             }
+    }
+
+    @Test
+    fun `Database must use sqlcipher SupportOpenHelperFactory`() {
+        // This only tests for the import of the sqlcipher.SupportOpenHelperFactory
+        // Actual use of it is tested by Detekt that will throw an error when imports are not used
+        val hasCorrectImport = Konsist
+            .scopeFromFile("app/src/main/java/ch/admin/foitt/wallet/platform/database/data/SqlCipherDatabaseInitializer.kt")
+            .imports
+            .any {
+                it.name == "net.zetetic.database.sqlcipher.SupportOpenHelperFactory"
+            }
+        assertTrue(hasCorrectImport) {
+            "SqlCipherDatabaseInitializer must import and use sqlcipher.SupportOpenHelperFactory"
+        }
     }
 
     @Test
@@ -142,7 +158,8 @@ class GeneralCodingKonsistTest {
                         }
                     },
                     DynamicTest.dynamicTest("${file.name}: kotlinx.serialization.json.Json methods should not be used") {
-                        val exceptions = listOf("SafeJson", "OpenId4VcModule", "UtilModule", "Jwt", "SdJwt")
+                        val exceptions =
+                            listOf("SafeJson", "OpenId4VcModule", "UtilModule", "VersionEnforcementModule", "Jwt", "SdJwt")
                         if (!file.hasClassWithName(names = exceptions)) {
                             file.assertFalse(additionalMessage = "use methods from 'SafeJson' instead") { fileDeclaration ->
                                 fileDeclaration.hasImport { import ->

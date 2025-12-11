@@ -10,6 +10,8 @@ import ch.admin.foitt.openid4vc.domain.model.vcSdJwt.VcSdJwtCredential
 import ch.admin.foitt.openid4vc.domain.usecase.FetchCredentialByConfig
 import ch.admin.foitt.openid4vc.domain.usecase.FetchRawAndParsedIssuerCredentialInfo
 import ch.admin.foitt.openid4vc.domain.usecase.GetVerifiableCredentialParams
+import ch.admin.foitt.wallet.platform.actorEnvironment.domain.model.ActorEnvironment
+import ch.admin.foitt.wallet.platform.actorEnvironment.domain.usecase.GetActorEnvironment
 import ch.admin.foitt.wallet.platform.actorMetadata.domain.usecase.CacheIssuerDisplayData
 import ch.admin.foitt.wallet.platform.credential.domain.model.AnyDisplays
 import ch.admin.foitt.wallet.platform.credential.domain.model.CredentialError
@@ -32,9 +34,11 @@ import ch.admin.foitt.wallet.platform.credential.domain.usecase.implementation.m
 import ch.admin.foitt.wallet.platform.credential.domain.usecase.implementation.mock.MockFetchCredential.verifiableCredentialParamsHardwareBinding
 import ch.admin.foitt.wallet.platform.credential.domain.usecase.implementation.mock.MockFetchCredential.verifiableCredentialParamsNoBinding
 import ch.admin.foitt.wallet.platform.credential.domain.usecase.implementation.mock.MockFetchCredential.verifiableCredentialParamsSoftwareBinding
+import ch.admin.foitt.wallet.platform.credential.domain.usecase.implementation.mock.MockNonComplianceData.nonComplianceData
 import ch.admin.foitt.wallet.platform.environmentSetup.domain.repository.EnvironmentSetupRepository
 import ch.admin.foitt.wallet.platform.holderBinding.domain.model.KeyPairError
 import ch.admin.foitt.wallet.platform.holderBinding.domain.usecase.GenerateKeyPair
+import ch.admin.foitt.wallet.platform.nonCompliance.domain.usecase.FetchNonComplianceData
 import ch.admin.foitt.wallet.platform.oca.domain.model.OcaBundle
 import ch.admin.foitt.wallet.platform.oca.domain.model.OcaError
 import ch.admin.foitt.wallet.platform.oca.domain.model.RawOcaBundle
@@ -68,6 +72,10 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.MethodSource
+import java.util.stream.Stream
 import ch.admin.foitt.openid4vc.domain.model.credentialoffer.CredentialOfferError as OpenIdCredentialOfferError
 
 class FetchAndSaveCredentialImplTest {
@@ -84,6 +92,9 @@ class FetchAndSaveCredentialImplTest {
     private lateinit var mockFetchCredentialByConfig: FetchCredentialByConfig
 
     @MockK
+    private lateinit var mockFetchNonComplianceData: FetchNonComplianceData
+
+    @MockK
     private lateinit var mockFetchVcMetadataByFormat: FetchVcMetadataByFormat
 
     @MockK
@@ -94,6 +105,9 @@ class FetchAndSaveCredentialImplTest {
 
     @MockK
     private lateinit var mockProcessMetadataV1TrustStatement: ProcessMetadataV1TrustStatement
+
+    @MockK
+    private lateinit var mockGetActorEnvironment: GetActorEnvironment
 
     @MockK
     private lateinit var mockProcessIdentityV1TrustStatement: ProcessIdentityV1TrustStatement
@@ -130,10 +144,12 @@ class FetchAndSaveCredentialImplTest {
             getVerifiableCredentialParams = mockGetVerifiableCredentialParams,
             generateKeyPair = mockGenerateKeyPair,
             fetchCredentialByConfig = mockFetchCredentialByConfig,
+            fetchNonComplianceData = mockFetchNonComplianceData,
             fetchVcMetadataByFormat = mockFetchVcMetadataByFormat,
             ocaBundler = mockOcaBundler,
             environmentSetupRepository = mockEnvironmentSetupRepository,
             processMetadataV1TrustStatement = mockProcessMetadataV1TrustStatement,
+            getActorEnvironment = mockGetActorEnvironment,
             processIdentityV1TrustStatement = mockProcessIdentityV1TrustStatement,
             fetchVcSchemaTrustStatus = mockFetchVcSchemaTrustStatus,
             generateAnyDisplays = mockGenerateAnyDisplays,
@@ -184,8 +200,9 @@ class FetchAndSaveCredentialImplTest {
                 ocaBundle = ocaBundle
             )
             mockCacheIssuerDisplayData(
-                TrustCheckResult(mockIdentityTrustStatement, VcSchemaTrustStatus.TRUSTED),
+                TrustCheckResult(ActorEnvironment.PRODUCTION, mockIdentityTrustStatement, VcSchemaTrustStatus.TRUSTED),
                 anyDisplays.issuerDisplays,
+                nonComplianceData,
             )
             mockSaveCredential(mockVcSdJwtCredential, anyDisplays, any())
         }
@@ -381,6 +398,36 @@ class FetchAndSaveCredentialImplTest {
         }
     }
 
+    @ParameterizedTest
+    @MethodSource("fetchTrustInputs")
+    fun `Fetching and saving credential fetches metadataV1 trust statement only for swiyu ecosystem issuers`(
+        actorEnvironment: ActorEnvironment,
+    ) = runTest {
+        coEvery { mockEnvironmentSetupRepository.useMetadataV1TrustStatement } returns true
+        coEvery { mockGetActorEnvironment(ISSUER_DID) } returns actorEnvironment
+
+        useCase(oneIdentifierCredentialOffer).assertOk()
+
+        coVerify(exactly = 1) {
+            mockProcessMetadataV1TrustStatement(ISSUER_DID)
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("dontFetchTrustInputs")
+    fun `Fetching and saving credential does not fetch metadataV1 trust statement for not swiyu ecosystem issuers`(
+        actorEnvironment: ActorEnvironment,
+    ) = runTest {
+        coEvery { mockEnvironmentSetupRepository.useMetadataV1TrustStatement } returns true
+        coEvery { mockGetActorEnvironment(ISSUER_DID) } returns actorEnvironment
+
+        useCase(oneIdentifierCredentialOffer).assertOk()
+
+        coVerify(exactly = 0) {
+            mockProcessMetadataV1TrustStatement(ISSUER_DID)
+        }
+    }
+
     @Test
     fun `Fetching and saving credential uses identityV1 trust statement if feature flag is set`() = runTest {
         coEvery { mockEnvironmentSetupRepository.useMetadataV1TrustStatement } returns false
@@ -398,6 +445,39 @@ class FetchAndSaveCredentialImplTest {
 
         coVerify(exactly = 0) {
             mockProcessMetadataV1TrustStatement(any())
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("fetchTrustInputs")
+    fun `Fetching and saving credential fetches identityV1 trust statement only for swiyu ecosystem issuers`(
+        actorEnvironment: ActorEnvironment,
+    ) = runTest {
+        coEvery { mockGetActorEnvironment(ISSUER_DID) } returns actorEnvironment
+
+        useCase(oneIdentifierCredentialOffer).assertOk()
+
+        coVerify(exactly = 1) {
+            mockProcessIdentityV1TrustStatement(ISSUER_DID)
+            mockFetchVcSchemaTrustStatus(
+                trustStatementActor = TrustStatementActor.ISSUER,
+                actorDid = ISSUER_DID,
+                vcSchemaId = VC_SCHEMA_ID,
+            )
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("dontFetchTrustInputs")
+    fun `Fetching and saving credential does not fetch identityV1 trust statement for not swiyu ecosystem issuers`(
+        actorEnvironment: ActorEnvironment,
+    ) = runTest {
+        coEvery { mockGetActorEnvironment(ISSUER_DID) } returns actorEnvironment
+
+        useCase(oneIdentifierCredentialOffer).assertOk()
+
+        coVerify(exactly = 0) {
+            mockProcessIdentityV1TrustStatement(ISSUER_DID)
         }
     }
 
@@ -433,13 +513,14 @@ class FetchAndSaveCredentialImplTest {
         useCase(oneIdentifierCredentialOffer).assertOk()
 
         val expectedTrustCheckResult = TrustCheckResult(
+            actorEnvironment = ActorEnvironment.PRODUCTION,
             actorTrustStatement = null,
             vcSchemaTrustStatus = VcSchemaTrustStatus.TRUSTED,
         )
 
         coVerify {
             mockGenerateAnyDisplays(any(), any(), null, any(), any())
-            mockCacheIssuerDisplayData(expectedTrustCheckResult, any())
+            mockCacheIssuerDisplayData(expectedTrustCheckResult, any(), any())
         }
     }
 
@@ -491,11 +572,15 @@ class FetchAndSaveCredentialImplTest {
             mockFetchCredentialByConfig(any(), any(), any())
         } returns Ok(mockVcSdJwtCredential)
 
+        coEvery { mockFetchNonComplianceData(ISSUER_DID) } returns nonComplianceData
+
         coEvery { mockFetchVcMetadataByFormat(mockVcSdJwtCredential) } returns Ok(vcMetadata)
 
         coEvery { mockOcaBundler(any()) } returns Ok(ocaBundle)
 
         every { mockEnvironmentSetupRepository.useMetadataV1TrustStatement } returns false
+
+        coEvery { mockGetActorEnvironment(ISSUER_DID) } returns ActorEnvironment.PRODUCTION
 
         every { mockMetadataTrustStatement.orgName } returns orgNames
         every { mockIdentityTrustStatement.entityName } returns orgNames
@@ -522,7 +607,7 @@ class FetchAndSaveCredentialImplTest {
             )
         } returns Ok(anyDisplays)
 
-        coEvery { mockCacheIssuerDisplayData(any(), any()) } just Runs
+        coEvery { mockCacheIssuerDisplayData(any(), any(), any()) } just Runs
 
         coEvery {
             mockSaveCredential(
@@ -555,5 +640,16 @@ class FetchAndSaveCredentialImplTest {
         val vcMetadata = VcMetadata(vcSchema = VcSchema(VC_SCHEMA), rawOcaBundle = RawOcaBundle(RAW_OCA_BUNDLE))
         val ocaBundle = OcaBundle(emptyList(), emptyList())
         val anyDisplays = AnyDisplays(emptyList(), emptyList(), emptyList())
+
+        @JvmStatic
+        fun fetchTrustInputs(): Stream<Arguments> = Stream.of(
+            Arguments.of(ActorEnvironment.PRODUCTION),
+            Arguments.of(ActorEnvironment.BETA),
+        )
+
+        @JvmStatic
+        fun dontFetchTrustInputs(): Stream<Arguments> = Stream.of(
+            Arguments.of(ActorEnvironment.EXTERNAL),
+        )
     }
 }

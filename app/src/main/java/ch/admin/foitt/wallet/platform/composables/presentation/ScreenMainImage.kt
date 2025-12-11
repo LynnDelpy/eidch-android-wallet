@@ -48,9 +48,9 @@ fun ScreenMainImage(
 
 @Composable
 fun ScreenMainImage(
-    modifier: Modifier = Modifier,
     @DrawableRes iconRes: Int,
-    backgroundColor: Color,
+    modifier: Modifier = Modifier,
+    backgroundColor: Color = WalletTheme.colorScheme.surfaceContainerLow,
 ) = Box(
     modifier = modifier
         .fillMaxSize()

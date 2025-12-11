@@ -145,7 +145,7 @@ class GetVerifiableCredentialParamsImplTest {
 
     @Test
     fun `when multiple cryptographic binding methods are given use first`() = runTest {
-        val methods = listOf(MockIssuerCredentialConfiguration.DID_JWK_BINDING_METHOD, "other")
+        val methods = listOf(MockIssuerCredentialConfiguration.JWK_BINDING_METHOD, "other")
         useCase(
             credentialConfiguration = vcSdJwtCredentialConfiguration.copy(cryptographicBindingMethodsSupported = methods),
             credentialOffer = offerWithPreAuthorizedCode,
